@@ -323,27 +323,34 @@ void init_wall( struct wallpaper *w )
 int* parse_color( char *col )
 {
     int *rgb = malloc(3 * sizeof(int)); verify(rgb);
-    if (col[0] == '#' && strlen(col) == 7) {
+    if (col[0] == '#') {
         char *rr = malloc(3 * sizeof(char)); verify(rr);
         char *gg = malloc(3 * sizeof(char)); verify(gg);
         char *bb = malloc(3 * sizeof(char)); verify(bb);
         strncpy(rr, &(col[1]), 3); // don't forget that null byte!
         strncpy(gg, &(col[3]), 3);
         strncpy(bb, &(col[5]), 3);
-        rgb[0] = abs(hextoint(rr) % 256);
-        rgb[1] = abs(hextoint(gg) % 256);
-        rgb[2] = abs(hextoint(bb) % 256);
+        rgb[0] = hextoint(rr);
+        rgb[1] = hextoint(gg);
+        rgb[2] = hextoint(bb);
+        if (!(rgb[0] >= 0 && rgb[0] <= 255) ||
+            !(rgb[1] >= 0 && rgb[1] <= 255) ||
+            !(rgb[2] >= 0 && rgb[2] <= 255)) {
+
+            printf("Invalid hex code %s; defaulting to #000000.\n", col);
+            rgb[0] = rgb[1] = rgb[2] = 0;
+        }
         clean(rr); clean(gg); clean(bb);
-        return rgb;
-    }
-    XColor c;
-    if (XParseColor(XDPY, COLORMAP, col, &c)) {
-        rgb[0] = c.red   / 257; // XParseColor returns from 0 to 65535
-        rgb[1] = c.green / 257;
-        rgb[2] = c.blue  / 257;
     } else {
-        printf("Invalid color %s; defaulting to black (#000000).\n", col);
-        rgb[0] = rgb[1] = rgb[2] = 0;
+        XColor c;
+        if (XParseColor(XDPY, COLORMAP, col, &c)) {
+            rgb[0] = c.red   / 257; // XParseColor returns from 0 to 65535
+            rgb[1] = c.green / 257;
+            rgb[2] = c.blue  / 257;
+        } else {
+            printf("Invalid color %s; defaulting to black.\n", col);
+            rgb[0] = rgb[1] = rgb[2] = 0;
+        }
     }
     return rgb;
 }
