@@ -13,6 +13,7 @@ all:
 	${CC} ${CFLAGS} ${SRC} ${INCLUDES} ${LIBS} -o ${NAME}
 
 install: all
+	mkdir -p ${DESTDIR}${PREFIX}
 	cp ${NAME} ${DESTDIR}${PREFIX}
 
 uninstall:
