@@ -262,7 +262,6 @@ void store_wall( int argc, char** line )
     FILE *f = fopen(fn, "w");
     if (!f) {
         fprintf(stderr, "Could not write to file %s.\n", fn);
-        fclose(f);
         exit(1);
     }
     int i;
@@ -279,7 +278,6 @@ void restore_wall()
     FILE *f = fopen(strcat(getenv("HOME"),"/.setroot-restore"), "r");
     if (!f) {
         fprintf(stderr, "Could not find file $HOME/.setroot-restore.\n");
-        fclose(f);
         exit(1);
     }
     size_t n = 0;
@@ -331,6 +329,7 @@ int* parse_color( char *col )
         strncpy(gg, &(col[3]), 3);
         strncpy(bb, &(col[5]), 3);
         rgb[0] = (HEXTOINT(rr) % 256);
+		printf("%d\n", rgb[0]);
         rgb[1] = (HEXTOINT(gg) % 256);
         rgb[2] = (HEXTOINT(bb) % 256);
         clean(rr); clean(gg); clean(bb);
@@ -338,7 +337,7 @@ int* parse_color( char *col )
     }
     XColor c;
     if (XParseColor(XDPY, COLORMAP, col, &c)) {
-        rgb[0] = c.red   / 257;
+        rgb[0] = c.red   / 257; // XParseColor returns from 0 to 65535
         rgb[1] = c.green / 257;
         rgb[2] = c.blue  / 257;
     } else {
