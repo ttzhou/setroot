@@ -1,5 +1,4 @@
-PREFIX     = /usr/local/bin
-MANPREFIX  = $(PREFIX)/share/man
+DESTDIR    = /usr/local/bin
 
 NAME       = setroot
 CC         = gcc
@@ -14,10 +13,10 @@ all:
 	${CC} ${CFLAGS} ${SRC} ${INCLUDES} ${LIBS} -o ${NAME}
 
 install: all
-	cp ${NAME} ${PREFIX}
+	cp ${NAME} ${DESTDIR}
 
 uninstall:
-	rm -rf ${PREFIX}/${NAME}
+	rm -rf ${DESTDIR}/${NAME}
 
 clean:
 	rm -f ${NAME}

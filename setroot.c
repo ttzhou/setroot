@@ -175,7 +175,7 @@ Window find_desktop( Window window )
         // XQueryTree succeeded, but no property found on parent window,
         // so recurse on each child. Since prop_desktop exists, we
         // will eventually find it.
-        for (unsigned int i = n_chldrn; i != 0; i--) {
+        for (unsigned int i = n_chldrn; i != 0; i--) { // makes for loop faster
             Window child = find_desktop(chldrn[i - 1]);
             if ( child != None &&
                     (XGetWindowProperty(XDPY, child, prop_desktop, 0L, 1L,
@@ -284,7 +284,7 @@ void restore_wall()
     size_t n = 0;
     char *line = NULL;
     if (getline(&line, &n, f) == -1) { // because fuck portability, I'm lazy
-        fprintf(stderr, "Options were not stored correctly.\n");
+        fprintf(stderr, "File is empty.\n");
         fclose(f);
         exit(1);
     }
@@ -399,22 +399,26 @@ void parse_opts( unsigned int argc, char **args )
         } else {
             nwalls++;
             init_wall(&(WALLS[nwalls - 1]));
+
             if (rgb) {
                 WALLS[nwalls - 1].red   = rgb[0];
                 WALLS[nwalls - 1].green = rgb[1];
                 WALLS[nwalls - 1].blue  = rgb[2];
                 clean(rgb);
             }
+
             WALLS[nwalls - 1].option = flag;
             if (flag != COLOR && // won't try to load image if flag is COLOR
                     !(WALLS[nwalls - 1].image = imlib_load_image(args[i]))) {
                 fprintf(stderr, "Image %s not found.\n", args[i]);
                 exit(1);
             }
+
             if (SPAN_WALL) {
                 VIRTUAL_SCREEN.wall = &(WALLS[nwalls - 1]);
                 break; // remove this line if you want to span the latest wall
             }
+
             if (nwalls == NUM_MONS) // at most one wall per screen or span
                 break;
         }
@@ -424,9 +428,11 @@ void parse_opts( unsigned int argc, char **args )
         fprintf(stderr, "No images were supplied.\n");
         exit(0);
     }
+
     if (rmbr)
         store_wall(argc, args);
 
+    /* assign walls to monitors */
     for (unsigned int mn = 0; mn < NUM_MONS; mn++) {
         if (mn >= nwalls) { // fill remaining monitors with blank walls
             init_wall(&(WALLS[mn]));
@@ -445,7 +451,7 @@ void color_background( struct monitor *mon )
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
     imlib_render_image_on_drawable_at_size(mon->xpos, mon->ypos,
                                            mon->width, mon->height);
-    imlib_free_image();
+    imlib_free_image_and_decache();
 }
 
 void center_wall( struct monitor *mon )
@@ -454,6 +460,7 @@ void center_wall( struct monitor *mon )
 
     Imlib_Image centered_image;
 
+    /* this is the top left corner of the crop rectangle */
     float xtl = ((float) (mon->width) * 0.5 - (float) (wall->width) * 0.5 );
     float ytl = ((float) (mon->height) * 0.5 - (float) (wall->height) * 0.5 );
 
