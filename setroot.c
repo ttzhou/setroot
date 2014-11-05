@@ -7,30 +7,24 @@
 *  find_desktop() is a modification of: get_desktop_window() (c) 2004-2012
 *  Jonathan Koren <jonathan@jonathankoren.com>
 *
-*  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the "Software"), to deal
-*  in the Software without restriction, including without limitation the rights
-*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-*  copies of the Software, and to permit persons to whom the Software is
-*  furnished to do so, subject to the following conditions:
+*  This program is free software: you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation, either version 3 of the License, or
+*  (at your option) any later version.
 *
-*  The above copyright notice and this permission notice shall be included in
-*  all copies of the Software, its documentation and marketing & publicity
-*  materials, and acknowledgment shall be given in the documentation, materials
-*  and software packages that this Software was used.
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*  GNU General Public License for more details.
 *
-*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-*  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-*  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*  You should have received a copy of the GNU General Public License
+*  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *
 ********************************************************************************/
 
 #define _POSIX_C_SOURCE 200809L
 
-#define IMLIB_CACHE_SIZE  5120*1024
+#define IMLIB_CACHE_SIZE  5120*1024 // I like big walls
 #define IMLIB_COLOR_USAGE 256
 
 #include <stdlib.h>
@@ -120,9 +114,9 @@ void set_pixmap_property(Pixmap p)
     prop_root = XInternAtom(XDPY, "_XROOTPMAP_ID", False);
     prop_setroot = XInternAtom(XDPY, "_SETROOTPMAP_ID", False);
 
-    if (prop_root == None || prop_setroot == None) {
+    if (prop_root == None || prop_setroot == None)
         die(1, "creation of pixmap property failed");
-    }
+
     XChangeProperty(XDPY, ROOT_WIN, prop_root, XA_PIXMAP, 32,
                     PropModeReplace, (unsigned char *) &p, 1);
     XChangeProperty(XDPY, ROOT_WIN, prop_setroot, XA_PIXMAP, 32,
@@ -210,6 +204,10 @@ void show_help()
             "\n"\
             "          setroot [<storage flag>] ( [<image flags>] [<image options>] <filename> )+ \n"\
             "\n"\
+            "          The order of the filenames determine which monitor the wallpaper is set to.\n"\
+			"          The first invoked filename is set to the first Xinerama monitor; the second\n"\
+			"          to the second, and so on.\n"\
+            "\n"\
             "STORAGE FLAG:\n"\
             "\n"\
             "    --store:\n"\
@@ -228,28 +226,31 @@ void show_help()
             "    --bg-color #RRGGBB:\n"\
             "          set empty space around image to color\n"\
             "\n"\
-            "<IMAGE OPTIONS>\n"\
+            "IMAGE OPTIONS\n"\
+            "\n"\
+            "    -h,   --help:\n"\
+            "          shows this help\n"\
             "\n"\
             "    -c,   --center:\n"\
-            "          place unscaled image centered and cropped to screen.\n"\
+            "          place unscaled image centered and cropped to screen\n"\
             "\n"\
             "    -t,   --tiled:\n"\
-            "          tile image on selected screen (Xinerama aware) \n"\
+            "          tile image on invoked screen (Xinerama aware) \n"\
             "\n"\
             "    -s,   --stretch:\n"\
-            "          stretch image (disregard aspect) on selected screen \n"\
+            "          stretch image (disregard aspect) on invoked screen \n"\
             "\n"\
             "    -z,   --zoom:\n"\
             "          scale image (preserve aspect) to fit screen completely (could cut off image) \n"\
             "\n"\
             "    -f,   --fit:\n"\
-            "          scale image (preserve aspect) to fit screen (entire image on screen). Default setting. \n"\
+            "          scale image (preserve aspect) to fit screen (entire image on screen) - default setting \n"\
             "\n"\
             "    -fh,  --fit-height:\n"\
-            "          scale image (preserve aspect) until height matches selected screen \n"\
+            "          scale image (preserve aspect) until height matches invoked screen \n"\
             "\n"\
             "    -fw,  --fit-width:\n"\
-            "          scale image (preserve aspect) until width matches selected screen \n"\
+            "          scale image (preserve aspect) until width matches invoked screen \n"\
             "\n"\
             "    -sc, --solid-color #RRGGBB:\n"\
             "          set background to solid color #RRGGBB (hex code)\n"\
@@ -302,7 +303,8 @@ void restore_wall()
         args[argc - 1] = token;
         token = strtok(NULL, " ");
     }
-    args = realloc(args, argc * sizeof(char*)); verify(args); // shrink to appropriate size
+	// shrink to appropriate size
+    args = realloc(args, argc * sizeof(char*)); verify(args);
     parse_opts((int) argc, args);
     clean(line);
     clean(args);
@@ -328,10 +330,9 @@ int* parse_color( char *col )
         strncpy(rr, &(col[1]), 3); // don't forget that null byte!
         strncpy(gg, &(col[3]), 3);
         strncpy(bb, &(col[5]), 3);
-        rgb[0] = (HEXTOINT(rr) % 256);
-		printf("%d\n", rgb[0]);
-        rgb[1] = (HEXTOINT(gg) % 256);
-        rgb[2] = (HEXTOINT(bb) % 256);
+        rgb[0] = abs(HEXTOINT(rr) % 256);
+        rgb[1] = abs(HEXTOINT(gg) % 256);
+        rgb[2] = abs(HEXTOINT(bb) % 256);
         clean(rr); clean(gg); clean(bb);
         return rgb;
     }
@@ -709,10 +710,12 @@ Pixmap make_bg()
     imlib_context_set_visual(VISUAL);
     imlib_context_set_colormap(COLORMAP);
 
-    Pixmap canvas = XCreatePixmap(XDPY, ROOT_WIN,
-                                  DEFAULT_SCREEN->width,
-                                  DEFAULT_SCREEN->height,
-                                  BITDEPTH);
+    Pixmap canvas
+		= XCreatePixmap(XDPY,
+				        ROOT_WIN,
+                        DEFAULT_SCREEN->width,
+                        DEFAULT_SCREEN->height,
+                        BITDEPTH);
 
     imlib_context_set_drawable(canvas);
 
