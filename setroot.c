@@ -210,6 +210,10 @@ void show_help()
             "\n"\
             "          setroot [<storage flag>] ( [<image flags>] [<image options>] <filename> )+ \n"\
             "\n"\
+            "          The order of the filenames determine which monitor the wallpaper is set to.\n"\
+			"          The first invoked filename is set to the first Xinerama monitor; the second\n"\
+			"          to the second, and so on.\n"\
+            "\n"\
             "STORAGE FLAG:\n"\
             "\n"\
             "    --store:\n"\
