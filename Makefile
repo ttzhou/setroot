@@ -1,4 +1,4 @@
-PREFIX     = /usr/local/bin/
+PREFIX     = usr/local/bin
 
 NAME       = setroot
 CC         = gcc
@@ -13,11 +13,11 @@ all:
 	${CC} ${CFLAGS} ${SRC} ${INCLUDES} ${LIBS} -o ${NAME}
 
 install: all
-	mkdir -p ${DESTDIR}${PREFIX}
-	cp ${NAME} ${DESTDIR}${PREFIX}
+	mkdir -p ${DESTDIR}/${PREFIX}
+	cp ${NAME} ${DESTDIR}/${PREFIX}
 
 uninstall:
-	rm -rf ${DESTDIR}${PREFIX}${NAME}
+	rm -rf ${DESTDIR}/${PREFIX}/${NAME}
 
 clean:
 	rm -f ${NAME}
