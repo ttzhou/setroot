@@ -41,6 +41,9 @@ IMAGE FLAGS
 IMAGE OPTIONS
 -------------
 
+**-h, --help**
+> show this help.
+
 **-c, --center**
 > place unscaled image centered and cropped to screen.
 
