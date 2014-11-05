@@ -42,10 +42,10 @@ IMAGE OPTIONS
 -------------
 
 **-h, --help**
-> show this help.
+> show this help
 
 **-c, --center**
-> place unscaled image centered and cropped to screen.
+> place unscaled image centered and cropped to screen
 
 **-t, --tiled**
 > tile image on invoked screen (Xinerama aware)
@@ -57,7 +57,7 @@ IMAGE OPTIONS
 > scale image (preserve aspect) to fit screen completely (could cut off image)
 
 **-f, --fit**
-> scale image (preserve aspect) to fit screen (entire image on screen). Default setting.
+> scale image (preserve aspect) to fit screen (entire image on screen) - default setting
 
 **-fh, --fit-height**
 > scale image (preserve aspect) until height matches invoked screen

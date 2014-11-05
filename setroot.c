@@ -235,10 +235,10 @@ void show_help()
             "IMAGE OPTIONS\n"\
             "\n"\
             "    -h,   --help:\n"\
-            "          shows this help.\n"\
+            "          shows this help\n"\
             "\n"\
             "    -c,   --center:\n"\
-            "          place unscaled image centered and cropped to screen.\n"\
+            "          place unscaled image centered and cropped to screen\n"\
             "\n"\
             "    -t,   --tiled:\n"\
             "          tile image on invoked screen (Xinerama aware) \n"\
@@ -250,7 +250,7 @@ void show_help()
             "          scale image (preserve aspect) to fit screen completely (could cut off image) \n"\
             "\n"\
             "    -f,   --fit:\n"\
-            "          scale image (preserve aspect) to fit screen (entire image on screen). Default setting. \n"\
+            "          scale image (preserve aspect) to fit screen (entire image on screen) - default setting \n"\
             "\n"\
             "    -fh,  --fit-height:\n"\
             "          scale image (preserve aspect) until height matches invoked screen \n"\
