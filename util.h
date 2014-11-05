@@ -2,7 +2,9 @@
 #include <errno.h>
 
 #define MEMORY_ERROR "Not enough memory for allocation."
-#define HEXTOINT(hh) (int) strtol(hh, NULL, 16)
+
+#define hextoint(hh) (int) strtol(hh, NULL, 16)
+#define streq(str, test) !strcmp(str, test)
 
 void die( unsigned int error_code, char* error_msg )
 {

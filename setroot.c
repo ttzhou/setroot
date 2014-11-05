@@ -330,9 +330,9 @@ int* parse_color( char *col )
         strncpy(rr, &(col[1]), 3); // don't forget that null byte!
         strncpy(gg, &(col[3]), 3);
         strncpy(bb, &(col[5]), 3);
-        rgb[0] = abs(HEXTOINT(rr) % 256);
-        rgb[1] = abs(HEXTOINT(gg) % 256);
-        rgb[2] = abs(HEXTOINT(bb) % 256);
+        rgb[0] = abs(hextoint(rr) % 256);
+        rgb[1] = abs(hextoint(gg) % 256);
+        rgb[2] = abs(hextoint(bb) % 256);
         clean(rr); clean(gg); clean(bb);
         return rgb;
     }
@@ -363,31 +363,31 @@ void parse_opts( unsigned int argc, char **args )
     verify(WALLS);
 
     for ( unsigned int i = 1 ; i < argc; i++ ) {
-        if (!strcmp(args[i], "-h")  || !strcmp(args[i], "--help")) {
+        if (streq(args[i], "-h")  || streq(args[i], "--help")) {
             show_help();
             exit(EXIT_SUCCESS);
-        } else if (!strcmp(args[i], "--store") && i == 1) {
+        } else if (streq(args[i], "--store") && i == 1) {
             rmbr = 1;
-        } else if (!strcmp(args[i], "--span")) {
+        } else if (streq(args[i], "--span")) {
             SPAN_WALL = 1;
-        } else if (!strcmp(args[i], "--bg-color")) {
+        } else if (streq(args[i], "--bg-color")) {
             rgb = parse_color(args[++i]);
-        } else if (!strcmp(args[i], "-sc") || !strcmp(args[i], "--solid-color" )) {
+        } else if (streq(args[i], "-sc") || streq(args[i], "--solid-color" )) {
             rgb = parse_color(args[i + 1]);
             flag = COLOR;
-        } else if (!strcmp(args[i], "-c")  || !strcmp(args[i], "--center")) {
+        } else if (streq(args[i], "-c")  || streq(args[i], "--center")) {
             flag = CENTER;
-        } else if (!strcmp(args[i], "-s")  || !strcmp(args[i], "--stretch")) {
+        } else if (streq(args[i], "-s")  || streq(args[i], "--stretch")) {
             flag = STRETCH;
-        } else if (!strcmp(args[i], "-fh") || !strcmp(args[i], "--fit-height")) {
+        } else if (streq(args[i], "-fh") || streq(args[i], "--fit-height")) {
             flag = FIT_HEIGHT;
-        } else if (!strcmp(args[i], "-fw") || !strcmp(args[i], "--fit-width")) {
+        } else if (streq(args[i], "-fw") || streq(args[i], "--fit-width")) {
             flag = FIT_WIDTH;
-        } else if (!strcmp(args[i], "-f")  || !strcmp(args[i], "--fit-auto")) {
+        } else if (streq(args[i], "-f")  || streq(args[i], "--fit-auto")) {
             flag = FIT_AUTO;
-        } else if (!strcmp(args[i], "-z")  || !strcmp(args[i], "--zoom")) {
+        } else if (streq(args[i], "-z")  || streq(args[i], "--zoom")) {
             flag = ZOOM;
-        } else if (!strcmp(args[i], "-t")  || !strcmp(args[i], "--tiled")) {
+        } else if (streq(args[i], "-t")  || streq(args[i], "--tiled")) {
             flag = TILE;
         } else {
             nwalls++;
@@ -811,7 +811,7 @@ int main(int argc, char** args)
         NUM_MONS = 1;
         MONS[0] = VIRTUAL_SCREEN;
     }
-    if (argc > 1 && !strcmp(args[1], "--restore"))
+    if (argc > 1 && streq(args[1], "--restore"))
         restore_wall();
     else
         parse_opts(argc, args);
