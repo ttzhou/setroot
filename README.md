@@ -48,10 +48,10 @@ IMAGE OPTIONS
 > place unscaled image centered and cropped to screen.
 
 **-t, --tiled**
-> tile image on selected screen (Xinerama aware)
+> tile image on invoked screen (Xinerama aware)
 
 **-s, --stretch**
-> stretch image (disregard aspect) on selected screen
+> stretch image (disregard aspect) on invoked screen
 
 **-z, --zoom**
 > scale image (preserve aspect) to fit screen completely (could cut off image)
@@ -60,10 +60,10 @@ IMAGE OPTIONS
 > scale image (preserve aspect) to fit screen (entire image on screen). Default setting.
 
 **-fh, --fit-height**
-> scale image (preserve aspect) until height matches selected screen
+> scale image (preserve aspect) until height matches invoked screen
 
 **-fw, --fit-width**
-> scale image (preserve aspect) until width matches selected screen
+> scale image (preserve aspect) until width matches invoked screen
 
 **-sc, --solid-color #RRGGBB**
 > set background to solid color #RRGGBB (hex code)
@@ -80,5 +80,5 @@ ACKNOWLEDGMENTS
 
 `set_pixmap_property()` is **(C) 1998** Michael Jennings \<mej@eterm.org\>
 
-`find_desktop()` is a modification of `get_desktop_window()`  
-**(C) 2004-2012** Jonathan Koren \<jonathan@jonathankoren.com\>
+`find_desktop()` is a modification of  
+`get_desktop_window()` **(C) 2004-2012** Jonathan Koren \<jonathan@jonathankoren.com\>

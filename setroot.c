@@ -232,16 +232,19 @@ void show_help()
             "    --bg-color #RRGGBB:\n"\
             "          set empty space around image to color\n"\
             "\n"\
-            "<IMAGE OPTIONS>\n"\
+            "IMAGE OPTIONS\n"\
+            "\n"\
+            "    -h,   --help:\n"\
+            "          shows this help.\n"\
             "\n"\
             "    -c,   --center:\n"\
             "          place unscaled image centered and cropped to screen.\n"\
             "\n"\
             "    -t,   --tiled:\n"\
-            "          tile image on selected screen (Xinerama aware) \n"\
+            "          tile image on invoked screen (Xinerama aware) \n"\
             "\n"\
             "    -s,   --stretch:\n"\
-            "          stretch image (disregard aspect) on selected screen \n"\
+            "          stretch image (disregard aspect) on invoked screen \n"\
             "\n"\
             "    -z,   --zoom:\n"\
             "          scale image (preserve aspect) to fit screen completely (could cut off image) \n"\
@@ -250,10 +253,10 @@ void show_help()
             "          scale image (preserve aspect) to fit screen (entire image on screen). Default setting. \n"\
             "\n"\
             "    -fh,  --fit-height:\n"\
-            "          scale image (preserve aspect) until height matches selected screen \n"\
+            "          scale image (preserve aspect) until height matches invoked screen \n"\
             "\n"\
             "    -fw,  --fit-width:\n"\
-            "          scale image (preserve aspect) until width matches selected screen \n"\
+            "          scale image (preserve aspect) until width matches invoked screen \n"\
             "\n"\
             "    -sc, --solid-color #RRGGBB:\n"\
             "          set background to solid color #RRGGBB (hex code)\n"\
