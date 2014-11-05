@@ -26,6 +26,7 @@
 
 #define IMLIB_CACHE_SIZE  5120*1024 // I like big walls
 #define IMLIB_COLOR_USAGE 256
+#define DITHER_SWITCH     0
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -53,7 +54,7 @@ Visual             *VISUAL;
 
 struct wallpaper   *WALLS;
 struct monitor     *MONS;
-struct monitor     VIRTUAL_SCREEN;
+struct monitor     VIRTUAL_SCREEN; // spanned area of all monitors
 
 unsigned int       NUM_MONS;
 unsigned int       SPAN_WALL;
@@ -399,21 +400,18 @@ void parse_opts( unsigned int argc, char **args )
         } else {
             nwalls++;
             init_wall(&(WALLS[nwalls - 1]));
-
             if (rgb) {
                 WALLS[nwalls - 1].red   = rgb[0];
                 WALLS[nwalls - 1].green = rgb[1];
                 WALLS[nwalls - 1].blue  = rgb[2];
                 clean(rgb);
             }
-
             WALLS[nwalls - 1].option = flag;
             if (flag != COLOR && // won't try to load image if flag is COLOR
                     !(WALLS[nwalls - 1].image = imlib_load_image(args[i]))) {
                 fprintf(stderr, "Image %s not found.\n", args[i]);
                 exit(1);
             }
-
             if (SPAN_WALL) {
                 VIRTUAL_SCREEN.wall = &(WALLS[nwalls - 1]);
                 break; // remove this line if you want to span the latest wall
@@ -423,15 +421,12 @@ void parse_opts( unsigned int argc, char **args )
                 break;
         }
     }
-
     if (!nwalls) {
         fprintf(stderr, "No images were supplied.\n");
         exit(0);
     }
-
     if (rmbr)
         store_wall(argc, args);
-
     /* assign walls to monitors */
     for (unsigned int mn = 0; mn < NUM_MONS; mn++) {
         if (mn >= nwalls) { // fill remaining monitors with blank walls
@@ -460,9 +455,9 @@ void center_wall( struct monitor *mon )
 
     Imlib_Image centered_image;
 
-    /* this is the top left corner of the crop rectangle */
-    float xtl = ((float) (mon->width) * 0.5 - (float) (wall->width) * 0.5 );
-    float ytl = ((float) (mon->height) * 0.5 - (float) (wall->height) * 0.5 );
+    /* this is the top left corner of the cropping rectangle */
+    int xtl = (mon->width - wall->width); xtl = xtl/2;
+    int ytl = (mon->height - wall->height); ytl = ytl/2;
 
     if ( (wall->width >= mon->width) && (wall->height >= mon->height) ) {
         centered_image = imlib_create_cropped_image(abs(xtl), abs(ytl),
@@ -515,13 +510,13 @@ void fit_height( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
-    float scale = ((float) mon->height * (1.0 / wall->height) );
+    float scale = (mon->height * (1.0 / wall->height));
     float scaled_mon_width = (mon->width) * (1.0 / scale);
     float scaled_width = (wall->width) * scale;
-    float crop_x, crop_width;
+    int crop_x, crop_width;
 
     if (scaled_mon_width <= wall->width) {
-        crop_x = abs((float) ((wall->width - scaled_mon_width) * 0.5) );
+        crop_x = abs((wall->width - scaled_mon_width)) / 2;
         crop_width = scaled_mon_width;
     } else {
         crop_x = 0;
@@ -531,7 +526,7 @@ void fit_height( struct monitor *mon )
         = imlib_create_cropped_image(crop_x, 0, crop_width, wall->height);
 
     if (scaled_width < mon->width) {
-        wall->xpos   = ( (mon->width - scaled_width) * 0.5 ) + mon->xpos;
+        wall->xpos   = ((mon->width - scaled_width) / 2) + mon->xpos;
         wall->ypos   = mon->ypos;
         wall->width  = scaled_width;
         wall->height = mon->height;
@@ -550,13 +545,13 @@ void fit_width( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
-    float scale = ((float) mon->width * (1.0 / wall->width) );
+    float scale = (mon->width * (1.0 / wall->width));
     float scaled_mon_height = (mon->height) * (1.0 / scale);
     float scaled_height = (wall->height) * scale;
-    float crop_y, crop_height;
+    int crop_y, crop_height;
 
     if (scaled_mon_height <= wall->height) {
-        crop_y = abs((float) (wall->height - scaled_mon_height) * 0.5 );
+        crop_y = abs((wall->height - scaled_mon_height)) / 2;
         crop_height = scaled_mon_height;
     } else {
         crop_y = 0;
@@ -567,7 +562,7 @@ void fit_width( struct monitor *mon )
 
     if (scaled_height < mon->height ) {
         wall->xpos   = mon->xpos;
-        wall->ypos   = ( (mon->height - scaled_height) * 0.5 ) + mon->ypos;
+        wall->ypos   = ((mon->height - scaled_height) / 2) + mon->ypos;
         wall->width  = mon->width;
         wall->height = scaled_height;
     } else {
@@ -590,14 +585,14 @@ void fit_auto( struct monitor *mon )
     unsigned int mon_height  = mon->height;
 
     if (mon_width >= mon_height) { // for normal monitors
-        if (   (float) wall_width * (1.0 / wall_height)
-            >= (float) mon_width  * (1.0 / mon_height) )
+        if (   wall_width * (1.0 / wall_height)
+            >= mon_width  * (1.0 / mon_height) )
             fit_width(mon);
         else
             fit_height(mon);
     } else { // for weird ass vertical monitors
-        if (   (float) wall_height * (1.0 / wall_width)
-            >= (float) mon_height * (1.0 / mon_width) )
+        if (   wall_height * (1.0 / wall_width)
+            >= mon_height * (1.0 / mon_width) )
             fit_height(mon);
         else
             fit_width(mon);
@@ -613,14 +608,14 @@ void zoom_fill( struct monitor *mon ) // basically works opposite of fit_auto
     unsigned int mon_height  = mon->height;
 
     if (mon_width >= mon_height) { // for normal monitors
-        if (   (float) wall_width * (1.0 / wall_height)
-            >= (float) mon_width  * (1.0 / mon_height) )
+        if (   wall_width * (1.0 / wall_height)
+            >= mon_width  * (1.0 / mon_height) )
             fit_height(mon);
         else
             fit_width(mon);
     } else { // for weird ass vertical monitors
-        if (   (float) wall_height * (1.0 / wall_width)
-            >= (float) mon_height * (1.0 / mon_width) )
+        if (   wall_height * (1.0 / wall_width)
+            >= mon_height * (1.0 / mon_width) )
             fit_width(mon);
         else
             fit_height(mon);
@@ -630,85 +625,29 @@ void zoom_fill( struct monitor *mon ) // basically works opposite of fit_auto
 void tile( struct monitor *mon )
 {
     struct wallpaper *tile = mon->wall;
-    tile->width  = imlib_image_get_width();
-    tile->height = imlib_image_get_height();
 
-    unsigned int num_full_tiles_x, num_full_tiles_y;
-    unsigned int frac_tile_w, frac_tile_h;
+    Imlib_Image tiled_image = imlib_create_image(mon->width, mon->height);
+    imlib_context_set_blend(1);
+    imlib_context_set_image(tiled_image);
 
-    Imlib_Image tiled_image;
+    unsigned int xi, yi;
 
-    if (mon->width < tile->width && mon->height < tile->height) {
-        num_full_tiles_x = num_full_tiles_y = 1;
-        frac_tile_w = frac_tile_h = 0;
-        tiled_image
-            = imlib_create_cropped_image(0, 0, mon->width, mon->height);
-    } else if (mon->width >= tile->width && mon->height < tile->height) {
-        num_full_tiles_x = (mon->width) / (tile->width);
-        num_full_tiles_y = 1;
-        frac_tile_w = (mon->width) - (num_full_tiles_x) * (tile->width);
-        frac_tile_h = 0;
-        tiled_image
-            = imlib_create_cropped_image(0, 0, tile->width, mon->height);
-    } else if (mon->width < tile->width && mon->height >= tile->height) {
-        num_full_tiles_x = 1;
-        num_full_tiles_y = (mon->height) / (tile->height);
-        frac_tile_w = 0;
-        frac_tile_h = (mon->height) - (num_full_tiles_y) * (tile->height);
-        tiled_image
-            = imlib_create_cropped_image(0, 0, mon->width, tile->height);
-    } else {
-        num_full_tiles_x = (mon->width) / (tile->width);
-        num_full_tiles_y = (mon->height) / (tile->height);
-        frac_tile_w = (mon->width) - (num_full_tiles_x) * (tile->width);
-        frac_tile_h = (mon->height) - (num_full_tiles_y) * (tile->height);
-        tiled_image
-            = imlib_create_cropped_image(0, 0, tile->width, tile->height);
-    }
+    for ( yi = 0; yi <= mon->height; yi += (tile->height) )
+        for ( xi = 0; xi <= mon->width; xi += (tile->width) )
+            imlib_blend_image_onto_image(tile->image, 0,
+                                         0, 0,
+                                         tile->width, tile->height,
+                                         xi, yi,
+                                         tile->width, tile->height);
+    tile->xpos = mon->xpos;
+    tile->ypos = mon->ypos;
+    tile->width = mon->width;
+    tile->height = mon->height;
+
     imlib_context_set_image(tile->image);
     imlib_free_image();
     imlib_context_set_image(tiled_image);
-
-    for ( unsigned int yi = 0; yi < num_full_tiles_y; yi++ )
-        for ( unsigned int xi = 0; xi < num_full_tiles_x; xi++ )
-            imlib_render_image_on_drawable((xi * tile->width) + mon->xpos,
-                                           (yi * tile->height) + mon->ypos);
-
-    if (frac_tile_h) {
-        Imlib_Image tile_along_bottom
-            = imlib_create_cropped_image(0, 0, tile->width, frac_tile_h);
-        imlib_context_set_image(tile_along_bottom);
-        for ( unsigned int xi = 0; xi < num_full_tiles_x; xi++ )
-            imlib_render_image_on_drawable(
-                    (xi * tile->width) + mon->xpos,
-                    (num_full_tiles_y * tile->height) + mon->ypos);
-        imlib_free_image();
-        imlib_context_set_image(tiled_image);
-    }
-
-    if (frac_tile_w) {
-        Imlib_Image tile_along_side
-            = imlib_create_cropped_image(0, 0, frac_tile_w, tile->height);
-        imlib_context_set_image(tile_along_side);
-
-        for ( unsigned int yi = 0; yi < num_full_tiles_y; yi++ )
-            imlib_render_image_on_drawable(
-                    (num_full_tiles_x * tile->width) + mon->xpos,
-                    (yi * tile->height) + mon->ypos);
-        imlib_free_image();
-        imlib_context_set_image(tiled_image);
-    }
-
-    if (frac_tile_w && frac_tile_h) {
-        Imlib_Image br_tile
-            = imlib_create_cropped_image(0, 0, frac_tile_w, frac_tile_h);
-        imlib_context_set_image(br_tile);
-        imlib_render_image_on_drawable(
-                (num_full_tiles_x * tile->width) + mon->xpos,
-                (num_full_tiles_y * tile->height) + mon->ypos);
-        imlib_free_image();
-        imlib_context_set_image(tiled_image);
-    }
+    imlib_context_set_blend(0);
 }
 
 Pixmap make_bg()
@@ -717,12 +656,13 @@ Pixmap make_bg()
     VISUAL   = DefaultVisual(XDPY, DEFAULT_SCREEN_NUM);
     BITDEPTH = DefaultDepth(XDPY, DEFAULT_SCREEN_NUM);
 
-    imlib_set_cache_size(IMLIB_CACHE_SIZE);
-    imlib_set_color_usage(IMLIB_COLOR_USAGE);
-    imlib_context_set_dither(1);
     imlib_context_set_display(XDPY);
     imlib_context_set_visual(VISUAL);
     imlib_context_set_colormap(COLORMAP);
+
+    imlib_set_cache_size(IMLIB_CACHE_SIZE);
+    imlib_set_color_usage(IMLIB_COLOR_USAGE);
+    imlib_context_set_dither(DITHER_SWITCH);
 
     Pixmap canvas
 		= XCreatePixmap(XDPY,
@@ -743,7 +683,8 @@ Pixmap make_bg()
 
         struct wallpaper *cur_wall = cur_mon->wall;
         fit_type option = cur_wall->option;
-        if (option == COLOR) // if solid-color don't set image
+        /* if solid-color, skip to next wall */
+        if (option == COLOR)
             continue;
 
         imlib_context_set_image(cur_wall->image);
@@ -775,11 +716,10 @@ Pixmap make_bg()
         default:
             break;
         }
-        if (option != TILE)
-            imlib_render_image_on_drawable_at_size(cur_wall->xpos,
-                                                   cur_wall->ypos,
-                                                   cur_wall->width,
-                                                   cur_wall->height);
+        imlib_render_image_on_drawable_at_size(cur_wall->xpos,
+                                               cur_wall->ypos,
+                                               cur_wall->width,
+                                               cur_wall->height);
         imlib_free_image_and_decache();
 
         if (SPAN_WALL)
@@ -831,6 +771,7 @@ int main(int argc, char** args)
         parse_opts(argc, args);
 
     Pixmap bg = make_bg();
+
 	if (bg) {
         set_pixmap_property(bg);
         XSetWindowBackgroundPixmap(XDPY, find_desktop(ROOT_WIN), bg);

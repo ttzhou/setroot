@@ -19,8 +19,8 @@ struct wallpaper {
 	unsigned int		green;
 	unsigned int		blue;
 
-	float				xpos;
-	float				ypos;
+	int					xpos;
+	int					ypos;
 
 	fit_type			option;
 };

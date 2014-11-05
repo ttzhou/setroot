@@ -15,6 +15,12 @@ INSTALLATION
 `sudo make install (clean)`
 
 
+DEPENDENCIES
+------------
+
+`imlib2`
+
+
 INVOCATION
 ----------
 
