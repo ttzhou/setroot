@@ -8,6 +8,8 @@ INVOCATION
 
 **setroot** [\<*storage flag*\>] { [\<*image flags*\>] [\<*image options*\>] \<filename\> }+
 
+The order of the filenames determines which monitor the wallpaper is set to. The first invoked filename is set to the first Xinerama monitor; the second to the second; and so on.
+
 STORAGE FLAGS
 -------------
 
