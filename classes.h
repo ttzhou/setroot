@@ -1,4 +1,4 @@
-typedef enum _FIT_TYPE {
+typedef enum FIT_TYPE {
     CENTER,
     TILE,
     STRETCH,
