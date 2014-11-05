@@ -91,8 +91,8 @@ This program in no way constitutes good code. I have absolutely no experience in
 formal programming or software development, I am merely a lowly math major.
 
 Please, if you have stumbled upon this repository somehow and actually use this
-program, feel free to critique the hell out of my code and help me improve.  
-My ego died many ages ago in undergrad.
+program, feel free to critique the hell out of my code and help me improve. My
+ego died many ages ago in undergrad.
 
 TODO
 ----
