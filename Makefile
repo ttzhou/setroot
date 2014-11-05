@@ -1,9 +1,8 @@
-PREFIX     = /usr/local/bin
-MANPREFIX  = $(PREFIX)/share/man
+PREFIX     = usr/local/bin
 
 NAME       = setroot
 CC         = gcc
-OFLAG      = -O3
+OFLAG      = -O0
 CFLAGS     = -std=c99 ${OFLAG} -Wall -Wextra -g -pedantic
 INCLUDES   = -I /usr/include/X11
 LIBS       = -L /usr/X11/lib -lX11 -lXinerama `imlib2-config --libs`
@@ -14,10 +13,11 @@ all:
 	${CC} ${CFLAGS} ${SRC} ${INCLUDES} ${LIBS} -o ${NAME}
 
 install: all
-	cp ${NAME} ${PREFIX}
+	mkdir -p ${DESTDIR}/${PREFIX}
+	cp ${NAME} ${DESTDIR}/${PREFIX}
 
 uninstall:
-	rm -rf ${PREFIX}/${NAME}
+	rm -rf ${DESTDIR}/${PREFIX}/${NAME}
 
 clean:
 	rm -f ${NAME}
