@@ -6,7 +6,26 @@ NAME
 VERSION
 -------
 
-`version 0.1 - 2014-11`
+`version 0.2 - 2014-11-05`
+
+
+ABOUT
+-----
+
+This program was written as a way for me to learn some C, and also to serve as a
+personal replacement to the excellent `imlibsetroot` and `feh` programs.
+
+I liked `feh`'s syntax, but I had no use for its image viewing capabilities, so I
+tried out `imlibsetroot`. I encountered some segfaults/Imlib errors during
+usage, so I started hacking it, but ended up just writing my own program based
+off of it, stripped of extraneous features I saw no need for.
+
+This program in no way constitutes good code. I have absolutely no experience in
+formal programming or software development, I am merely a lowly math major.
+
+Please, if you have stumbled upon this repository somehow and actually use this
+program, feel free to critique the hell out of my code and help me improve. My
+ego died many ages ago in undergrad.
 
 
 INSTALLATION
@@ -81,24 +100,6 @@ IMAGE OPTIONS
 **-sc, --solid-color #RRGGBB**
 > set background to solid color #RRGGBB (hex code)
 
-
-ABOUT
------
-
-This program was written as a way for me to learn some C, and also to serve as a
-personal replacement to the excellent `imlibsetroot` and `feh` programs.
-
-I liked `feh`'s syntax, but I had no use for its image viewing capabilities, so I
-tried out `imlibsetroot`. I encountered some segfaults/Imlib errors during
-usage, so I started hacking it, but ended up just writing my own program based
-off of it, stripped of extraneous features I saw no need for.
-
-This program in no way constitutes good code. I have absolutely no experience in
-formal programming or software development, I am merely a lowly math major.
-
-Please, if you have stumbled upon this repository somehow and actually use this
-program, feel free to critique the hell out of my code and help me improve. My
-ego died many ages ago in undergrad.
 
 TODO
 ----
