@@ -453,47 +453,29 @@ void center_wall( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
-    Imlib_Image centered_image;
+    Imlib_Image centered_image = imlib_create_image(mon->width, mon->height);
+	imlib_context_set_image(centered_image);
+	imlib_context_set_blend(1);
 
-    /* this is the top left corner of the cropping rectangle */
-    int xtl = (mon->width - wall->width); xtl = xtl/2;
-    int ytl = (mon->height - wall->height); ytl = ytl/2;
+    /* this is where we place the image in absolute coordinates */
+	/* this could lie outside the monitor, which is fine */
+    int xtl = (mon->width - wall->width); xtl = xtl >> 1;
+    int ytl = (mon->height - wall->height); ytl = ytl >> 1;
 
-    if ( (wall->width >= mon->width) && (wall->height >= mon->height) ) {
-        centered_image = imlib_create_cropped_image(abs(xtl), abs(ytl),
-                                                    mon->width, mon->height);
-        wall->xpos   = mon->xpos;
-        wall->ypos   = mon->ypos;
-        wall->width  = mon->width;
-        wall->height = mon->height;
-    }
-    else if ( (wall->width >= mon->width) && !(wall->height >= mon->height) ) {
-        centered_image = imlib_create_cropped_image(abs(xtl), abs(ytl),
-                                                    mon->width, wall->height);
-        wall->xpos   = mon->xpos;
-        wall->ypos   = mon->ypos + ytl;
-        wall->width  = mon->width;
-        wall->height = wall->height;
-    }
-    else if ( !(wall->width >= mon->width) && (wall->height >= mon->height) ) {
-        centered_image = imlib_create_cropped_image(abs(xtl), abs(ytl),
-                                                    wall->width, mon->height);
-        wall->xpos   = mon->xpos + xtl;
-        wall->ypos   = mon->ypos;
-        wall->width  = wall->width;
-        wall->height = mon->height;
-    }
-    else {
-        centered_image = imlib_create_cropped_image(0, 0,
-                                                    wall->width, wall->height);
-        wall->xpos   = mon->xpos + xtl;
-        wall->ypos   = mon->ypos + ytl;
-        wall->width  = wall->width;
-        wall->height = wall->height;
-    }
+	imlib_blend_image_onto_image(wall->image, 0,
+								 0, 0, wall->width, wall->height,
+								 xtl, ytl, wall->width, wall->height);
+
     imlib_context_set_image(wall->image);
     imlib_free_image();
+
+	wall->xpos = mon->xpos;
+	wall->ypos = mon->ypos;
+	wall->width = mon->width;
+	wall->height = mon->height;
+
     imlib_context_set_image(centered_image);
+	imlib_context_set_blend(0);
 }
 
 void stretch_wall( struct monitor *mon )
@@ -510,70 +492,56 @@ void fit_height( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
+	Imlib_Image fit_height_image = imlib_create_image(mon->width, mon->height);
+	imlib_context_set_image(fit_height_image);
+	imlib_context_set_blend(1);
+
     float scale = (mon->height * (1.0 / wall->height));
-    float scaled_mon_width = (mon->width) * (1.0 / scale);
     float scaled_width = (wall->width) * scale;
-    int crop_x, crop_width;
+    float xtl = (mon->width - scaled_width) * 0.5; // trust me, the math is good.
 
-    if (scaled_mon_width <= wall->width) {
-        crop_x = abs((wall->width - scaled_mon_width)) / 2;
-        crop_width = scaled_mon_width;
-    } else {
-        crop_x = 0;
-        crop_width = wall->width;
-    }
-    Imlib_Image height_cropped_image
-        = imlib_create_cropped_image(crop_x, 0, crop_width, wall->height);
+	imlib_blend_image_onto_image(wall->image, 0,
+								 0, 0, wall->width, wall->height,
+								 xtl, 0, scaled_width, mon->height);
 
-    if (scaled_width < mon->width) {
-        wall->xpos   = ((mon->width - scaled_width) / 2) + mon->xpos;
-        wall->ypos   = mon->ypos;
-        wall->width  = scaled_width;
-        wall->height = mon->height;
-    } else {
-        wall->xpos   = mon->xpos;
-        wall->ypos   = mon->ypos;
-        wall->width  = mon->width;
-        wall->height = mon->height;
-    }
     imlib_context_set_image(wall->image);
     imlib_free_image();
-    imlib_context_set_image(height_cropped_image);
+
+	wall->xpos = mon->xpos;
+	wall->ypos = mon->ypos;
+	wall->width = mon->width;
+	wall->height = mon->height;
+
+    imlib_context_set_image(fit_height_image);
+	imlib_context_set_blend(0);
 }
 
 void fit_width( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
+	Imlib_Image fit_width_image = imlib_create_image(mon->width, mon->height);
+	imlib_context_set_image(fit_width_image);
+	imlib_context_set_blend(1);
+
     float scale = (mon->width * (1.0 / wall->width));
-    float scaled_mon_height = (mon->height) * (1.0 / scale);
     float scaled_height = (wall->height) * scale;
-    int crop_y, crop_height;
+    float ytl = (mon->height - scaled_height) * 0.5; // trust me, the math is good.
 
-    if (scaled_mon_height <= wall->height) {
-        crop_y = abs((wall->height - scaled_mon_height)) / 2;
-        crop_height = scaled_mon_height;
-    } else {
-        crop_y = 0;
-        crop_height = wall->height;
-    }
-    Imlib_Image width_cropped_image
-        = imlib_create_cropped_image(0, crop_y, wall->width, crop_height);
+	imlib_blend_image_onto_image(wall->image, 0,
+								 0, 0, wall->width, wall->height,
+								 0, ytl, mon->width, scaled_height);
 
-    if (scaled_height < mon->height ) {
-        wall->xpos   = mon->xpos;
-        wall->ypos   = ((mon->height - scaled_height) / 2) + mon->ypos;
-        wall->width  = mon->width;
-        wall->height = scaled_height;
-    } else {
-        wall->xpos   = mon->xpos;
-        wall->ypos   = mon->ypos;
-        wall->width  = mon->width;
-        wall->height = mon->height;
-    }
     imlib_context_set_image(wall->image);
     imlib_free_image();
-    imlib_context_set_image(width_cropped_image);
+
+	wall->xpos = mon->xpos;
+	wall->ypos = mon->ypos;
+	wall->width = mon->width;
+	wall->height = mon->height;
+
+    imlib_context_set_image(fit_width_image);
+	imlib_context_set_blend(0);
 }
 
 void fit_auto( struct monitor *mon )
@@ -631,7 +599,7 @@ void tile( struct monitor *mon )
     imlib_context_set_image(tiled_image);
 
     unsigned int xi, yi;
-
+	/* tile image; the excess is cut off automatically by image size */
     for ( yi = 0; yi <= mon->height; yi += (tile->height) )
         for ( xi = 0; xi <= mon->width; xi += (tile->width) )
             imlib_blend_image_onto_image(tile->image, 0,
@@ -639,9 +607,9 @@ void tile( struct monitor *mon )
                                          tile->width, tile->height,
                                          xi, yi,
                                          tile->width, tile->height);
-    tile->xpos = mon->xpos;
-    tile->ypos = mon->ypos;
-    tile->width = mon->width;
+    tile->xpos   = mon->xpos;
+    tile->ypos   = mon->ypos;
+    tile->width  = mon->width;
     tile->height = mon->height;
 
     imlib_context_set_image(tile->image);
