@@ -650,10 +650,10 @@ Pixmap make_bg()
         }
         /* load image and set dims and pos */
         imlib_context_set_image(cur_wall->image);
-        cur_wall->width = imlib_image_get_width();
+        cur_wall->width  = imlib_image_get_width();
         cur_wall->height = imlib_image_get_height();
-        cur_wall->xpos = cur_mon->xpos;
-        cur_wall->ypos = cur_mon->ypos;
+        cur_wall->xpos   = cur_mon->xpos;
+        cur_wall->ypos   = cur_mon->ypos;
 
         switch (option) {
         case CENTER:
