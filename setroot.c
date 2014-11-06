@@ -285,14 +285,14 @@ void restore_wall()
     size_t n = 0;
     char *line = NULL;
     if (getline(&line, &n, f) == -1) { // because fuck portability, I'm lazy
-        fprintf(stderr, "File is empty.\n");
         fclose(f);
-        exit(1);
+        die(1, "File corrupt, or file is empty.\n");
     }
-    // should never really get more than 10 arguments
+    /* should never really get more than 10 arguments */
     char **args = malloc(10 * sizeof(char*)); verify(args);
     args[0] = program_name;
 
+    /* break arg string into arg array and get argcount */
     unsigned int argc = 1;
     char *token = NULL;
     token = strtok(line, " ");
@@ -304,7 +304,7 @@ void restore_wall()
         args[argc - 1] = token;
         token = strtok(NULL, " ");
     }
-	// shrink to appropriate size
+	/* shrink to appropriate size */
     args = realloc(args, argc * sizeof(char*)); verify(args);
     parse_opts((int) argc, args);
     clean(line);
@@ -328,9 +328,9 @@ int* parse_color( char *col )
         char *rr = malloc(3 * sizeof(char)); verify(rr);
         char *gg = malloc(3 * sizeof(char)); verify(gg);
         char *bb = malloc(3 * sizeof(char)); verify(bb);
-        strncpy(rr, &(col[1]), 3); // don't forget that null byte!
-        strncpy(gg, &(col[3]), 3);
-        strncpy(bb, &(col[5]), 3);
+        strncpy(rr, &(col[1]), 2); rr[3] = '\0';
+        strncpy(gg, &(col[3]), 2); gg[3] = '\0';
+        strncpy(bb, &(col[5]), 2); bb[3] = '\0';
         rgb[0] = hextoint(rr);
         rgb[1] = hextoint(gg);
         rgb[2] = hextoint(bb);
@@ -367,6 +367,7 @@ void parse_opts( unsigned int argc, char **args )
     int *rgb            = NULL;
     fit_type flag       = FIT_AUTO;
 
+    /* init array for storing wallpapers */
     WALLS = malloc(NUM_MONS * sizeof(struct wallpaper));
     verify(WALLS);
 
@@ -400,13 +401,14 @@ void parse_opts( unsigned int argc, char **args )
         } else {
             nwalls++;
             init_wall(&(WALLS[nwalls - 1]));
+            WALLS[nwalls - 1].option = flag;
+
             if (rgb) {
                 WALLS[nwalls - 1].red   = rgb[0];
                 WALLS[nwalls - 1].green = rgb[1];
                 WALLS[nwalls - 1].blue  = rgb[2];
                 clean(rgb);
             }
-            WALLS[nwalls - 1].option = flag;
             if (flag != COLOR && // won't try to load image if flag is COLOR
                     !(WALLS[nwalls - 1].image = imlib_load_image(args[i]))) {
                 fprintf(stderr, "Image %s not found.\n", args[i]);
@@ -416,7 +418,6 @@ void parse_opts( unsigned int argc, char **args )
                 VIRTUAL_SCREEN.wall = &(WALLS[nwalls - 1]);
                 break; // remove this line if you want to span the latest wall
             }
-
             if (nwalls == NUM_MONS) // at most one wall per screen or span
                 break;
         }
@@ -433,17 +434,19 @@ void parse_opts( unsigned int argc, char **args )
             init_wall(&(WALLS[mn]));
             WALLS[mn].option = COLOR;
         }
-        MONS[mn].wall = &(WALLS[mn]);
+        MONS[mn].wall   = &(WALLS[mn]);
     }
 }
 
 void color_background( struct monitor *mon )
 {
     struct wallpaper *fill = mon->wall;
+
     Imlib_Image color_bg = imlib_create_image(mon->width, mon->height);
     imlib_context_set_color(fill->red, fill->green, fill->blue, 255);
     imlib_context_set_image(color_bg);
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
+
     imlib_render_image_on_drawable_at_size(mon->xpos, mon->ypos,
                                            mon->width, mon->height);
     imlib_free_image_and_decache();
@@ -454,13 +457,17 @@ void center_wall( struct monitor *mon )
     struct wallpaper *wall = mon->wall;
 
     Imlib_Image centered_image = imlib_create_image(mon->width, mon->height);
+    /* color bg */
+    imlib_context_set_color(wall->red, wall->green, wall->blue, 255);
 	imlib_context_set_image(centered_image);
+    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
+
 	imlib_context_set_blend(1);
 
     /* this is where we place the image in absolute coordinates */
 	/* this could lie outside the monitor, which is fine */
-    int xtl = (mon->width - wall->width); xtl = xtl >> 1;
-    int ytl = (mon->height - wall->height); ytl = ytl >> 1;
+    int xtl = (mon->width - wall->width); xtl = xtl / 2;
+    int ytl = (mon->height - wall->height); ytl = ytl / 2;
 
 	imlib_blend_image_onto_image(wall->image, 0,
 								 0, 0, wall->width, wall->height,
@@ -468,12 +475,6 @@ void center_wall( struct monitor *mon )
 
     imlib_context_set_image(wall->image);
     imlib_free_image();
-
-	wall->xpos = mon->xpos;
-	wall->ypos = mon->ypos;
-	wall->width = mon->width;
-	wall->height = mon->height;
-
     imlib_context_set_image(centered_image);
 	imlib_context_set_blend(0);
 }
@@ -493,12 +494,16 @@ void fit_height( struct monitor *mon )
     struct wallpaper *wall = mon->wall;
 
 	Imlib_Image fit_height_image = imlib_create_image(mon->width, mon->height);
+    /* color bg */
+    imlib_context_set_color(wall->red, wall->green, wall->blue, 255);
 	imlib_context_set_image(fit_height_image);
+    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
+
 	imlib_context_set_blend(1);
 
     float scale = (mon->height * (1.0 / wall->height));
     float scaled_width = (wall->width) * scale;
-    float xtl = (mon->width - scaled_width) * 0.5; // trust me, the math is good.
+    float xtl = mon->xpos + (mon->width - scaled_width) * 0.5; // trust me, the math is good.
 
 	imlib_blend_image_onto_image(wall->image, 0,
 								 0, 0, wall->width, wall->height,
@@ -506,12 +511,6 @@ void fit_height( struct monitor *mon )
 
     imlib_context_set_image(wall->image);
     imlib_free_image();
-
-	wall->xpos = mon->xpos;
-	wall->ypos = mon->ypos;
-	wall->width = mon->width;
-	wall->height = mon->height;
-
     imlib_context_set_image(fit_height_image);
 	imlib_context_set_blend(0);
 }
@@ -521,12 +520,16 @@ void fit_width( struct monitor *mon )
     struct wallpaper *wall = mon->wall;
 
 	Imlib_Image fit_width_image = imlib_create_image(mon->width, mon->height);
+    /* color bg */
+    imlib_context_set_color(wall->red, wall->green, wall->blue, 255);
 	imlib_context_set_image(fit_width_image);
+    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
+
 	imlib_context_set_blend(1);
 
     float scale = (mon->width * (1.0 / wall->width));
     float scaled_height = (wall->height) * scale;
-    float ytl = (mon->height - scaled_height) * 0.5; // trust me, the math is good.
+    float ytl = mon->ypos + (mon->height - scaled_height) * 0.5; // trust me, the math is good.
 
 	imlib_blend_image_onto_image(wall->image, 0,
 								 0, 0, wall->width, wall->height,
@@ -534,12 +537,6 @@ void fit_width( struct monitor *mon )
 
     imlib_context_set_image(wall->image);
     imlib_free_image();
-
-	wall->xpos = mon->xpos;
-	wall->ypos = mon->ypos;
-	wall->width = mon->width;
-	wall->height = mon->height;
-
     imlib_context_set_image(fit_width_image);
 	imlib_context_set_blend(0);
 }
@@ -592,27 +589,27 @@ void zoom_fill( struct monitor *mon ) // basically works opposite of fit_auto
 
 void tile( struct monitor *mon )
 {
-    struct wallpaper *tile = mon->wall;
+    struct wallpaper *wall = mon->wall;
 
     Imlib_Image tiled_image = imlib_create_image(mon->width, mon->height);
-    imlib_context_set_blend(1);
+    /* color bg */
+    imlib_context_set_color(wall->red, wall->green, wall->blue, 255);
     imlib_context_set_image(tiled_image);
+    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
+
+    imlib_context_set_blend(1);
 
     unsigned int xi, yi;
 	/* tile image; the excess is cut off automatically by image size */
-    for ( yi = 0; yi <= mon->height; yi += (tile->height) )
-        for ( xi = 0; xi <= mon->width; xi += (tile->width) )
-            imlib_blend_image_onto_image(tile->image, 0,
+    for ( yi = 0; yi <= mon->height; yi += (wall->height) )
+        for ( xi = 0; xi <= mon->width; xi += (wall->width) )
+            imlib_blend_image_onto_image(wall->image, 0,
                                          0, 0,
-                                         tile->width, tile->height,
+                                         wall->width, wall->height,
                                          xi, yi,
-                                         tile->width, tile->height);
-    tile->xpos   = mon->xpos;
-    tile->ypos   = mon->ypos;
-    tile->width  = mon->width;
-    tile->height = mon->height;
+                                         wall->width, wall->height);
 
-    imlib_context_set_image(tile->image);
+    imlib_context_set_image(wall->image);
     imlib_free_image();
     imlib_context_set_image(tiled_image);
     imlib_context_set_blend(0);
@@ -620,10 +617,6 @@ void tile( struct monitor *mon )
 
 Pixmap make_bg()
 {
-    COLORMAP = DefaultColormap(XDPY, DEFAULT_SCREEN_NUM);
-    VISUAL   = DefaultVisual(XDPY, DEFAULT_SCREEN_NUM);
-    BITDEPTH = DefaultDepth(XDPY, DEFAULT_SCREEN_NUM);
-
     imlib_context_set_display(XDPY);
     imlib_context_set_visual(VISUAL);
     imlib_context_set_colormap(COLORMAP);
@@ -647,17 +640,20 @@ Pixmap make_bg()
             cur_mon = &(VIRTUAL_SCREEN);
         else
             cur_mon = &(MONS[i]);
-        color_background(cur_mon);
 
         struct wallpaper *cur_wall = cur_mon->wall;
         fit_type option = cur_wall->option;
-        /* if solid-color, skip to next wall */
-        if (option == COLOR)
+        /* if solid-color, color and then skip to next wall */
+        if (option == COLOR) {
+            color_background(cur_mon);
             continue;
-
+        }
+        /* load image and set dims and pos */
         imlib_context_set_image(cur_wall->image);
         cur_wall->width = imlib_image_get_width();
         cur_wall->height = imlib_image_get_height();
+        cur_wall->xpos = cur_mon->xpos;
+        cur_wall->ypos = cur_mon->ypos;
 
         switch (option) {
         case CENTER:
@@ -686,8 +682,8 @@ Pixmap make_bg()
         }
         imlib_render_image_on_drawable_at_size(cur_wall->xpos,
                                                cur_wall->ypos,
-                                               cur_wall->width,
-                                               cur_wall->height);
+                                               cur_mon->width,
+                                               cur_mon->height);
         imlib_free_image_and_decache();
 
         if (SPAN_WALL)
@@ -705,9 +701,12 @@ int main(int argc, char** args)
 		program_name, XDisplayName(NULL));
 		exit(1);
     }
-	DEFAULT_SCREEN_NUM    = DefaultScreen(XDPY);
-    DEFAULT_SCREEN        = ScreenOfDisplay(XDPY, DEFAULT_SCREEN_NUM);
-    ROOT_WIN              = RootWindow(XDPY, DEFAULT_SCREEN_NUM);
+	DEFAULT_SCREEN_NUM = DefaultScreen(XDPY);
+    DEFAULT_SCREEN     = ScreenOfDisplay(XDPY, DEFAULT_SCREEN_NUM);
+    ROOT_WIN           = RootWindow(XDPY, DEFAULT_SCREEN_NUM);
+    COLORMAP           = DefaultColormap(XDPY, DEFAULT_SCREEN_NUM);
+    VISUAL             = DefaultVisual(XDPY, DEFAULT_SCREEN_NUM);
+    BITDEPTH           = DefaultDepth(XDPY, DEFAULT_SCREEN_NUM);
 
     VIRTUAL_SCREEN.height = DEFAULT_SCREEN->height;
     VIRTUAL_SCREEN.width  = DEFAULT_SCREEN->width;
