@@ -73,14 +73,14 @@ IMAGE FLAGS
 IMAGE MANIPULATIONS
 -------------------
 
-**--blur \<*radius*\>**
+**--blur** \<*radius*\>
 > blur image
 
-**--sharpen \<*radius*\>**
+**--sharpen** \<*radius*\>
 > sharpen image
 
-**--flip[*hvd*]**
-> flip image [h]orizontally, [v]ertically, or [d]iagonally
+**--flip[*hvd*]
+> flip image [*h*]orizontally, [*v*]ertically, or [*d*]iagonally
 
 
 IMAGE OPTIONS
