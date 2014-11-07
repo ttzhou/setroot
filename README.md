@@ -79,7 +79,7 @@ IMAGE MANIPULATIONS
 **--sharpen** \<*radius*\>
 > sharpen image
 
-**--flip[*hvd*]
+**--flip**[*hvd*]
 > flip image [*h*]orizontally, [*v*]ertically, or [*d*]iagonally
 
 
