@@ -17,3 +17,9 @@ v0.3
 
 + fixed bugs introduced by new algorithms
 + made program easier to refactor
+
+v0.4
+----
+
++ added image manipulation options flip, sharpen, blur
++ fixed some more bugs

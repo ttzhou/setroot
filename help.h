@@ -1,6 +1,6 @@
 void show_ver()
 {
-    printf("setroot - v0.3 11-06-2014\n"\
+    printf("setroot - v0.4 11-06-2014\n"\
            "(C) 2014 Tim Zhou\n");
 }
 
@@ -41,8 +41,11 @@ void show_help()
             "    --blur <radius>:\n"\
             "          blur image\n"\
             "\n"\
-            "    --tint #RRGGBB:\n"\
-            "          tint image with color\n"\
+            "    --sharpen <radius>:\n"\
+            "          sharpen image\n"\
+            "\n"\
+            "    --flip[hvd]:\n"\
+            "          flip image [h]orizontally, [v]ertically, or [d]iagonally\n"\
             "\n"\
             "IMAGE OPTIONS\n"\
             "\n"\

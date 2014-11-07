@@ -6,7 +6,7 @@ NAME
 VERSION
 -------
 
-`version 0.3 - 2014-11-06`
+`version 0.4 - 2014-11-06`
 
 
 ABOUT
@@ -68,6 +68,19 @@ IMAGE FLAGS
 
 **--bg-color** *#RRGGBB*
 > set empty space around image to color
+
+
+IMAGE MANIPULATIONS
+-------------------
+
+**--blur** \<*radius*\>
+> blur image
+
+**--sharpen** \<*radius*\>
+> sharpen image
+
+**--flip**[*hvd*]
+> flip image [*h*]orizontally, [*v*]ertically, or [*d*]iagonally
 
 
 IMAGE OPTIONS
