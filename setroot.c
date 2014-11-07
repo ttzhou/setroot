@@ -1,36 +1,33 @@
 /********************************************************************************
-*
-*  Copyright (c) 2014 Tim Zhou <ttzhou@uwaterloo.ca>
-*
-*  set_pixmap_property() is (c) 1998 Michael Jennings <mej@eterm.org>
-*
-*  find_desktop() is a modification of: get_desktop_window() (c) 2004-2012
-*  Jonathan Koren <jonathan@jonathankoren.com>
-*
-*  This program is free software: you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation, either version 3 of the License, or
-*  (at your option) any later version.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-********************************************************************************/
+ *
+ *  Copyright (c) 2014 Tim Zhou <ttzhou@uwaterloo.ca>
+ *
+ *  set_pixmap_property() is (c) 1998 Michael Jennings <mej@eterm.org>
+ *
+ *  find_desktop() is a modification of: get_desktop_window() (c) 2004-2012
+ *  Jonathan Koren <jonathan@jonathankoren.com>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ ********************************************************************************/
 
 #define _POSIX_C_SOURCE 200809L
-
-#define IMLIB_CACHE_SIZE  5120*1024 // I like big walls
-#define IMLIB_COLOR_USAGE 256
-#define DITHER_SWITCH     0
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -42,6 +39,7 @@
 #include "util.h"
 #include "classes.h"
 #include "functions.h"
+#include "help.h"
 
 /* globals */
 Display            *XDPY;
@@ -59,29 +57,32 @@ struct monitor     VIRTUAL_SCREEN; // spanned area of all monitors
 unsigned int       NUM_MONS;
 unsigned int       SPAN_WALL;
 
-static char *program_name = "setroot";
+static char *program_name   = "setroot";
+const int IMLIB_CACHE_SIZE  = 5120*1024; // I like big walls
+const int IMLIB_COLOR_USAGE = 256;
+const int DITHER_SWITCH     = 0;
 
 /*****************************************************************************
-*
-*  set_pixmap_property() is (c) 1998 Michael Jennings <mej@eterm.org>
-*
-*  Original idea goes to Nat Friedman; his email is <ndf@mit.edu>. This is
-*  according to Michael Jennings, who published this program on the
-*  Enlightenment website. See http://www.eterm.org/docs/view.php?doc=ref.
-*
-*  The following function is taken from esetroot.c, which was a way for Eterm, a
-*  part of the Enlightenment project, to implement pseudotransparency.
-*
-*  I do not take credit for any of this code nor do I intend to use it in any
-*  way for self-gain. (Although I did change "ESETROOT_PMAP_ID" to
-*  "_SETROOT_PMAP_ID" for shameless self advertisement.)
-*
-*  For explanation, see http://www.eterm.org/docs/view.php?doc=ref and read
-*  section titled "Transparency".
-*
-*  This is used if you use a compositor that looks for _XROOTPMAP_ID.
-*
-*****************************************************************************/
+ *
+ *  set_pixmap_property() is (c) 1998 Michael Jennings <mej@eterm.org>
+ *
+ *  Original idea goes to Nat Friedman; his email is <ndf@mit.edu>. This is
+ *  according to Michael Jennings, who published this program on the
+ *  Enlightenment website. See http://www.eterm.org/docs/view.php?doc=ref.
+ *
+ *  The following function is taken from esetroot.c, which was a way for Eterm, a
+ *  part of the Enlightenment project, to implement pseudotransparency.
+ *
+ *  I do not take credit for any of this code nor do I intend to use it in any
+ *  way for self-gain. (Although I did change "ESETROOT_PMAP_ID" to
+ *  "_SETROOT_PMAP_ID" for shameless self advertisement.)
+ *
+ *  For explanation, see http://www.eterm.org/docs/view.php?doc=ref and read
+ *  section titled "Transparency".
+ *
+ *  This is used if you use a compositor that looks for _XROOTPMAP_ID.
+ *
+ *****************************************************************************/
 
 void set_pixmap_property(Pixmap p)
 {
@@ -95,17 +96,17 @@ void set_pixmap_property(Pixmap p)
 
     if ((prop_root != None) && (prop_setroot != None)) {
         XGetWindowProperty(XDPY, ROOT_WIN, prop_root, 0L, 1L, False,
-                           AnyPropertyType, &type, &format,
-                           &length, &after, &data_root);
+                AnyPropertyType, &type, &format,
+                &length, &after, &data_root);
 
         if (type == XA_PIXMAP) {
             XGetWindowProperty(XDPY, ROOT_WIN, prop_setroot, 0L, 1L,
-                               False, AnyPropertyType, &type, &format,
-                               &length, &after, &data_setroot);
+                    False, AnyPropertyType, &type, &format,
+                    &length, &after, &data_setroot);
 
             if (data_root && data_setroot)
                 if ((type == XA_PIXMAP) &&
-                    (*((Pixmap *) data_root) == *((Pixmap *) data_setroot)))
+                        (*((Pixmap *) data_root) == *((Pixmap *) data_setroot)))
                     XKillClient(XDPY, *((Pixmap *) data_root));
 
             clean(data_setroot); // should free the ID string as well
@@ -119,32 +120,32 @@ void set_pixmap_property(Pixmap p)
         die(1, "creation of pixmap property failed");
 
     XChangeProperty(XDPY, ROOT_WIN, prop_root, XA_PIXMAP, 32,
-                    PropModeReplace, (unsigned char *) &p, 1);
+            PropModeReplace, (unsigned char *) &p, 1);
     XChangeProperty(XDPY, ROOT_WIN, prop_setroot, XA_PIXMAP, 32,
-                    PropModeReplace, (unsigned char *) &p, 1);
+            PropModeReplace, (unsigned char *) &p, 1);
 
     XSetCloseDownMode(XDPY, RetainPermanent);
     XFlush(XDPY);
 }
 
 /*****************************************************************************
-*
-*  find_desktop() is a slight modification of: get_desktop_window()
-*  which is (c) 2004-2012 Jonathan Koren <jonathan@jonathankoren.com>
-*
-*  find_desktop() finds the window that draws the desktop. This is mainly
-*  for those weird DEs that don't draw backgrounds to root window.
-*
-*  The original code was taken from imlibsetroot, by Jonathan Koren.
-*  His email is <jonathan@jonathankoren.com>.
-*
-*  I added the ability to search through all windows, not just children of root
-*  as his did. There's no performance penalty since 99.9% of the time
-*  it is just the root window and search ends immediately.
-*
-*  We call this on the root window to start, in main.
-*
-*****************************************************************************/
+ *
+ *  find_desktop() is a slight modification of: get_desktop_window()
+ *  which is (c) 2004-2012 Jonathan Koren <jonathan@jonathankoren.com>
+ *
+ *  find_desktop() finds the window that draws the desktop. This is mainly
+ *  for those weird DEs that don't draw backgrounds to root window.
+ *
+ *  The original code was taken from imlibsetroot, by Jonathan Koren.
+ *  His email is <jonathan@jonathankoren.com>.
+ *
+ *  I added the ability to search through all windows, not just children of root
+ *  as his did. There's no performance penalty since 99.9% of the time
+ *  it is just the root window and search ends immediately.
+ *
+ *  We call this on the root window to start, in main.
+ *
+ *****************************************************************************/
 
 Window find_desktop( Window window )
 {
@@ -164,9 +165,9 @@ Window find_desktop( Window window )
     if (prop_desktop != None) {
         // start by checking the window itself
         if (XGetWindowProperty(XDPY, window, prop_desktop,
-                               0L, 1L, False, AnyPropertyType,
-                               &type, &format, &length, &after,
-                               &data) == Success)
+                    0L, 1L, False, AnyPropertyType,
+                    &type, &format, &length, &after,
+                    &data) == Success)
             return window;
         // otherwise run XQueryTree; if it fails, kill program
         if (!XQueryTree(XDPY, window, &root, &prnt, &chldrn, &n_chldrn)) {
@@ -195,69 +196,6 @@ Window find_desktop( Window window )
     }
 }
 
-void show_help()
-{
-    printf( "\n"\
-            "NAME:\n"\
-            "          setroot - sets your wallpaper.\n"\
-            "\n"\
-            "INVOCATION:\n"\
-            "\n"\
-            "          setroot [<storage flag>] ( [<image flags>] [<image options>] <filename> )+ \n"\
-            "\n"\
-            "          The order of the filenames determine which monitor the wallpaper is set to.\n"\
-			"          The first invoked filename is set to the first Xinerama monitor; the second\n"\
-			"          to the second, and so on.\n"\
-            "\n"\
-            "STORAGE FLAG:\n"\
-            "\n"\
-            "    --store:\n"\
-            "          stores valid invocation sequence in ~/.setroot-restore \n"\
-            "\n"\
-            "    --restore:\n"\
-            "          looks for ~/.setroot-restore and calls invocation sequence \n"\
-            "          (restores your previously set wallpapers and options)\n"\
-            "\n"\
-            "IMAGE FLAGS:\n"\
-            "\n"\
-            "    --span:\n"\
-            "          have image span all screens (no cropping) \n"\
-            "          if more than one image is specified, the later image will be spanned. \n"\
-            "\n"\
-            "    --bg-color #RRGGBB:\n"\
-            "          set empty space around image to color\n"\
-            "\n"\
-            "IMAGE OPTIONS\n"\
-            "\n"\
-            "    -h,   --help:\n"\
-            "          shows this help\n"\
-            "\n"\
-            "    -c,   --center:\n"\
-            "          place unscaled image centered and cropped to screen\n"\
-            "\n"\
-            "    -t,   --tiled:\n"\
-            "          tile image on invoked screen (Xinerama aware) \n"\
-            "\n"\
-            "    -s,   --stretch:\n"\
-            "          stretch image (disregard aspect) on invoked screen \n"\
-            "\n"\
-            "    -z,   --zoom:\n"\
-            "          scale image (preserve aspect) to fit screen completely (could cut off image) \n"\
-            "\n"\
-            "    -f,   --fit:\n"\
-            "          scale image (preserve aspect) to fit screen (entire image on screen) - default setting \n"\
-            "\n"\
-            "    -fh,  --fit-height:\n"\
-            "          scale image (preserve aspect) until height matches invoked screen \n"\
-            "\n"\
-            "    -fw,  --fit-width:\n"\
-            "          scale image (preserve aspect) until width matches invoked screen \n"\
-            "\n"\
-            "    -sc, --solid-color #RRGGBB:\n"\
-            "          set background to solid color #RRGGBB (hex code)\n"\
-            );
-}
-
 void store_wall( int argc, char** line )
 {
     char *fn = strcat(getenv("HOME"),"/.setroot-restore");
@@ -279,8 +217,7 @@ void restore_wall()
 {
     FILE *f = fopen(strcat(getenv("HOME"),"/.setroot-restore"), "r");
     if (!f) {
-        fprintf(stderr, "Could not find file $HOME/.setroot-restore.\n");
-        exit(1);
+        die(1, "Could not find file $HOME/.setroot-restore.\n");
     }
     size_t n = 0;
     char *line = NULL;
@@ -304,7 +241,7 @@ void restore_wall()
         args[argc - 1] = token;
         token = strtok(NULL, " ");
     }
-	/* shrink to appropriate size */
+    /* shrink to appropriate size */
     args = realloc(args, argc * sizeof(char*)); verify(args);
     parse_opts((int) argc, args);
     clean(line);
@@ -315,9 +252,11 @@ void restore_wall()
 void init_wall( struct wallpaper *w )
 {
     w->height = w->width  = 0;
-    w->xpos   = w->ypos   = 0;
+    w->xpos   = w->ypos   = 0; // relative to monitor!
     w->red    = w->green  = w->blue = 0;
+    w->blur   = 0;
     w->option = FIT_AUTO;
+    w->axis   = NONE;
     w->image  = NULL;
 }
 
@@ -335,8 +274,8 @@ int* parse_color( char *col )
         rgb[1] = hextoint(gg);
         rgb[2] = hextoint(bb);
         if (!(rgb[0] >= 0 && rgb[0] <= 255) ||
-            !(rgb[1] >= 0 && rgb[1] <= 255) ||
-            !(rgb[2] >= 0 && rgb[2] <= 255)) {
+                !(rgb[1] >= 0 && rgb[1] <= 255) ||
+                !(rgb[2] >= 0 && rgb[2] <= 255)) {
 
             printf("Invalid hex code %s; defaulting to #000000.\n", col);
             rgb[0] = rgb[1] = rgb[2] = 0;
@@ -345,7 +284,7 @@ int* parse_color( char *col )
     } else {
         XColor c;
         if (XParseColor(XDPY, COLORMAP, col, &c)) {
-            rgb[0] = c.red   / 257; // XParseColor returns from 0 to 65535
+            rgb[0] = c.red   / 257; // XParseColor returns 0 to 65535
             rgb[1] = c.green / 257;
             rgb[2] = c.blue  / 257;
         } else {
@@ -362,10 +301,14 @@ void parse_opts( unsigned int argc, char **args )
         show_help();
         exit(EXIT_SUCCESS);
     }
-    unsigned int nwalls = 0;
-    unsigned int rmbr   = 0;
-    int *rgb            = NULL;
-    fit_type flag       = FIT_AUTO;
+    unsigned int nwalls    = 0;
+    unsigned int rmbr      = 0;
+    unsigned int blur_r    = 0;
+    unsigned int sharpen_r = 0;
+
+    int *rgb               = NULL;
+    fit_type flag          = FIT_AUTO;
+    flip_type flip         = NONE;
 
     /* init array for storing wallpapers */
     WALLS = malloc(NUM_MONS * sizeof(struct wallpaper));
@@ -375,13 +318,51 @@ void parse_opts( unsigned int argc, char **args )
         if (streq(args[i], "-h")  || streq(args[i], "--help")) {
             show_help();
             exit(EXIT_SUCCESS);
+        /* storage options */
         } else if (streq(args[i], "--store") && i == 1) {
             rmbr = 1;
+        /* image flags */
         } else if (streq(args[i], "--span")) {
             SPAN_WALL = 1;
         } else if (streq(args[i], "--bg-color")) {
+            if (argc == i + 1) {
+                fprintf(stderr, "No color specified.\n");
+                exit(1);
+            }
             rgb = parse_color(args[++i]);
+        /* manipulations */
+        } else if (streq(args[i], "--blur" )) {
+            if (argc == i + 1) {
+                fprintf(stderr, "Blur radius not specified.\n");
+                exit(1);
+            }
+            if (!(isdigit(args[i + 1][0])))
+                fprintf(stderr, \
+                        "Invalid blur amount %s. No blur will be applied.\n", \
+                        args[i + 1]);
+            blur_r = atoi(args[++i]);
+        } else if (streq(args[i], "--sharpen" )) {
+            if (argc == i + 1) {
+                fprintf(stderr, "Sharpen radius not specified.\n");
+                exit(1);
+            }
+            if (!(isdigit(args[i + 1][0])))
+                fprintf(stderr, \
+                        "Invalid sharpen amount %s. No sharpen will be \
+                        applied.\n", args[i + 1]);
+            sharpen_r = atoi(args[++i]);
+        } else if (streq(args[i], "--fliph" )) {
+            flip = HORIZONTAL;
+        } else if (streq(args[i], "--flipv" )) {
+            flip = VERTICAL;
+        } else if (streq(args[i], "--flipd" )) {
+            flip = DIAGONAL;
+        /* image options */
         } else if (streq(args[i], "-sc") || streq(args[i], "--solid-color" )) {
+            if (argc == i + 1) {
+                fprintf(stderr, "Not enough arguments.\n");
+                exit(1);
+            }
             rgb = parse_color(args[i + 1]);
             flag = COLOR;
         } else if (streq(args[i], "-c")  || streq(args[i], "--center")) {
@@ -401,7 +382,11 @@ void parse_opts( unsigned int argc, char **args )
         } else {
             nwalls++;
             init_wall(&(WALLS[nwalls - 1]));
-            WALLS[nwalls - 1].option = flag;
+
+            WALLS[nwalls - 1].option  = flag;
+            WALLS[nwalls - 1].axis    = flip;
+            WALLS[nwalls - 1].blur    = blur_r;
+            WALLS[nwalls - 1].sharpen = sharpen_r;
 
             if (rgb) {
                 WALLS[nwalls - 1].red   = rgb[0];
@@ -409,6 +394,7 @@ void parse_opts( unsigned int argc, char **args )
                 WALLS[nwalls - 1].blue  = rgb[2];
                 clean(rgb);
             }
+
             if (flag != COLOR && // won't try to load image if flag is COLOR
                     !(WALLS[nwalls - 1].image = imlib_load_image(args[i]))) {
                 fprintf(stderr, "Image %s not found.\n", args[i]);
@@ -434,7 +420,7 @@ void parse_opts( unsigned int argc, char **args )
             init_wall(&(WALLS[mn]));
             WALLS[mn].option = COLOR;
         }
-        MONS[mn].wall   = &(WALLS[mn]);
+        MONS[mn].wall = &(WALLS[mn]);
     }
 }
 
@@ -448,7 +434,7 @@ void color_background( struct monitor *mon )
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
 
     imlib_render_image_on_drawable_at_size(mon->xpos, mon->ypos,
-                                           mon->width, mon->height);
+            mon->width, mon->height);
     imlib_free_image_and_decache();
 }
 
@@ -457,88 +443,82 @@ void center_wall( struct monitor *mon )
     struct wallpaper *wall = mon->wall;
 
     Imlib_Image centered_image = imlib_create_image(mon->width, mon->height);
-    /* color bg */
+    /* color the background */
     imlib_context_set_color(wall->red, wall->green, wall->blue, 255);
-	imlib_context_set_image(centered_image);
+    imlib_context_set_image(centered_image);
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
 
-	imlib_context_set_blend(1);
+    imlib_context_set_blend(1);
 
     /* this is where we place the image in absolute coordinates */
-	/* this could lie outside the monitor, which is fine */
+    /* this could lie outside the monitor, which is fine */
     int xtl = (mon->width - wall->width); xtl = xtl / 2;
     int ytl = (mon->height - wall->height); ytl = ytl / 2;
 
-	imlib_blend_image_onto_image(wall->image, 0,
-								 0, 0, wall->width, wall->height,
-								 xtl, ytl, wall->width, wall->height);
+    imlib_blend_image_onto_image(wall->image, 0,
+                                 0, 0, wall->width, wall->height,
+                                 xtl + wall->xpos, ytl + wall->ypos,
+                                 wall->width, wall->height);
 
     imlib_context_set_image(wall->image);
     imlib_free_image();
     imlib_context_set_image(centered_image);
-	imlib_context_set_blend(0);
-}
-
-void stretch_wall( struct monitor *mon )
-{
-    struct wallpaper *wall = mon->wall;
-
-    wall->xpos   = mon->xpos;
-    wall->ypos   = mon->ypos;
-    wall->width  = mon->width;
-    wall->height = mon->height;
+    imlib_context_set_blend(0);
 }
 
 void fit_height( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
-	Imlib_Image fit_height_image = imlib_create_image(mon->width, mon->height);
-    /* color bg */
+    Imlib_Image fit_height_image = imlib_create_image(mon->width, mon->height);
+    /* color the background */
     imlib_context_set_color(wall->red, wall->green, wall->blue, 255);
-	imlib_context_set_image(fit_height_image);
+    imlib_context_set_image(fit_height_image);
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
 
-	imlib_context_set_blend(1);
+    imlib_context_set_blend(1);
 
     float scale = (mon->height * (1.0 / wall->height));
     float scaled_width = (wall->width) * scale;
-    float xtl = mon->xpos + (mon->width - scaled_width) * 0.5; // trust me, the math is good.
+    float xtl = mon->xpos + (mon->width - scaled_width) * 0.5;
 
-	imlib_blend_image_onto_image(wall->image, 0,
-								 0, 0, wall->width, wall->height,
-								 xtl, 0, scaled_width, mon->height);
+    imlib_blend_image_onto_image(wall->image, 0,
+                                 0, 0, wall->width, wall->height,
+                                 xtl + wall->xpos, 0 + wall->ypos,
+                                 scaled_width, mon->height);
 
     imlib_context_set_image(wall->image);
     imlib_free_image();
     imlib_context_set_image(fit_height_image);
-	imlib_context_set_blend(0);
+    imlib_context_set_blend(0);
 }
 
 void fit_width( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
-	Imlib_Image fit_width_image = imlib_create_image(mon->width, mon->height);
-    /* color bg */
+    Imlib_Image fit_width_image = imlib_create_image(mon->width, mon->height);
+    /* color the background */
     imlib_context_set_color(wall->red, wall->green, wall->blue, 255);
-	imlib_context_set_image(fit_width_image);
+    imlib_context_set_image(fit_width_image);
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
 
-	imlib_context_set_blend(1);
+    imlib_context_set_blend(1);
 
     float scale = (mon->width * (1.0 / wall->width));
     float scaled_height = (wall->height) * scale;
-    float ytl = mon->ypos + (mon->height - scaled_height) * 0.5; // trust me, the math is good.
+    /* trust me, the math is good. */
+    float ytl = mon->ypos + (mon->height - scaled_height) * 0.5;
 
-	imlib_blend_image_onto_image(wall->image, 0,
-								 0, 0, wall->width, wall->height,
-								 0, ytl, mon->width, scaled_height);
+    imlib_blend_image_onto_image(wall->image, 0,
+                                 0, 0, wall->width, wall->height,
+                                 0 + wall->xpos, ytl + wall->ypos,
+                                 mon->width, scaled_height);
 
     imlib_context_set_image(wall->image);
     imlib_free_image();
     imlib_context_set_image(fit_width_image);
-	imlib_context_set_blend(0);
+    imlib_context_set_blend(0);
 }
 
 void fit_auto( struct monitor *mon )
@@ -551,13 +531,13 @@ void fit_auto( struct monitor *mon )
 
     if (mon_width >= mon_height) { // for normal monitors
         if (   wall_width * (1.0 / wall_height)
-            >= mon_width  * (1.0 / mon_height) )
+                >= mon_width  * (1.0 / mon_height) )
             fit_width(mon);
         else
             fit_height(mon);
     } else { // for weird ass vertical monitors
         if (   wall_height * (1.0 / wall_width)
-            >= mon_height * (1.0 / mon_width) )
+                >= mon_height * (1.0 / mon_width) )
             fit_height(mon);
         else
             fit_width(mon);
@@ -592,7 +572,7 @@ void tile( struct monitor *mon )
     struct wallpaper *wall = mon->wall;
 
     Imlib_Image tiled_image = imlib_create_image(mon->width, mon->height);
-    /* color bg */
+    /* color the background */
     imlib_context_set_color(wall->red, wall->green, wall->blue, 255);
     imlib_context_set_image(tiled_image);
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
@@ -600,7 +580,7 @@ void tile( struct monitor *mon )
     imlib_context_set_blend(1);
 
     unsigned int xi, yi;
-	/* tile image; the excess is cut off automatically by image size */
+    /* tile image; the excess is cut off automatically by image size */
     for ( yi = 0; yi <= mon->height; yi += (wall->height) )
         for ( xi = 0; xi <= mon->width; xi += (wall->width) )
             imlib_blend_image_onto_image(wall->image, 0,
@@ -626,8 +606,8 @@ Pixmap make_bg()
     imlib_context_set_dither(DITHER_SWITCH);
 
     Pixmap canvas
-		= XCreatePixmap(XDPY,
-				        ROOT_WIN,
+        = XCreatePixmap(XDPY,
+                        ROOT_WIN,
                         DEFAULT_SCREEN->width,
                         DEFAULT_SCREEN->height,
                         BITDEPTH);
@@ -643,6 +623,7 @@ Pixmap make_bg()
 
         struct wallpaper *cur_wall = cur_mon->wall;
         fit_type option = cur_wall->option;
+        flip_type flip  = cur_wall->axis;
         /* if solid-color, color and then skip to next wall */
         if (option == COLOR) {
             color_background(cur_mon);
@@ -652,15 +633,13 @@ Pixmap make_bg()
         imlib_context_set_image(cur_wall->image);
         cur_wall->width  = imlib_image_get_width();
         cur_wall->height = imlib_image_get_height();
-        cur_wall->xpos   = cur_mon->xpos;
-        cur_wall->ypos   = cur_mon->ypos;
 
+        /* size image */
         switch (option) {
         case CENTER:
             center_wall(cur_mon);
             break;
         case STRETCH:
-            stretch_wall(cur_mon);
             break;
         case FIT_HEIGHT:
             fit_height(cur_mon);
@@ -680,8 +659,30 @@ Pixmap make_bg()
         default:
             break;
         }
-        imlib_render_image_on_drawable_at_size(cur_wall->xpos,
-                                               cur_wall->ypos,
+
+        /* manipulate image */
+        if (cur_wall->blur)
+            imlib_image_blur(cur_wall->blur);
+
+        if (cur_wall->sharpen)
+            imlib_image_sharpen(cur_wall->sharpen);
+
+        switch (flip) {
+        case NONE:
+            break;
+        case HORIZONTAL:
+            imlib_image_flip_horizontal();
+            break;
+        case VERTICAL:
+            imlib_image_flip_vertical();
+            break;
+        case DIAGONAL:
+            imlib_image_flip_diagonal();
+            break;
+        }
+
+        imlib_render_image_on_drawable_at_size(cur_mon->xpos + cur_wall->xpos,
+                                               cur_mon->ypos + cur_wall->ypos,
                                                cur_mon->width,
                                                cur_mon->height);
         imlib_free_image_and_decache();
@@ -698,10 +699,10 @@ int main(int argc, char** args)
     XDPY = XOpenDisplay(NULL);
     if (!XDPY) {
         fprintf(stderr, "%s: unable to open display '%s'\n",
-		program_name, XDisplayName(NULL));
-		exit(1);
+                program_name, XDisplayName(NULL));
+        exit(1);
     }
-	DEFAULT_SCREEN_NUM = DefaultScreen(XDPY);
+    DEFAULT_SCREEN_NUM = DefaultScreen(XDPY);
     DEFAULT_SCREEN     = ScreenOfDisplay(XDPY, DEFAULT_SCREEN_NUM);
     ROOT_WIN           = RootWindow(XDPY, DEFAULT_SCREEN_NUM);
     COLORMAP           = DefaultColormap(XDPY, DEFAULT_SCREEN_NUM);
@@ -739,7 +740,7 @@ int main(int argc, char** args)
 
     Pixmap bg = make_bg();
 
-	if (bg) {
+    if (bg) {
         set_pixmap_property(bg);
         XSetWindowBackgroundPixmap(XDPY, find_desktop(ROOT_WIN), bg);
     }
