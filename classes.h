@@ -19,10 +19,15 @@ typedef enum FLIP_TYPE {
 struct wallpaper {
 	Imlib_Image			image;
 
-	unsigned int		height, width;
-	int					xpos, ypos;
+	unsigned int		height;
+	unsigned int		width;
 
-	unsigned int		red, green, blue;
+	int					xpos;
+	int					ypos;
+
+	unsigned int		red;
+	unsigned int		green;
+	unsigned int		blue;
 
 	unsigned int		blur;
 	unsigned int		sharpen;
@@ -32,8 +37,11 @@ struct wallpaper {
 };
 
 struct monitor {
-    unsigned int		height, width;
-    int					xpos, ypos;
+    unsigned int		height;
+    unsigned int		width;
+
+    unsigned int		xpos;
+    unsigned int		ypos;
 
 	struct wallpaper	*wall;
 };
