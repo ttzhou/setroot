@@ -318,9 +318,11 @@ void parse_opts( unsigned int argc, char **args )
         if (streq(args[i], "-h")  || streq(args[i], "--help")) {
             show_help();
             exit(EXIT_SUCCESS);
+
         /* storage options */
         } else if (streq(args[i], "--store") && i == 1) {
             rmbr = 1;
+
         /* image flags */
         } else if (streq(args[i], "--span")) {
             SPAN_WALL = 1;
@@ -330,6 +332,7 @@ void parse_opts( unsigned int argc, char **args )
                 exit(1);
             }
             rgb = parse_color(args[++i]);
+
         /* manipulations */
         } else if (streq(args[i], "--blur" )) {
             if (argc == i + 1) {
@@ -357,6 +360,7 @@ void parse_opts( unsigned int argc, char **args )
             flip = VERTICAL;
         } else if (streq(args[i], "--flipd" )) {
             flip = DIAGONAL;
+
         /* image options */
         } else if (streq(args[i], "-sc") || streq(args[i], "--solid-color" )) {
             if (argc == i + 1) {
@@ -388,13 +392,11 @@ void parse_opts( unsigned int argc, char **args )
             WALLS[nwalls - 1].blur    = blur_r;
             WALLS[nwalls - 1].sharpen = sharpen_r;
 
-            if (rgb) {
+            if (rgb != NULL) {
                 WALLS[nwalls - 1].red   = rgb[0];
                 WALLS[nwalls - 1].green = rgb[1];
                 WALLS[nwalls - 1].blue  = rgb[2];
-                clean(rgb);
             }
-
             if (flag != COLOR && // won't try to load image if flag is COLOR
                     !(WALLS[nwalls - 1].image = imlib_load_image(args[i]))) {
                 fprintf(stderr, "Image %s not found.\n", args[i]);
@@ -414,6 +416,9 @@ void parse_opts( unsigned int argc, char **args )
     }
     if (rmbr)
         store_wall(argc, args);
+
+	clean(rgb);
+
     /* assign walls to monitors */
     for (unsigned int mn = 0; mn < NUM_MONS; mn++) {
         if (mn >= nwalls) { // fill remaining monitors with blank walls
@@ -434,7 +439,7 @@ void color_background( struct monitor *mon )
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
 
     imlib_render_image_on_drawable_at_size(mon->xpos, mon->ypos,
-            mon->width, mon->height);
+										   mon->width, mon->height);
     imlib_free_image_and_decache();
 }
 
@@ -470,9 +475,9 @@ void fit_height( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
-    Imlib_Image fit_height_image = imlib_create_image(mon->width, mon->height);
+	Imlib_Image fit_height_image = imlib_create_image(mon->width, mon->height);
     /* color the background */
-    imlib_context_set_color(wall->red, wall->green, wall->blue, 255);
+	imlib_context_set_color(wall->red, wall->green, wall->blue, 255);
     imlib_context_set_image(fit_height_image);
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
 
@@ -480,7 +485,8 @@ void fit_height( struct monitor *mon )
 
     float scale = (mon->height * (1.0 / wall->height));
     float scaled_width = (wall->width) * scale;
-    float xtl = mon->xpos + (mon->width - scaled_width) * 0.5;
+    /* trust me, the math is good. */
+    float xtl = (mon->width - scaled_width) * 0.5;
 
     imlib_blend_image_onto_image(wall->image, 0,
                                  0, 0, wall->width, wall->height,
@@ -508,7 +514,7 @@ void fit_width( struct monitor *mon )
     float scale = (mon->width * (1.0 / wall->width));
     float scaled_height = (wall->height) * scale;
     /* trust me, the math is good. */
-    float ytl = mon->ypos + (mon->height - scaled_height) * 0.5;
+    float ytl = (mon->height - scaled_height) * 0.5;
 
     imlib_blend_image_onto_image(wall->image, 0,
                                  0, 0, wall->width, wall->height,
@@ -531,13 +537,13 @@ void fit_auto( struct monitor *mon )
 
     if (mon_width >= mon_height) { // for normal monitors
         if (   wall_width * (1.0 / wall_height)
-                >= mon_width  * (1.0 / mon_height) )
+            >= mon_width  * (1.0 / mon_height) )
             fit_width(mon);
         else
             fit_height(mon);
     } else { // for weird ass vertical monitors
         if (   wall_height * (1.0 / wall_width)
-                >= mon_height * (1.0 / mon_width) )
+            >= mon_height * (1.0 / mon_width) )
             fit_height(mon);
         else
             fit_width(mon);
@@ -623,7 +629,6 @@ Pixmap make_bg()
 
         struct wallpaper *cur_wall = cur_mon->wall;
         fit_type option = cur_wall->option;
-        flip_type flip  = cur_wall->axis;
         /* if solid-color, color and then skip to next wall */
         if (option == COLOR) {
             color_background(cur_mon);
@@ -659,7 +664,6 @@ Pixmap make_bg()
         default:
             break;
         }
-
         /* manipulate image */
         if (cur_wall->blur)
             imlib_image_blur(cur_wall->blur);
@@ -667,7 +671,7 @@ Pixmap make_bg()
         if (cur_wall->sharpen)
             imlib_image_sharpen(cur_wall->sharpen);
 
-        switch (flip) {
+        switch (cur_wall->axis) {
         case NONE:
             break;
         case HORIZONTAL:
@@ -679,8 +683,9 @@ Pixmap make_bg()
         case DIAGONAL:
             imlib_image_flip_diagonal();
             break;
+		default:
+			break;
         }
-
         imlib_render_image_on_drawable_at_size(cur_mon->xpos + cur_wall->xpos,
                                                cur_mon->ypos + cur_wall->ypos,
                                                cur_mon->width,
