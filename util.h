@@ -12,11 +12,6 @@ void die( unsigned int error_code, char* error_msg )
 	exit(error_code);
 }
 
-void clean( void *ptr )
-{
-	if (ptr != NULL) { free(ptr); ptr = NULL; }
-}
-
 void verify( void *ptr )
 {
 	if (ptr == NULL) { die( 1, MEMORY_ERROR ); }

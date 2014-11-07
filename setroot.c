@@ -109,9 +109,9 @@ void set_pixmap_property(Pixmap p)
                         (*((Pixmap *) data_root) == *((Pixmap *) data_setroot)))
                     XKillClient(XDPY, *((Pixmap *) data_root));
 
-            clean(data_setroot); // should free the ID string as well
+            free(data_setroot); // should free the ID string as well
         }
-        clean(data_root); // should free the ID string as well
+        free(data_root); // should free the ID string as well
     }
     prop_root = XInternAtom(XDPY, "_XROOTPMAP_ID", False);
     prop_setroot = XInternAtom(XDPY, "_SETROOTPMAP_ID", False);
@@ -244,8 +244,8 @@ void restore_wall()
     /* shrink to appropriate size */
     args = realloc(args, argc * sizeof(char*)); verify(args);
     parse_opts((int) argc, args);
-    clean(line);
-    clean(args);
+    free(line);
+    free(args);
     fclose(f);
 }
 
@@ -280,7 +280,7 @@ int* parse_color( char *col )
             printf("Invalid hex code %s; defaulting to #000000.\n", col);
             rgb[0] = rgb[1] = rgb[2] = 0;
         }
-        clean(rr); clean(gg); clean(bb);
+        free(rr); free(gg); free(bb);
     } else {
         XColor c;
         if (XParseColor(XDPY, COLORMAP, col, &c)) {
@@ -396,6 +396,8 @@ void parse_opts( unsigned int argc, char **args )
                 WALLS[nwalls - 1].red   = rgb[0];
                 WALLS[nwalls - 1].green = rgb[1];
                 WALLS[nwalls - 1].blue  = rgb[2];
+				free(rgb);
+				rgb = NULL; // set to NULL to prevent catch on next loop
             }
             if (flag != COLOR && // won't try to load image if flag is COLOR
                     !(WALLS[nwalls - 1].image = imlib_load_image(args[i]))) {
@@ -417,7 +419,6 @@ void parse_opts( unsigned int argc, char **args )
     if (rmbr)
         store_wall(argc, args);
 
-	clean(rgb);
 
     /* assign walls to monitors */
     for (unsigned int mn = 0; mn < NUM_MONS; mn++) {
@@ -749,8 +750,8 @@ int main(int argc, char** args)
         set_pixmap_property(bg);
         XSetWindowBackgroundPixmap(XDPY, find_desktop(ROOT_WIN), bg);
     }
-    clean(MONS);
-    clean(WALLS);
+    free(MONS);
+    free(WALLS);
     XClearWindow(XDPY, ROOT_WIN);
     XFlush(XDPY);
     XCloseDisplay(XDPY);
