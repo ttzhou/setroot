@@ -70,6 +70,19 @@ IMAGE FLAGS
 > set empty space around image to color
 
 
+IMAGE MANIPULATIONS
+-------------------
+
+**--blur \<*radius*\>**
+> blur image
+
+**--sharpen \<*radius*\>**
+> sharpen image
+
+**--flip[*hvd*]**
+> flip image [h]orizontally, [v]ertically, or [d]iagonally
+
+
 IMAGE OPTIONS
 -------------
 
