@@ -1,10 +1,13 @@
 CHANGELOG
 =========
 
+Pre-Release
+-----------
+
 v0.1
 ----
 
-+ Initial release
++ Initial alpha
 
 v0.2
 ----
@@ -23,3 +26,10 @@ v0.4
 
 + added image manipulation options flip, sharpen, blur
 + fixed some more bugs
+
+v0.5
+----
+
++ added image manipulation option tint
++ fixed some more bugs with memory
++ moved `show_help()` and `show_ver()` to another file
