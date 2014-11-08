@@ -9,10 +9,11 @@ void restore_wall();
 
 void init_wall( struct wallpaper *w );
 
-int* parse_color( char *col );
+//int* parse_color( char *col );
 void parse_opts( unsigned int argc, char **args );
+struct rgb_triple *parse_color( char *col );
 
-void color_background( struct monitor *mon );
+void solid_color( struct monitor *mon );
 void center_wall( struct monitor *mon );
 void stretch_wall( struct monitor *mon );
 void fit_height( struct monitor *mon );
@@ -20,5 +21,7 @@ void fit_width( struct monitor *mon );
 void fit_auto( struct monitor *mon );
 void zoom_fill( struct monitor *mon );
 void tile( struct monitor *mon );
+
+void tint_wall( struct monitor *mon );
 
 Pixmap make_bg();

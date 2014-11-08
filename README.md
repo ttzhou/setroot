@@ -6,7 +6,7 @@ NAME
 VERSION
 -------
 
-`version 0.4 - 2014-11-06`
+`pre-release: version 0.5 - 2014-11-08`
 
 
 ABOUT
@@ -81,6 +81,9 @@ IMAGE MANIPULATIONS
 
 **--flip**[*hvd*]
 > flip image [*h*]orizontally, [*v*]ertically, or [*d*]iagonally
+
+**--tint** *#RRGGBB*
+> tint image with color *#RRGGBB*
 
 
 IMAGE OPTIONS

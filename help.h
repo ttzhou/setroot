@@ -1,6 +1,6 @@
 void show_ver()
 {
-    printf("setroot - v0.4 11-06-2014\n"\
+    printf("setroot - v0.5 11-07-2014\n"\
            "(C) 2014 Tim Zhou\n");
 }
 
@@ -17,6 +17,8 @@ void show_help()
             "          The order of the filenames determine which monitor the wallpaper is set to.\n"\
             "          The first invoked filename is set to the first Xinerama monitor; the second\n"\
             "          to the second, and so on.\n"\
+            "\n"\
+            "          If more than one image option is supplied, the last one takes effect.\n"\
             "\n"\
             "STORAGE FLAG:\n"\
             "\n"\
@@ -46,6 +48,9 @@ void show_help()
             "\n"\
             "    --flip[hvd]:\n"\
             "          flip image [h]orizontally, [v]ertically, or [d]iagonally\n"\
+            "\n"\
+            "    --tint #RRGGBB:\n"\
+            "          tint image with color #RRGGBB\n"\
             "\n"\
             "IMAGE OPTIONS\n"\
             "\n"\
