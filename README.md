@@ -79,6 +79,12 @@ IMAGE MANIPULATIONS
 **--sharpen** \<*radius*\>
 > sharpen image
 
+**--brighten** \<*amount*\>
+> modify image brightness by percentage (between 0 and 1)
+
+**--contrast** \<*amount*\>
+> modify contrast of image by percentage (between 0 and 1)
+
 **--flip**[*hvd*]
 > flip image [*h*]orizontally, [*v*]ertically, or [*d*]iagonally
 

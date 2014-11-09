@@ -46,6 +46,12 @@ void show_help()
             "    --sharpen <radius>:\n"\
             "          sharpen image\n"\
             "\n"\
+            "    --brighten <amount>:\n"\
+            "          modify image brightness by percentage (between 0 and 1)\n"\
+            "\n"\
+            "    --contrast <radius>:\n"\
+            "          modify contrast brightness by percentage (between 0 and 1)\n"\
+            "\n"\
             "    --flip[hvd]:\n"\
             "          flip image [h]orizontally, [v]ertically, or [d]iagonally\n"\
             "\n"\
