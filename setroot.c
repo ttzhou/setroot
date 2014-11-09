@@ -483,7 +483,7 @@ void parse_opts( unsigned int argc, char **args )
         if (mn >= nwalls) { // fill remaining monitors with blank walls
             init_wall(&(WALLS[mn]));
             WALLS[mn].option = COLOR;
-            WALLS[mn].bgcol = parse_color("black");
+            WALLS[mn].bgcol  = parse_color("black");
         }
         MONS[mn].wall = &(WALLS[mn]);
     }
@@ -687,6 +687,23 @@ Pixmap make_bg()
             cur_wall->width  = imlib_image_get_width();
             cur_wall->height = imlib_image_get_height();
 
+            /* flip image */
+            switch (cur_wall->axis) {
+            case NONE:
+                break;
+            case HORIZONTAL:
+                imlib_image_flip_horizontal();
+                break;
+            case VERTICAL:
+                imlib_image_flip_vertical();
+                break;
+            case DIAGONAL:
+                /* switch its dimensions */
+                cur_wall->width = imlib_image_get_height();
+                cur_wall->height = imlib_image_get_width();
+                imlib_image_flip_diagonal();
+                break;
+            }
             /* adjust image before we set background */
             Imlib_Color_Modifier adjustments = imlib_create_color_modifier();
             if (adjustments == NULL)
@@ -705,29 +722,12 @@ Pixmap make_bg()
 
             imlib_context_set_image(bg);
 
-            /* flip image */
-            switch (cur_wall->axis) {
-            case NONE:
-                break;
-            case HORIZONTAL:
-                imlib_image_flip_horizontal();
-                break;
-            case VERTICAL:
-                imlib_image_flip_vertical();
-                break;
-            case DIAGONAL:
-                /* switch its dimensions */
-                cur_wall->width = imlib_image_get_height();
-                cur_wall->height = imlib_image_get_width();
-                imlib_image_flip_diagonal();
-                break;
-            }
             /* size image */
             switch (option) {
             case CENTER:
                 center_wall(cur_mon);
                 break;
-            case STRETCH:
+            case STRETCH: // taken care of by render_on_drawable
                 break;
             case FIT_HEIGHT:
                 fit_height(cur_mon);
