@@ -312,6 +312,7 @@ void parse_opts( unsigned int argc, char **args )
     }
     unsigned int nwalls    = 0;
     unsigned int rmbr      = 0;
+    char* blank_color      = "black";
 
     unsigned int blur_r    = 0;
     unsigned int sharpen_r = 0;
@@ -335,6 +336,14 @@ void parse_opts( unsigned int argc, char **args )
         /* STORAGE OPTIONS */
         } else if (streq(args[i], "--store") && i == 1) {
             rmbr = 1;
+
+        /* GLOBAL OPTIONS */
+        } else if (streq(args[i], "--blank-color")) {
+            if (argc == i + 1) {
+                fprintf(stderr, "No color specified.\n");
+                continue;
+            }
+            blank_color = args[++i];
 
         /* IMAGE FLAGS */
         } else if (streq(args[i], "--span")) {
@@ -483,7 +492,7 @@ void parse_opts( unsigned int argc, char **args )
         if (mn >= nwalls) { // fill remaining monitors with blank walls
             init_wall(&(WALLS[mn]));
             WALLS[mn].option = COLOR;
-            WALLS[mn].bgcol  = parse_color("black");
+            WALLS[mn].bgcol  = parse_color(blank_color);
         }
         MONS[mn].wall = &(WALLS[mn]);
     }
@@ -682,7 +691,7 @@ Pixmap make_bg()
             /* the "canvas" for our image, colored by color_bg above */
             Imlib_Image bg = imlib_context_get_image();
 
-            /* load image, set dims, modify image luster */
+            /* load image, set dims */
             imlib_context_set_image(cur_wall->image);
             cur_wall->width  = imlib_image_get_width();
             cur_wall->height = imlib_image_get_height();
