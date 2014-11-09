@@ -483,18 +483,22 @@ void parse_opts( unsigned int argc, char **args )
         if (mn >= nwalls) { // fill remaining monitors with blank walls
             init_wall(&(WALLS[mn]));
             WALLS[mn].option = COLOR;
+            WALLS[mn].bgcol = parse_color("black");
         }
         MONS[mn].wall = &(WALLS[mn]);
     }
 }
 
-void solid_color( struct monitor *mon )
+void color_bg( struct monitor *mon )
 {
     struct wallpaper *fill = mon->wall;
     struct rgb_triple *col = fill->bgcol;
     fill->bgcol = NULL;
 
     Imlib_Image color_bg = imlib_create_image(mon->width, mon->height);
+    if (color_bg == NULL)
+        die(1, "Failed to create image.");
+
     imlib_context_set_color(col->r, col->g, col->b, 255);
     imlib_context_set_image(color_bg);
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
@@ -504,15 +508,8 @@ void solid_color( struct monitor *mon )
 void center_wall( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
-    struct rgb_triple *col = wall->bgcol;
-    wall->bgcol = NULL;
 
-    Imlib_Image centered_image = imlib_create_image(mon->width, mon->height);
-    /* color the background */
-    imlib_context_set_color(col->r, col->g, col->b, 255);
-    imlib_context_set_image(centered_image);
-    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
-
+    Imlib_Image centered_image = imlib_context_get_image();
     imlib_context_set_blend(1);
 
     /* this is where we place the image in absolute coordinates */
@@ -527,7 +524,6 @@ void center_wall( struct monitor *mon )
 
     imlib_context_set_image(wall->image);
     imlib_free_image();
-    free(col);
     imlib_context_set_image(centered_image);
     imlib_context_set_blend(0);
 }
@@ -535,15 +531,8 @@ void center_wall( struct monitor *mon )
 void fit_height( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
-    struct rgb_triple *col = wall->bgcol;
-    wall->bgcol = NULL;
 
-	Imlib_Image fit_height_image = imlib_create_image(mon->width, mon->height);
-    /* color the background */
-    imlib_context_set_color(col->r, col->g, col->b, 255);
-    imlib_context_set_image(fit_height_image);
-    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
-
+    Imlib_Image fit_height_image = imlib_context_get_image();
     imlib_context_set_blend(1);
 
     float scaled_width = wall->width * mon->height * (1.0 / wall->height);
@@ -557,7 +546,6 @@ void fit_height( struct monitor *mon )
 
     imlib_context_set_image(wall->image);
     imlib_free_image();
-    free(col);
     imlib_context_set_image(fit_height_image);
     imlib_context_set_blend(0);
 }
@@ -565,15 +553,8 @@ void fit_height( struct monitor *mon )
 void fit_width( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
-    struct rgb_triple *col = wall->bgcol;
-    wall->bgcol = NULL;
 
-    Imlib_Image fit_width_image = imlib_create_image(mon->width, mon->height);
-    /* color the background */
-    imlib_context_set_color(col->r, col->g, col->b, 255);
-    imlib_context_set_image(fit_width_image);
-    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
-
+    Imlib_Image fit_width_image = imlib_context_get_image();
     imlib_context_set_blend(1);
 
     float scaled_height =  wall->height * mon->width * (1.0 / wall->width);
@@ -587,7 +568,6 @@ void fit_width( struct monitor *mon )
 
     imlib_context_set_image(wall->image);
     imlib_free_image();
-    free(col);
     imlib_context_set_image(fit_width_image);
     imlib_context_set_blend(0);
 }
@@ -629,15 +609,8 @@ void zoom_fill( struct monitor *mon ) // basically works opposite of fit_auto
 void tile( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
-    struct rgb_triple *col = wall->bgcol;
-    wall->bgcol = NULL;
 
-    Imlib_Image tiled_image = imlib_create_image(mon->width, mon->height);
-    /* color the background */
-    imlib_context_set_color(col->r, col->g, col->b, 255);
-    imlib_context_set_image(tiled_image);
-    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
-
+    Imlib_Image tiled_image = imlib_context_get_image();
     imlib_context_set_blend(1);
 
     /* tile image; the excess is cut off automatically by image size */
@@ -651,7 +624,6 @@ void tile( struct monitor *mon )
 
     imlib_context_set_image(wall->image);
     imlib_free_image();
-    free(col);
     imlib_context_set_image(tiled_image);
     imlib_context_set_blend(0);
 }
@@ -661,8 +633,6 @@ void tint_wall( struct monitor *mon )
     struct wallpaper *wall = mon->wall;
 
     DATA8 r[256], g[256], b[256], a[256];
-    Imlib_Color_Modifier tint_filter = imlib_create_color_modifier();
-    imlib_context_set_color_modifier(tint_filter);
     imlib_get_color_modifier_tables (r, g, b, a);
 
     struct rgb_triple *tint = wall->tint;
@@ -674,31 +644,7 @@ void tint_wall( struct monitor *mon )
         b[i] = (DATA8) (((float) b[i] / 255.0) * (float) tint->b);
     }
     imlib_set_color_modifier_tables (r, g, b, a);
-    imlib_apply_color_modifier();
-    imlib_free_color_modifier();
     free(tint);
-}
-
-void brighten( struct monitor *mon )
-{
-    struct wallpaper *wall = mon->wall;
-
-    Imlib_Color_Modifier brighten = imlib_create_color_modifier();
-    imlib_context_set_color_modifier(brighten);
-    imlib_modify_color_modifier_brightness(mon->wall->brightness);
-    imlib_apply_color_modifier();
-    imlib_free_color_modifier();
-}
-
-void contrast( struct monitor *mon )
-{
-    struct wallpaper *wall = mon->wall;
-
-    Imlib_Color_Modifier contrast = imlib_create_color_modifier();
-    imlib_context_set_color_modifier(contrast);
-    imlib_modify_color_modifier_brightness(mon->wall->contrast);
-    imlib_apply_color_modifier();
-    imlib_free_color_modifier();
 }
 
 Pixmap make_bg()
@@ -727,23 +673,38 @@ Pixmap make_bg()
         else
             cur_mon = &(MONS[i]);
 
+        color_bg(cur_mon);
+
         struct wallpaper *cur_wall = cur_mon->wall;
         fit_type option = cur_wall->option;
 
-        if (option == COLOR) {
-            solid_color(cur_mon);
-        } else {
+        if (option != COLOR) {
+            /* the "canvas" for our image, colored by color_bg above */
+            Imlib_Image bg = imlib_context_get_image();
+
             /* load image, set dims, modify image luster */
             imlib_context_set_image(cur_wall->image);
             cur_wall->width  = imlib_image_get_width();
             cur_wall->height = imlib_image_get_height();
+
             /* adjust image before we set background */
+            Imlib_Color_Modifier adjustments = imlib_create_color_modifier();
+            if (adjustments == NULL)
+                die(1, MEMORY_ERROR);
+            imlib_context_set_color_modifier(adjustments);
+
             if (cur_wall->tint != NULL)
                 tint_wall(cur_mon);
             if (cur_wall->brightness)
-                brighten(cur_mon);
+                imlib_modify_color_modifier_brightness(cur_wall->brightness);
             if (cur_wall->contrast)
-                contrast(cur_mon);
+                imlib_modify_color_modifier_contrast(cur_wall->contrast);
+
+            imlib_apply_color_modifier();
+            imlib_free_color_modifier();
+
+            imlib_context_set_image(bg);
+
             /* flip image */
             switch (cur_wall->axis) {
             case NONE:
