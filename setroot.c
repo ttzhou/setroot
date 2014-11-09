@@ -259,8 +259,8 @@ void init_wall( struct wallpaper *w )
     w->option = FIT_AUTO;
     w->axis   = NONE;
 
-    w->brightness = w->contrast = 0;
     w->blur       = w->sharpen  = 0;
+    w->brightness = w->contrast = 0;
 
     w->bgcol  = NULL;
     w->tint   = NULL;
@@ -660,51 +660,45 @@ void tint_wall( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
-    if (wall->tint != NULL) {
-        DATA8 r[256], g[256], b[256], a[256];
-        Imlib_Color_Modifier tint_filter = imlib_create_color_modifier();
-        imlib_context_set_color_modifier(tint_filter);
-        imlib_get_color_modifier_tables (r, g, b, a);
+    DATA8 r[256], g[256], b[256], a[256];
+    Imlib_Color_Modifier tint_filter = imlib_create_color_modifier();
+    imlib_context_set_color_modifier(tint_filter);
+    imlib_get_color_modifier_tables (r, g, b, a);
 
-        struct rgb_triple *tint = wall->tint;
-        wall->tint = NULL;
+    struct rgb_triple *tint = wall->tint;
+    wall->tint = NULL;
 
-        for (unsigned int i = 0; i < 256; i++) {
-            r[i] = (DATA8) (((float) r[i] / 255.0) * (float) tint->r);
-            g[i] = (DATA8) (((float) g[i] / 255.0) * (float) tint->g);
-            b[i] = (DATA8) (((float) b[i] / 255.0) * (float) tint->b);
-        }
-        imlib_set_color_modifier_tables (r, g, b, a);
-        imlib_apply_color_modifier();
-        imlib_free_color_modifier();
-        free(tint);
+    for (unsigned int i = 0; i < 256; i++) {
+        r[i] = (DATA8) (((float) r[i] / 255.0) * (float) tint->r);
+        g[i] = (DATA8) (((float) g[i] / 255.0) * (float) tint->g);
+        b[i] = (DATA8) (((float) b[i] / 255.0) * (float) tint->b);
     }
+    imlib_set_color_modifier_tables (r, g, b, a);
+    imlib_apply_color_modifier();
+    imlib_free_color_modifier();
+    free(tint);
 }
 
 void brighten( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
-    if (wall->brightness) {
-        Imlib_Color_Modifier brighten = imlib_create_color_modifier();
-        imlib_context_set_color_modifier(brighten);
-        imlib_modify_color_modifier_brightness(mon->wall->brightness);
-        imlib_apply_color_modifier();
-        imlib_free_color_modifier();
-    }
+    Imlib_Color_Modifier brighten = imlib_create_color_modifier();
+    imlib_context_set_color_modifier(brighten);
+    imlib_modify_color_modifier_brightness(mon->wall->brightness);
+    imlib_apply_color_modifier();
+    imlib_free_color_modifier();
 }
 
 void contrast( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
-    if (wall->contrast) {
-        Imlib_Color_Modifier contrast = imlib_create_color_modifier();
-        imlib_context_set_color_modifier(contrast);
-        imlib_modify_color_modifier_brightness(mon->wall->contrast);
-        imlib_apply_color_modifier();
-        imlib_free_color_modifier();
-    }
+    Imlib_Color_Modifier contrast = imlib_create_color_modifier();
+    imlib_context_set_color_modifier(contrast);
+    imlib_modify_color_modifier_brightness(mon->wall->contrast);
+    imlib_apply_color_modifier();
+    imlib_free_color_modifier();
 }
 
 Pixmap make_bg()
