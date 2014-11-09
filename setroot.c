@@ -43,8 +43,8 @@
 
 /* globals */
 Display            *XDPY;
-unsigned int        DEFAULT_SCREEN_NUM;
-Screen             *DEFAULT_SCREEN;
+unsigned int        DSCRN_NUM;
+Screen             *DSCRN;
 Window              ROOT_WIN;
 int                 BITDEPTH;
 Colormap            COLORMAP;
@@ -340,7 +340,7 @@ void parse_opts( unsigned int argc, char **args )
         /* GLOBAL OPTIONS */
         } else if (streq(args[i], "--blank-color")) {
             if (argc == i + 1) {
-                fprintf(stderr, "No color specified.\n");
+                fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
                 continue;
             }
             blank_color = args[++i];
@@ -350,7 +350,7 @@ void parse_opts( unsigned int argc, char **args )
             SPAN_WALL = 1;
         } else if (streq(args[i], "--bg-color")) {
             if (argc == i + 1) {
-                fprintf(stderr, "No color specified.\n");
+                fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
                 continue;
             }
             bg_col = parse_color(args[++i]);
@@ -390,14 +390,14 @@ void parse_opts( unsigned int argc, char **args )
                 fprintf(stderr, "Brightness amount not specified.\n");
                 continue;
             }
-            bright_v = strtod(args[++i], NULL);
+            bright_v = strtof(args[++i], NULL);
 
         } else if (streq(args[i], "--contrast" )) {
             if (argc == i + 1) {
                 fprintf(stderr, "Contrast amount not specified.\n");
-                exit(1);
+                continue;
             }
-            contrast_v = strtod(args[++i], NULL);
+            contrast_v = strtof(args[++i], NULL);
 
         } else if (streq(args[i], "--fliph" )) {
             flip = HORIZONTAL;
@@ -409,7 +409,7 @@ void parse_opts( unsigned int argc, char **args )
         /* IMAGE OPTIONS */
         } else if (streq(args[i], "-sc") || streq(args[i], "--solid-color" )) {
             if (argc == i + 1) {
-                fprintf(stderr, "Not enough arguments.\n");
+                fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
                 continue;
             }
             bg_col = parse_color(args[i+1]);
@@ -669,8 +669,8 @@ Pixmap make_bg()
     Pixmap canvas
         = XCreatePixmap(XDPY,
                         ROOT_WIN,
-                        DEFAULT_SCREEN->width,
-                        DEFAULT_SCREEN->height,
+                        DSCRN->width,
+                        DSCRN->height,
                         BITDEPTH);
 
     imlib_context_set_drawable(canvas);
@@ -784,15 +784,15 @@ int main(int argc, char** args)
                 program_name, XDisplayName(NULL));
         exit(1);
     }
-    DEFAULT_SCREEN_NUM = DefaultScreen(XDPY);
-    DEFAULT_SCREEN     = ScreenOfDisplay(XDPY, DEFAULT_SCREEN_NUM);
-    ROOT_WIN           = RootWindow(XDPY, DEFAULT_SCREEN_NUM);
-    COLORMAP           = DefaultColormap(XDPY, DEFAULT_SCREEN_NUM);
-    VISUAL             = DefaultVisual(XDPY, DEFAULT_SCREEN_NUM);
-    BITDEPTH           = DefaultDepth(XDPY, DEFAULT_SCREEN_NUM);
+    DSCRN_NUM    = DefaultScreen(XDPY);
+    DSCRN        = ScreenOfDisplay(XDPY, DSCRN_NUM);
+    ROOT_WIN     = RootWindow(XDPY, DSCRN_NUM);
+    COLORMAP     = DefaultColormap(XDPY, DSCRN_NUM);
+    VISUAL       = DefaultVisual(XDPY, DSCRN_NUM);
+    BITDEPTH     = DefaultDepth(XDPY, DSCRN_NUM);
 
-    VSCRN.height = DEFAULT_SCREEN->height;
-    VSCRN.width  = DEFAULT_SCREEN->width;
+    VSCRN.height = DSCRN->height;
+    VSCRN.width  = DSCRN->width;
     VSCRN.wall   = NULL;
     VSCRN.xpos   = 0;
     VSCRN.ypos   = 0;
