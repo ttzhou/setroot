@@ -483,6 +483,7 @@ void parse_opts( unsigned int argc, char **args )
         if (mn >= nwalls) { // fill remaining monitors with blank walls
             init_wall(&(WALLS[mn]));
             WALLS[mn].option = COLOR;
+            WALLS[mn].bgcol = parse_color("black");
         }
         MONS[mn].wall = &(WALLS[mn]);
     }
