@@ -33,3 +33,8 @@ v0.5
 + added image manipulation option tint
 + fixed some more bugs with memory
 + moved `show_help()` and `show_ver()` to another file
+
+v0.6
+----
+
++ added image manipulation option brightness and contrast
