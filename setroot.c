@@ -530,23 +530,6 @@ void center_wall( struct monitor *mon )
     imlib_context_set_blend(0);
 }
 
-void stretch_wall( struct monitor *mon )
-{
-    struct wallpaper *wall = mon->wall;
-
-    Imlib_Image stretched_image = imlib_create_image(mon->width, mon->height);
-    /* don't need to color bg since its being stretched anyway */
-    imlib_blend_image_onto_image(wall->image, 0,
-                                 0, 0, wall->width, wall->height,
-                                 0 + wall->xpos, 0 + wall->ypos,
-                                 mon->width, mon->height);
-
-    imlib_context_set_image(wall->image);
-    imlib_free_image();
-    imlib_context_set_image(stretched_image);
-    imlib_context_set_blend(0);
-}
-
 void fit_height( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
@@ -750,7 +733,6 @@ Pixmap make_bg()
 
         struct wallpaper *cur_wall = cur_mon->wall;
         fit_type option = cur_wall->option;
-        flip_type axis  = cur_wall->axis;
         /* sorry Linus; exceeded three levels indentation */
         if (option == COLOR) {
             solid_color(cur_mon);
@@ -764,7 +746,7 @@ Pixmap make_bg()
             brighten(cur_mon);
             contrast(cur_mon);
             /* flip image */
-            switch (axis) {
+            switch (cur_wall->axis) {
             case NONE:
                 break;
             case HORIZONTAL:
@@ -786,7 +768,6 @@ Pixmap make_bg()
                 center_wall(cur_mon);
                 break;
             case STRETCH:
-                stretch_wall(cur_mon);
                 break;
             case FIT_HEIGHT:
                 fit_height(cur_mon);
@@ -803,8 +784,7 @@ Pixmap make_bg()
             case TILE:
                 tile(cur_mon);
                 break;
-            case COLOR:
-                solid_color(cur_mon);
+            default:
                 break;
             }
             /* manipulate image */
