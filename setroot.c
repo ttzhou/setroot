@@ -530,6 +530,23 @@ void center_wall( struct monitor *mon )
     imlib_context_set_blend(0);
 }
 
+void stretch_wall( struct monitor *mon )
+{
+    struct wallpaper *wall = mon->wall;
+
+    Imlib_Image stretched_image = imlib_create_image(mon->width, mon->height);
+    /* don't need to color bg since its being stretched anyway */
+    imlib_blend_image_onto_image(wall->image, 0,
+                                 0, 0, wall->width, wall->height,
+                                 0 + wall->xpos, 0 + wall->ypos,
+                                 mon->width, mon->height);
+
+    imlib_context_set_image(wall->image);
+    imlib_free_image();
+    imlib_context_set_image(stretched_image);
+    imlib_context_set_blend(0);
+}
+
 void fit_height( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
@@ -734,9 +751,11 @@ Pixmap make_bg()
         struct wallpaper *cur_wall = cur_mon->wall;
         fit_type option = cur_wall->option;
         flip_type axis  = cur_wall->axis;
-
-        /* load image and set dims and pos */
-        if (option != COLOR) {
+        /* sorry Linus; exceeded three levels indentation */
+        if (option == COLOR) {
+            solid_color(cur_mon);
+        } else {
+            /* load image, set dims, modify image luster */
             imlib_context_set_image(cur_wall->image);
             cur_wall->width  = imlib_image_get_width();
             cur_wall->height = imlib_image_get_height();
@@ -744,53 +763,54 @@ Pixmap make_bg()
             tint_wall(cur_mon);
             brighten(cur_mon);
             contrast(cur_mon);
-        }
-        /* size image */
-        switch (option) {
-        case CENTER:
-            center_wall(cur_mon);
-            break;
-        case STRETCH:
-            break;
-        case FIT_HEIGHT:
-            fit_height(cur_mon);
-            break;
-        case FIT_WIDTH:
-            fit_width(cur_mon);
-            break;
-        case FIT_AUTO:
-            fit_auto(cur_mon);
-            break;
-        case ZOOM:
-            zoom_fill(cur_mon);
-            break;
-        case TILE:
-            tile(cur_mon);
-            break;
-        case COLOR:
-            solid_color(cur_mon);
-            break;
-        }
-        /* flip image */
-        switch (axis) {
-		case NONE:
-			break;
-        case HORIZONTAL:
-            imlib_image_flip_horizontal();
-            break;
-        case VERTICAL:
-            imlib_image_flip_vertical();
-            break;
-        case DIAGONAL:
-            imlib_image_flip_diagonal();
-            break;
-        }
-        /* manipulate image */
-        if (cur_wall->blur)
+            /* flip image */
+            switch (axis) {
+            case NONE:
+                break;
+            case HORIZONTAL:
+                imlib_image_flip_horizontal();
+                break;
+            case VERTICAL:
+                imlib_image_flip_vertical();
+                break;
+            case DIAGONAL:
+                /* switch its dimensions */
+                cur_wall->width = imlib_image_get_height();
+                cur_wall->height = imlib_image_get_width();
+                imlib_image_flip_diagonal();
+                break;
+            }
+            /* size image */
+            switch (option) {
+            case CENTER:
+                center_wall(cur_mon);
+                break;
+            case STRETCH:
+                stretch_wall(cur_mon);
+                break;
+            case FIT_HEIGHT:
+                fit_height(cur_mon);
+                break;
+            case FIT_WIDTH:
+                fit_width(cur_mon);
+                break;
+            case FIT_AUTO:
+                fit_auto(cur_mon);
+                break;
+            case ZOOM:
+                zoom_fill(cur_mon);
+                break;
+            case TILE:
+                tile(cur_mon);
+                break;
+            case COLOR:
+                solid_color(cur_mon);
+                break;
+            }
+            /* manipulate image */
             imlib_image_blur(cur_wall->blur);
-        if (cur_wall->sharpen)
             imlib_image_sharpen(cur_wall->sharpen);
-
+        }
         /* render the bg */
         imlib_render_image_on_drawable_at_size(cur_mon->xpos + cur_wall->xpos,
                                                cur_mon->ypos + cur_wall->ypos,
