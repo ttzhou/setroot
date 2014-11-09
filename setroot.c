@@ -52,7 +52,7 @@ Visual             *VISUAL;
 
 struct wallpaper   *WALLS;
 struct monitor     *MONS;
-struct monitor      VIRTUAL_SCREEN; // spanned area of all monitors
+struct monitor      VSCRN; // spanned area of all monitors
 
 unsigned int       NUM_MONS;
 unsigned int       SPAN_WALL;
@@ -258,7 +258,9 @@ void init_wall( struct wallpaper *w )
 
     w->option = FIT_AUTO;
     w->axis   = NONE;
-    w->blur   = w->sharpen = 0;
+
+    w->brightness = w->contrast = 0;
+    w->blur       = w->sharpen  = 0;
 
     w->bgcol  = NULL;
     w->tint   = NULL;
@@ -462,7 +464,7 @@ void parse_opts( unsigned int argc, char **args )
                 WALLS[nwalls - 1].bgcol = parse_color("black");
             }
             if (SPAN_WALL) {
-                VIRTUAL_SCREEN.wall = &(WALLS[nwalls - 1]);
+                VSCRN.wall = &(WALLS[nwalls - 1]);
                 break; // remove this line if you want to span the latest wall
             }
             if (nwalls == NUM_MONS) // at most one wall per screen or span
@@ -727,13 +729,13 @@ Pixmap make_bg()
     for (unsigned int i = 0; i < NUM_MONS; i++) {
         struct monitor *cur_mon;
         if (SPAN_WALL)
-            cur_mon = &(VIRTUAL_SCREEN);
+            cur_mon = &(VSCRN);
         else
             cur_mon = &(MONS[i]);
 
         struct wallpaper *cur_wall = cur_mon->wall;
         fit_type option = cur_wall->option;
-        /* sorry Linus; exceeded three levels indentation */
+
         if (option == COLOR) {
             solid_color(cur_mon);
         } else {
@@ -742,9 +744,12 @@ Pixmap make_bg()
             cur_wall->width  = imlib_image_get_width();
             cur_wall->height = imlib_image_get_height();
             /* adjust image before we set background */
-            tint_wall(cur_mon);
-            brighten(cur_mon);
-            contrast(cur_mon);
+            if (cur_wall->tint != NULL)
+                tint_wall(cur_mon);
+            if (cur_wall->brightness)
+                brighten(cur_mon);
+            if (cur_wall->contrast)
+                contrast(cur_mon);
             /* flip image */
             switch (cur_wall->axis) {
             case NONE:
@@ -788,8 +793,10 @@ Pixmap make_bg()
                 break;
             }
             /* manipulate image */
-            imlib_image_blur(cur_wall->blur);
-            imlib_image_sharpen(cur_wall->sharpen);
+            if (cur_wall->blur)
+                imlib_image_blur(cur_wall->blur);
+            if (cur_wall->sharpen)
+                imlib_image_sharpen(cur_wall->sharpen);
         }
         /* render the bg */
         imlib_render_image_on_drawable_at_size(cur_mon->xpos + cur_wall->xpos,
@@ -820,11 +827,11 @@ int main(int argc, char** args)
     VISUAL             = DefaultVisual(XDPY, DEFAULT_SCREEN_NUM);
     BITDEPTH           = DefaultDepth(XDPY, DEFAULT_SCREEN_NUM);
 
-    VIRTUAL_SCREEN.height = DEFAULT_SCREEN->height;
-    VIRTUAL_SCREEN.width  = DEFAULT_SCREEN->width;
-    VIRTUAL_SCREEN.wall   = NULL;
-    VIRTUAL_SCREEN.xpos   = 0;
-    VIRTUAL_SCREEN.ypos   = 0;
+    VSCRN.height = DEFAULT_SCREEN->height;
+    VSCRN.width  = DEFAULT_SCREEN->width;
+    VSCRN.wall   = NULL;
+    VSCRN.xpos   = 0;
+    VSCRN.ypos   = 0;
 
     if (XineramaIsActive(XDPY)) {
         XineramaScreenInfo *XSI
@@ -841,7 +848,7 @@ int main(int argc, char** args)
         XSync(XDPY, False);
     } else {
         NUM_MONS = 1;
-        MONS[0] = VIRTUAL_SCREEN;
+        MONS[0] = VSCRN;
     }
     if (argc > 1 && streq(args[1], "--restore"))
         restore_wall();

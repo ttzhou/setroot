@@ -1,7 +1,7 @@
 void set_pixmap_property(Pixmap p);
-
 Window find_desktop();
 
+void show_ver();
 void show_help();
 
 void store_wall( int argc, char** line );
@@ -9,7 +9,6 @@ void restore_wall();
 
 void init_wall( struct wallpaper *w );
 
-//int* parse_color( char *col );
 void parse_opts( unsigned int argc, char **args );
 struct rgb_triple *parse_color( char *col );
 
