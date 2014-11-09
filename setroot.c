@@ -410,7 +410,7 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "-sc") || streq(args[i], "--solid-color" )) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
-                exit(1);
+                continue;
             }
             bg_col = parse_color(args[i+1]);
             flag = COLOR;
@@ -479,10 +479,6 @@ void parse_opts( unsigned int argc, char **args )
             if (nwalls == NUM_MONS) // at most one wall per screen or span
                 break;
         }
-    }
-    if (!nwalls) {
-        fprintf(stderr, "No images were supplied.\n");
-        exit(0);
     }
     if (rmbr)
         store_wall(argc, args);
