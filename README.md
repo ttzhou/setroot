@@ -86,10 +86,10 @@ IMAGE MANIPULATIONS
 > sharpen image
 
 **--brighten** \<*amount*\>
-> modify image brightness by percentage (between 0 and 1)
+> modify image brightness by amount (between -1 and 1)
 
 **--contrast** \<*amount*\>
-> modify contrast of image by percentage (between 0 and 1)
+> modify contrast of image by amount (between -100 and 100)
 
 **--flip**[*hvd*]
 > flip image [*h*]orizontally, [*v*]ertically, or [*d*]iagonally
