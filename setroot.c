@@ -286,7 +286,7 @@ struct rgb_triple *parse_color( char *col )
             !(rgb->b >= 0 && rgb->b <= 255) ||
             strlen(col) != 7) {
 
-            printf("Invalid hex code %s; defaulting to #000000.\n", col);
+            fprintf(stderr, "Invalid hex code %s; defaulting to #000000.\n", col);
             rgb->r = rgb->g = rgb->b = 0;
         }
         free(rr); free(gg); free(bb);
@@ -297,7 +297,7 @@ struct rgb_triple *parse_color( char *col )
             rgb->g = c.green / 257;
             rgb->b = c.blue  / 257;
         } else {
-            printf("Invalid color %s; defaulting to black.\n", col);
+            fprintf(stderr, "Invalid color %s; defaulting to black.\n", col);
             rgb->r = rgb->g = rgb->b = 0;
         }
     }
@@ -363,7 +363,7 @@ void parse_opts( unsigned int argc, char **args )
             }
             tint_col = parse_color(args[++i]);
 
-        } else if (streq(args[i], "--blur" )) {
+        } else if (streq(args[i], "--blur")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Blur radius not specified.\n");
                 continue;
@@ -374,7 +374,7 @@ void parse_opts( unsigned int argc, char **args )
                         args[i + 1]);
             blur_r = atoi(args[++i]);
 
-        } else if (streq(args[i], "--sharpen" )) {
+        } else if (streq(args[i], "--sharpen")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Sharpen radius not specified.\n");
                 continue;
@@ -385,32 +385,32 @@ void parse_opts( unsigned int argc, char **args )
                         applied.\n", args[i + 1]);
             sharpen_r = atoi(args[++i]);
 
-        } else if (streq(args[i], "--brighten" )) {
+        } else if (streq(args[i], "--brighten")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Brightness amount not specified.\n");
                 continue;
             }
             bright_v = strtof(args[++i], NULL);
 
-        } else if (streq(args[i], "--contrast" )) {
+        } else if (streq(args[i], "--contrast")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Contrast amount not specified.\n");
                 continue;
             }
             contrast_v = strtof(args[++i], NULL);
 
-        } else if (streq(args[i], "--fliph" )) {
+        } else if (streq(args[i], "--fliph")) {
             flip = HORIZONTAL;
-        } else if (streq(args[i], "--flipv" )) {
+        } else if (streq(args[i], "--flipv")) {
             flip = VERTICAL;
-        } else if (streq(args[i], "--flipd" )) {
+        } else if (streq(args[i], "--flipd")) {
             flip = DIAGONAL;
 
         /* IMAGE OPTIONS */
         } else if (streq(args[i], "-sc") || streq(args[i], "--solid-color" )) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
-                continue;
+                exit(1);
             }
             bg_col = parse_color(args[i+1]);
             flag = COLOR;
@@ -736,7 +736,7 @@ Pixmap make_bg()
             case CENTER:
                 center_wall(cur_mon);
                 break;
-            case STRETCH: // taken care of by render_on_drawable
+            case STRETCH: // taken care of below
                 break;
             case FIT_HEIGHT:
                 fit_height(cur_mon);
