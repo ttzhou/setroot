@@ -21,22 +21,24 @@ struct rgb_triple {
 };
 
 struct wallpaper {
-	Imlib_Image				image;
+	Imlib_Image			image;
 
-	unsigned int			height;
-	unsigned int			width;
+	unsigned int		height;
+	unsigned int		width;
 
-	int						xpos;
-	int						ypos;
+	int					xpos;
+	int					ypos;
 
-	struct rgb_triple		*bgcol;
-	struct rgb_triple		*tint;
+	struct rgb_triple	*bgcol;
+	struct rgb_triple	*tint;
 
-	unsigned int			blur;
-	unsigned int			sharpen;
+	unsigned int		blur;
+	unsigned int		sharpen;
+	float				contrast;
+	float				brightness;
 
-	fit_type				option;
-	flip_type				axis;
+	fit_type			option;
+	flip_type			axis;
 };
 
 struct monitor {

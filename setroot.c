@@ -268,6 +268,7 @@ void init_wall( struct wallpaper *w )
 struct rgb_triple *parse_color( char *col )
 {
     struct rgb_triple *rgb = malloc(sizeof(struct rgb_triple)); verify(rgb);
+
     if (col[0] == '#') {
         char *rr = malloc(3 * sizeof(char)); verify(rr);
         char *gg = malloc(3 * sizeof(char)); verify(gg);
@@ -281,7 +282,7 @@ struct rgb_triple *parse_color( char *col )
         if (!(rgb->r >= 0 && rgb->r <= 255) ||
             !(rgb->g >= 0 && rgb->g <= 255) ||
             !(rgb->b >= 0 && rgb->b <= 255) ||
-            strlen(col) > 7) {
+            strlen(col) != 7) {
 
             printf("Invalid hex code %s; defaulting to #000000.\n", col);
             rgb->r = rgb->g = rgb->b = 0;
@@ -309,8 +310,11 @@ void parse_opts( unsigned int argc, char **args )
     }
     unsigned int nwalls    = 0;
     unsigned int rmbr      = 0;
+
     unsigned int blur_r    = 0;
     unsigned int sharpen_r = 0;
+    float contrast_v       = 0;
+    float bright_v         = 0;
 
     struct rgb_triple *bg_col   = NULL;
     struct rgb_triple *tint_col = NULL;
@@ -336,7 +340,7 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "--bg-color")) {
             if (argc == i + 1) {
                 fprintf(stderr, "No color specified.\n");
-                exit(1);
+                continue;
             }
             bg_col = parse_color(args[++i]);
 
@@ -344,14 +348,14 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "--tint")) {
             if (argc == i + 1) {
                 fprintf(stderr, "No color specified.\n");
-                exit(1);
+                continue;
             }
             tint_col = parse_color(args[++i]);
 
         } else if (streq(args[i], "--blur" )) {
             if (argc == i + 1) {
                 fprintf(stderr, "Blur radius not specified.\n");
-                exit(1);
+                continue;
             }
             if (!(isdigit(args[i + 1][0])))
                 fprintf(stderr, \
@@ -362,13 +366,27 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "--sharpen" )) {
             if (argc == i + 1) {
                 fprintf(stderr, "Sharpen radius not specified.\n");
-                exit(1);
+                continue;
             }
             if (!(isdigit(args[i + 1][0])))
                 fprintf(stderr, \
                         "Invalid sharpen amount %s. No sharpen will be \
                         applied.\n", args[i + 1]);
             sharpen_r = atoi(args[++i]);
+
+        } else if (streq(args[i], "--brighten" )) {
+            if (argc == i + 1) {
+                fprintf(stderr, "Brightness amount not specified.\n");
+                continue;
+            }
+            bright_v = strtod(args[++i], NULL);
+
+        } else if (streq(args[i], "--contrast" )) {
+            if (argc == i + 1) {
+                fprintf(stderr, "Contrast amount not specified.\n");
+                exit(1);
+            }
+            contrast_v = strtod(args[++i], NULL);
 
         } else if (streq(args[i], "--fliph" )) {
             flip = HORIZONTAL;
@@ -381,7 +399,7 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "-sc") || streq(args[i], "--solid-color" )) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments.\n");
-                exit(1);
+                continue;
             }
             bg_col = parse_color(args[i+1]);
             flag = COLOR;
@@ -424,6 +442,14 @@ void parse_opts( unsigned int argc, char **args )
             if (sharpen_r) {
                 WALLS[nwalls - 1].sharpen = sharpen_r;
                 sharpen_r = 0;
+            }
+            if (bright_v) {
+                WALLS[nwalls - 1].brightness = bright_v;
+                bright_v = 0;
+            }
+            if (contrast_v) {
+                WALLS[nwalls - 1].contrast = contrast_v;
+                contrast_v = 0;
             }
             if (tint_col != NULL) {
                 WALLS[nwalls - 1].tint = tint_col;
@@ -489,7 +515,7 @@ void center_wall( struct monitor *mon )
 
     /* this is where we place the image in absolute coordinates */
     /* this could lie outside the monitor, which is fine */
-    int xtl = ((int) mon->width - (int) wall->width) / 2;
+    int xtl = ((int) mon->width  - (int) wall->width)  / 2;
     int ytl = ((int) mon->height - (int) wall->height) / 2;
 
     imlib_blend_image_onto_image(wall->image, 0,
@@ -612,10 +638,9 @@ void tile( struct monitor *mon )
 
     imlib_context_set_blend(1);
 
-    unsigned int xi, yi;
     /* tile image; the excess is cut off automatically by image size */
-    for ( yi = 0; yi <= mon->height; yi += (wall->height) )
-        for ( xi = 0; xi <= mon->width; xi += (wall->width) )
+    for ( unsigned int yi = 0; yi <= mon->height; yi += (wall->height) )
+        for ( unsigned int xi = 0; xi <= mon->width; xi += (wall->width) )
             imlib_blend_image_onto_image(wall->image, 0,
                                          0, 0,
                                          wall->width, wall->height,
@@ -631,24 +656,53 @@ void tile( struct monitor *mon )
 
 void tint_wall( struct monitor *mon )
 {
-    DATA8 r[256], g[256], b[256], a[256];
-    Imlib_Color_Modifier tint_filter = imlib_create_color_modifier();
-    imlib_context_set_color_modifier(tint_filter);
-    imlib_get_color_modifier_tables (r, g, b, a);
-
     struct wallpaper *wall = mon->wall;
-    struct rgb_triple *tint = wall->tint;
-    wall->tint = NULL;
 
-    for (unsigned int i = 0; i < 256; i++) {
-        r[i] = (DATA8) (((float) r[i] / 255.0) * (float) tint->r);
-        g[i] = (DATA8) (((float) g[i] / 255.0) * (float) tint->g);
-        b[i] = (DATA8) (((float) b[i] / 255.0) * (float) tint->b);
+    if (wall->tint != NULL) {
+        DATA8 r[256], g[256], b[256], a[256];
+        Imlib_Color_Modifier tint_filter = imlib_create_color_modifier();
+        imlib_context_set_color_modifier(tint_filter);
+        imlib_get_color_modifier_tables (r, g, b, a);
+
+        struct rgb_triple *tint = wall->tint;
+        wall->tint = NULL;
+
+        for (unsigned int i = 0; i < 256; i++) {
+            r[i] = (DATA8) (((float) r[i] / 255.0) * (float) tint->r);
+            g[i] = (DATA8) (((float) g[i] / 255.0) * (float) tint->g);
+            b[i] = (DATA8) (((float) b[i] / 255.0) * (float) tint->b);
+        }
+        imlib_set_color_modifier_tables (r, g, b, a);
+        imlib_apply_color_modifier();
+        imlib_free_color_modifier();
+        free(tint);
     }
-    imlib_set_color_modifier_tables (r, g, b, a);
-    imlib_apply_color_modifier();
-    imlib_free_color_modifier();
-    free(tint);
+}
+
+void brighten( struct monitor *mon )
+{
+    struct wallpaper *wall = mon->wall;
+
+    if (wall->brightness) {
+        Imlib_Color_Modifier brighten = imlib_create_color_modifier();
+        imlib_context_set_color_modifier(brighten);
+        imlib_modify_color_modifier_brightness(mon->wall->brightness);
+        imlib_apply_color_modifier();
+        imlib_free_color_modifier();
+    }
+}
+
+void contrast( struct monitor *mon )
+{
+    struct wallpaper *wall = mon->wall;
+
+    if (wall->contrast) {
+        Imlib_Color_Modifier contrast = imlib_create_color_modifier();
+        imlib_context_set_color_modifier(contrast);
+        imlib_modify_color_modifier_brightness(mon->wall->contrast);
+        imlib_apply_color_modifier();
+        imlib_free_color_modifier();
+    }
 }
 
 Pixmap make_bg()
@@ -686,10 +740,10 @@ Pixmap make_bg()
             imlib_context_set_image(cur_wall->image);
             cur_wall->width  = imlib_image_get_width();
             cur_wall->height = imlib_image_get_height();
-
-            /* tint image before we set background */
-            if (cur_wall->tint != NULL)
-                tint_wall(cur_mon);
+            /* adjust image before we set background */
+            tint_wall(cur_mon);
+            brighten(cur_mon);
+            contrast(cur_mon);
         }
         /* size image */
         switch (option) {
