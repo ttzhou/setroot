@@ -29,11 +29,17 @@ void show_help()
             "          looks for ~/.setroot-restore and calls invocation sequence \n"\
             "          (restores your previously set wallpapers and options)\n"\
             "\n"\
+            "GLOBAL FLAGS:\n"\
+            "\n"\
+            "    --blank-color #RRGGBB:\n"\
+			"		   if number of monitors exceeds number of walls, sets background \n"\
+			"          color of blank walls, unless overriden by --bg-color\n"\
+            "\n"\
             "IMAGE FLAGS:\n"\
             "\n"\
             "    --span:\n"\
             "          have image span all screens (no cropping) \n"\
-            "          if more than one image is specified, the first invoked image will be spanned. \n"\
+            "          if more than one image is specified, the first invoked image will be spanned \n"\
             "\n"\
             "    --bg-color #RRGGBB:\n"\
             "          set empty space around image to color\n"\

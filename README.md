@@ -43,7 +43,7 @@ DEPENDENCIES
 INVOCATION
 ----------
 
-**setroot** [\<*storage flag*\>] { [\<*image flags*\>] [\<*image options*\>] \<filename\> }+
+**setroot** [\<*storage flag*\>] [\<*global flag*\>] { [\<*image flags*\>] [\<*image options*\>] \<filename\> }+
 
 The order of the filenames determines which monitor the wallpaper is set to. The
 first invoked filename is set to the first Xinerama monitor; the second to the
@@ -58,6 +58,12 @@ STORAGE FLAGS
 
 **--restore**
 > looks for `$HOME/setroot-restore` and calls invocation sequence <br/> (restores your previously set wallpapers and options)
+
+GLOBAL FLAGS
+------------
+
+**--blank-color** *#RRGGBB*
+> if number of monitors exceeds number of walls, sets background <br/> color of blank walls, unless overriden by **--bg-color**
 
 
 IMAGE FLAGS

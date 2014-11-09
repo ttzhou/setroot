@@ -8,6 +8,7 @@ v0.6
 ----
 
 + added image manipulation option brightness and contrast
++ added ability to specify bg color of blank walls
 
 v0.5
 ----
