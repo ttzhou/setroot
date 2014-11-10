@@ -486,7 +486,8 @@ void parse_opts( unsigned int argc, char **args )
 
     /* assign walls to monitors */
     for (unsigned int mn = 0; mn < NUM_MONS; mn++) {
-        if (mn >= nwalls) { // fill remaining monitors with blank walls
+        /* if not spanning, fill remaining mons with blank walls */
+        if (!SPAN_WALL && mn >= nwalls) {
             init_wall(&(WALLS[mn]));
             WALLS[mn].option = COLOR;
             WALLS[mn].bgcol  = parse_color(blank_col);

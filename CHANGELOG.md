@@ -4,6 +4,12 @@ CHANGELOG
 Pre-Release
 -----------
 
+v0.7
+----
+
++ clamped a bunch of bugs and headaches
++ stable, but am planning to add ability to specify monitor before moving to v1.0
+
 v0.6
 ----
 
