@@ -259,8 +259,8 @@ void init_wall( struct wallpaper *w )
     w->option = FIT_AUTO;
     w->axis   = NONE;
 
-    w->blur       = w->sharpen  = 0;
     w->brightness = w->contrast = 0;
+    w->blur       = w->sharpen  = 0;
 
     w->bgcol  = NULL;
     w->tint   = NULL;
@@ -312,15 +312,15 @@ void parse_opts( unsigned int argc, char **args )
     }
     unsigned int nwalls    = 0;
     unsigned int rmbr      = 0;
-    char* blank_color      = "black";
 
     unsigned int blur_r    = 0;
     unsigned int sharpen_r = 0;
     float contrast_v       = 0;
     float bright_v         = 0;
 
-    struct rgb_triple *bg_col   = NULL;
-    struct rgb_triple *tint_col = NULL;
+    struct rgb_triple *blank_col = NULL;
+    struct rgb_triple *bg_col    = NULL;
+    struct rgb_triple *tint_col  = NULL;
 
     fit_type flag  = FIT_AUTO;
     flip_type flip = NONE;
@@ -343,7 +343,7 @@ void parse_opts( unsigned int argc, char **args )
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
                 continue;
             }
-            blank_color = args[++i];
+            blank_col = parse_color(args[++i]);
 
         /* IMAGE FLAGS */
         } else if (streq(args[i], "--span")) {
@@ -483,12 +483,15 @@ void parse_opts( unsigned int argc, char **args )
     if (rmbr)
         store_wall(argc, args);
 
+    if (NUM_MONS == nwalls && blank_col != NULL) // if user is a tool
+        free(blank_col);
+
     /* assign walls to monitors */
     for (unsigned int mn = 0; mn < NUM_MONS; mn++) {
         if (mn >= nwalls) { // fill remaining monitors with blank walls
             init_wall(&(WALLS[mn]));
             WALLS[mn].option = COLOR;
-            WALLS[mn].bgcol  = parse_color(blank_color);
+            WALLS[mn].bgcol  = blank_col;
         }
         MONS[mn].wall = &(WALLS[mn]);
     }
