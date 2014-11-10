@@ -110,10 +110,11 @@ void set_pixmap_property(Pixmap p)
                 if ((type == XA_PIXMAP) &&
                         (*((Pixmap *) data_root) == *((Pixmap *) data_setroot)))
                     XKillClient(XDPY, *((Pixmap *) data_root));
+
+            if (data_setroot) { free(data_setroot); }
         }
+        if (data_root) { free(data_root); }
     }
-    if (data_root) { free(data_root); }
-    if (data_setroot) { free(data_setroot); }
 
     prop_root = XInternAtom(XDPY, "_XROOTPMAP_ID", False);
     prop_setroot = XInternAtom(XDPY, "_SETROOTPMAP_ID", False);
