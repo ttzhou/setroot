@@ -111,10 +111,11 @@ void set_pixmap_property(Pixmap p)
                         (*((Pixmap *) data_root) == *((Pixmap *) data_setroot)))
                     XKillClient(XDPY, *((Pixmap *) data_root));
 
-            free(data_setroot); // should free the ID string as well
+            if (data_setroot) { free(data_setroot); }
         }
-        free(data_root); // should free the ID string as well
+        if (data_root) { free(data_root); }
     }
+
     prop_root = XInternAtom(XDPY, "_XROOTPMAP_ID", False);
     prop_setroot = XInternAtom(XDPY, "_SETROOTPMAP_ID", False);
 
@@ -122,9 +123,9 @@ void set_pixmap_property(Pixmap p)
         die(1, "creation of pixmap property failed");
 
     XChangeProperty(XDPY, ROOT_WIN, prop_root, XA_PIXMAP, 32,
-            PropModeReplace, (unsigned char *) &p, 1);
+                    PropModeReplace, (unsigned char *) &p, 1);
     XChangeProperty(XDPY, ROOT_WIN, prop_setroot, XA_PIXMAP, 32,
-            PropModeReplace, (unsigned char *) &p, 1);
+                    PropModeReplace, (unsigned char *) &p, 1);
 
     XSetCloseDownMode(XDPY, RetainPermanent);
     XFlush(XDPY);
