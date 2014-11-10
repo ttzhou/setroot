@@ -537,6 +537,24 @@ void center_wall( struct monitor *mon )
     imlib_context_set_blend(0);
 }
 
+void stretch_wall( struct monitor *mon )
+{
+    struct wallpaper *wall = mon->wall;
+
+    Imlib_Image stretched_image = imlib_context_get_image();
+    imlib_context_set_blend(1);
+
+    imlib_blend_image_onto_image(wall->image, 0,
+                                 0, 0, wall->width, wall->height,
+                                 wall->xpos, wall->ypos,
+                                 mon->width, mon->height);
+
+    imlib_context_set_image(wall->image);
+    imlib_free_image();
+    imlib_context_set_image(stretched_image);
+    imlib_context_set_blend(0);
+}
+
 void fit_height( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
@@ -737,6 +755,7 @@ Pixmap make_bg()
                 center_wall(cur_mon);
                 break;
             case STRETCH: // taken care of below
+                stretch_wall(cur_mon);
                 break;
             case FIT_HEIGHT:
                 fit_height(cur_mon);
