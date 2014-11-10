@@ -319,7 +319,7 @@ void parse_opts( unsigned int argc, char **args )
     float contrast_v       = 0;
     float bright_v         = 0;
 
-    struct rgb_triple *blank_col = NULL;
+    char* blank_col              = "black";
     struct rgb_triple *bg_col    = NULL;
     struct rgb_triple *tint_col  = NULL;
 
@@ -344,7 +344,7 @@ void parse_opts( unsigned int argc, char **args )
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
                 continue;
             }
-            blank_col = parse_color(args[++i]);
+            blank_col = args[++i];
 
         /* IMAGE FLAGS */
         } else if (streq(args[i], "--span")) {
@@ -484,15 +484,12 @@ void parse_opts( unsigned int argc, char **args )
     if (rmbr)
         store_wall(argc, args);
 
-    if (NUM_MONS == nwalls && blank_col != NULL) // if user is a tool
-        free(blank_col);
-
     /* assign walls to monitors */
     for (unsigned int mn = 0; mn < NUM_MONS; mn++) {
         if (mn >= nwalls) { // fill remaining monitors with blank walls
             init_wall(&(WALLS[mn]));
             WALLS[mn].option = COLOR;
-            WALLS[mn].bgcol  = blank_col;
+            WALLS[mn].bgcol  = parse_color(blank_col);
         }
         MONS[mn].wall = &(WALLS[mn]);
     }
@@ -754,7 +751,7 @@ Pixmap make_bg()
             case CENTER:
                 center_wall(cur_mon);
                 break;
-            case STRETCH: // taken care of below
+            case STRETCH:
                 stretch_wall(cur_mon);
                 break;
             case FIT_HEIGHT:
