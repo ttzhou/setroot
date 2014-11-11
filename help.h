@@ -1,6 +1,6 @@
 void show_ver()
 {
-    printf("setroot - v0.6 11-08-2014\n"\
+    printf("setroot - v0.9 11-11-2014\n"\
            "(C) 2014 Tim Zhou\n");
 }
 
@@ -19,6 +19,9 @@ void show_help()
             "          to the second, and so on.\n"\
             "\n"\
             "          If more than one image option is supplied, the last one takes effect.\n"\
+			"\n"\
+            "          If n filenames are supplied for k monitors, where n > k, only the first\n"\
+            "          k filenames are processed.\n"\
             "\n"\
             "STORAGE FLAG:\n"\
             "\n"\
@@ -39,11 +42,21 @@ void show_help()
             "\n"\
             "    --span:\n"\
             "          have image span all screens (no cropping) \n"\
-            "          if more than one image is specified, the first invoked image will be spanned \n"\
+            "          if more than one image is specified, the later image will be spanned.\n\n"\
+            "          Note that this overrides the '--on' option. Note also that further\n"\
+			"          images that are set (in the case of multiple monitors) will 'cover'\n"\
+			"          the spanned image.\n"\
             "\n"\
             "    --bg-color #RRGGBB:\n"\
             "          set empty space around image to color\n"\
             "\n"\
+			"    --on <n>\n"\
+			"          assign image to be wallpaper on Xinerama monitor *n*.\n\n"\
+			"          If not all images are passed this option, the unassigned walls\n"
+		    "          will be placed on monitors by their position in the invocation sequence.\n\n"\
+			"          Images which do have a specified assignment will then be assigned to their\n"\
+			"          monitors, replacing any images which may have already been assigned.\n"\
+			"\n"\
             "IMAGE MANIPULATIONS:\n"\
             "\n"\
             "    --blur <radius>:\n"\

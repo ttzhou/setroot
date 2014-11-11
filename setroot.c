@@ -55,7 +55,6 @@ struct monitor     *MONS  = NULL;
 struct monitor      VSCRN; // spanned area of all monitors
 
 unsigned int        NUM_MONS  = 0;
-unsigned int        NUM_WALLS = 0;
 
 char *BLANK_COLOR = "black";
 
@@ -256,11 +255,11 @@ void restore_wall()
 
 void init_wall( struct wallpaper *w )
 {
-    w->height = w->width   = 0;
-    w->xpos   = w->ypos    = 0; // relative to monitor!
+    w->height = w->width = 0;
+    w->xpos   = w->ypos  = 0; // relative to monitor!
 
 	w->span = 0;
-	w->monitor = -1;
+	w->monitor = 0;
 
     w->option = FIT_AUTO;
     w->axis   = NONE;
@@ -271,6 +270,18 @@ void init_wall( struct wallpaper *w )
     w->bgcol  = NULL;
     w->tint   = NULL;
     w->image  = NULL;
+}
+
+void clean_wall( struct wallpaper **w )
+{
+    if ((*w)->bgcol != NULL)
+        free((*w)->bgcol);
+    if ((*w)->tint != NULL)
+        free((*w)->tint);
+    if ((*w)->image != NULL) {
+        imlib_context_set_image((*w)->image);
+        imlib_free_image_and_decache();
+    }
 }
 
 struct rgb_triple *parse_color( char *col )
@@ -318,6 +329,7 @@ void parse_opts( unsigned int argc, char **args )
     }
     unsigned int rmbr      = 0;
     unsigned int span      = 0;
+    int monitor            = -1;
 
     unsigned int blur_r    = 0;
     unsigned int sharpen_r = 0;
@@ -332,7 +344,7 @@ void parse_opts( unsigned int argc, char **args )
 
     /* init array for storing wallpapers */
     WALLS = malloc(NUM_MONS * sizeof(struct wallpaper)); verify(WALLS);
-	NUM_WALLS = 0;
+	unsigned int num_walls = 0;
 
     for ( unsigned int i = 1 ; i < argc; i++ ) {
         if (streq(args[i], "-h")  || streq(args[i], "--help")) {
@@ -347,6 +359,7 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "--blank-color")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
+                rmbr = 0; // don't remember since invalid invocation
                 continue;
             }
             BLANK_COLOR = args[++i];
@@ -357,14 +370,31 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "--bg-color")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
+                rmbr = 0; // don't remember since invalid invocation
                 continue;
             }
             bg_col = parse_color(args[++i]);
+        } else if (streq(args[i], "--on")) {
+            if (argc == i + 1) {
+                fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
+                rmbr = 0; // don't remember since invalid invocation
+                continue;
+            }
+            monitor = atoi(args[++i]);
+            if (monitor > (int) (NUM_MONS - 1) || monitor < 0) {
+                fprintf(stderr, \
+                        "No Xinerama monitor %d. Ignoring '--on' option. \n",\
+                        monitor);
+                monitor = -1;
+                rmbr = 0; // don't remember since invalid invocation
+                continue;
+            }
 
         /* MANIPULATIONS */
         } else if (streq(args[i], "--tint")) {
             if (argc == i + 1) {
                 fprintf(stderr, "No color specified.\n");
+                rmbr = 0; // don't remember since invalid invocation
                 continue;
             }
             tint_col = parse_color(args[++i]);
@@ -372,36 +402,56 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "--blur")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Blur radius not specified.\n");
+                rmbr = 0; // don't remember since invalid invocation
                 continue;
             }
-            if (!(isdigit(args[i + 1][0])))
+            if (!(isdigit(args[i + 1][0]))) {
                 fprintf(stderr, \
-                        "Invalid blur amount %s. No blur will be applied.\n", \
+                        "Invalid blur amount %s. No blur applied.\n", \
                         args[i + 1]);
+                rmbr = 0; // don't remember since invalid invocation
+            }
             blur_r = atoi(args[++i]);
 
         } else if (streq(args[i], "--sharpen")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Sharpen radius not specified.\n");
+                rmbr = 0; // don't remember since invalid invocation
                 continue;
             }
-            if (!(isdigit(args[i + 1][0])))
+            if (!(isdigit(args[i + 1][0]))) {
                 fprintf(stderr, \
-                        "Invalid sharpen amount %s. No sharpen will be \
-                        applied.\n", args[i + 1]);
+                        "Invalid sharpen amount %s. No sharpen applied.\n",\
+                        args[i + 1]);
+                rmbr = 0; // don't remember since invalid invocation
+            }
             sharpen_r = atoi(args[++i]);
 
         } else if (streq(args[i], "--brighten")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Brightness amount not specified.\n");
+                rmbr = 0; // don't remember since invalid invocation
                 continue;
+            }
+            if (!isdigit(args[i + 1][0]) || args[i + 1][0] != '-') {
+                fprintf(stderr, \
+                        "Invalid brightness %s. No brightening applied.\n",\
+                        args[i + 1]);
+                rmbr = 0; // don't remember since invalid invocation
             }
             bright_v = strtof(args[++i], NULL);
 
         } else if (streq(args[i], "--contrast")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Contrast amount not specified.\n");
+                rmbr = 0; // don't remember since invalid invocation
                 continue;
+            }
+            if (!isdigit(args[i + 1][0]) || args[i + 1][0] != '-') {
+                fprintf(stderr, \
+                        "Invalid contrast %s. No contrast applied.\n",\
+                        args[i + 1]);
+                rmbr = 0; // don't remember since invalid invocation
             }
             contrast_v = strtof(args[++i], NULL);
 
@@ -416,6 +466,7 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "-sc") || streq(args[i], "--solid-color" )) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
+                rmbr = 0; // don't remember since invalid invocation
                 continue;
             }
             bg_col = parse_color(args[i + 1]);
@@ -438,62 +489,75 @@ void parse_opts( unsigned int argc, char **args )
 
         /* GET IMAGE AND STORE OPTIONS */
         } else {
-            NUM_WALLS++;
-            init_wall(&(WALLS[NUM_WALLS - 1]));
+            num_walls++;
+            init_wall(&(WALLS[num_walls - 1]));
 
             if (flag != COLOR && // won't try to load image if flag is COLOR
-                    !(WALLS[NUM_WALLS - 1].image = imlib_load_image(args[i]))) {
+                    !(WALLS[num_walls - 1].image = imlib_load_image(args[i]))) {
                 fprintf(stderr, "Image %s not found.\n", args[i]);
                 exit(1);
             }
-
-            WALLS[NUM_WALLS - 1].option = flag;
+            WALLS[num_walls - 1].option = flag;
 			flag = FIT_AUTO; // reset flag
 
+            if (monitor > -1) {
+                WALLS[num_walls - 1].monitor = monitor;
+                monitor = -1;
+            } else {
+                WALLS[num_walls - 1].monitor = num_walls - 1;
+            }
             if (bg_col != NULL) {
-                WALLS[NUM_WALLS - 1].bgcol = bg_col;
+                WALLS[num_walls - 1].bgcol = bg_col;
                 bg_col = NULL;
             } else {
-                WALLS[NUM_WALLS - 1].bgcol = parse_color("black");
+                WALLS[num_walls - 1].bgcol = parse_color("black");
             }
             if (flip != NONE) {
-                WALLS[NUM_WALLS - 1].axis = flip;
+                WALLS[num_walls - 1].axis = flip;
                 flip = NONE;
             }
             if (blur_r) {
-                WALLS[NUM_WALLS - 1].blur = blur_r;
+                WALLS[num_walls - 1].blur = blur_r;
                 blur_r = 0;
             }
             if (sharpen_r) {
-                WALLS[NUM_WALLS - 1].sharpen = sharpen_r;
+                WALLS[num_walls - 1].sharpen = sharpen_r;
                 sharpen_r = 0;
             }
             if (bright_v) {
-                WALLS[NUM_WALLS - 1].brightness = bright_v;
+                WALLS[num_walls - 1].brightness = bright_v;
                 bright_v = 0;
             }
             if (contrast_v) {
-                WALLS[NUM_WALLS - 1].contrast = contrast_v;
+                WALLS[num_walls - 1].contrast = contrast_v;
                 contrast_v = 0;
             }
             if (tint_col != NULL) {
-                WALLS[NUM_WALLS - 1].tint = tint_col;
+                WALLS[num_walls - 1].tint = tint_col;
                 tint_col = NULL;
             }
 			if (span) {
-				WALLS[NUM_WALLS - 1].span = 1;
+				WALLS[num_walls - 1].span = 1;
 				span = 0;
 			}
-            if (NUM_WALLS == NUM_MONS) // at most one wall per screen or span
+            if (num_walls == NUM_MONS) // at most one wall per screen or span
                 break;
         }
+    }
+    if (num_walls == 0) {
+        fprintf(stderr, "Warning: no images were supplied.\n");
+        rmbr = 0;
     }
     if (rmbr)
         store_wall(argc, args);
 
     /* assign walls to monitors */
-    for (unsigned int mn = 0; mn < NUM_WALLS; mn++) {
-        MONS[mn].wall = &(WALLS[mn]);
+    for (unsigned int wn = 0; wn < num_walls; wn++) {
+        int mn = WALLS[wn].monitor;
+        /* if wall was previously assigned to mon, clear it */
+        if (MONS[mn].wall != NULL)
+            clean_wall(&(MONS[mn].wall));
+        MONS[mn].wall = &(WALLS[wn]);
     }
 }
 
