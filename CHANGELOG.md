@@ -4,6 +4,11 @@ CHANGELOG
 Pre-Release
 -----------
 
+v0.9
+----
+
++ added ability to assign a wall to a monitor by number
+
 v0.8
 ----
 

@@ -6,7 +6,7 @@ NAME
 VERSION
 -------
 
-`pre-release: version 0.8 - 2014-11-10`
+`pre-release: version 0.9 - 2014-11-11`
 
 
 ABOUT
@@ -49,6 +49,11 @@ The order of the filenames determines which monitor the wallpaper is set to. The
 first invoked filename is set to the first Xinerama monitor; the second to the
 second; and so on.
 
+If more than one image option is applied, the last one takes effect.
+
+If *n* filenames are supplied for *k* monitors, where *n* > *k*, only the first
+*k* filenames are processed.
+
 
 STORAGE FLAGS
 -------------
@@ -70,10 +75,13 @@ IMAGE FLAGS
 -----------
 
 **--span**
-> have image span all screens (no cropping) <br/> if more than one image is specified, the later image will be spanned.
+> <p>have image span all screens (no cropping) <br/> if more than one image is specified, the later image will be spanned.</p><p>Note that this overrides the `--on` option. Note also that further images that are set (in the case of multiple monitors) will "cover" the spanned image.</p>
 
 **--bg-color** *#RRGGBB*
 > set empty space around image to color
+
+**--on** \<*n*\>
+> assign image to be wallpaper on Xinerama monitor *n*. <p>if not all images are passed this option, the unassigned walls will be placed on monitors by their position in the invocation sequence. images which do have a specified assignment will then be assigned to their monitors, replacing any images which may have already been assigned.</p>
 
 
 IMAGE MANIPULATIONS
