@@ -712,10 +712,11 @@ Pixmap make_bg()
     for (unsigned int i = 0; i < NUM_MONS; i++) {
         struct monitor *cur_mon = &(MONS[i]);
         struct wallpaper *cur_wall = cur_mon->wall;
-        fit_type option = cur_wall->option;
 
 		if (cur_wall == NULL)
 			continue;
+
+        fit_type option = cur_wall->option;
 
         if (cur_wall->span) {
 			cur_mon = &(VSCRN);
