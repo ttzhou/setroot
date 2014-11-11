@@ -50,12 +50,14 @@ int                 BITDEPTH;
 Colormap            COLORMAP;
 Visual             *VISUAL;
 
-struct wallpaper   *WALLS;
-struct monitor     *MONS;
+struct wallpaper   *WALLS = NULL;
+struct monitor     *MONS  = NULL;
 struct monitor      VSCRN; // spanned area of all monitors
 
-unsigned int       NUM_MONS;
-unsigned int       SPAN_WALL;
+unsigned int        NUM_MONS  = 0;
+unsigned int        NUM_WALLS = 0;
+
+char *BLANK_COLOR = "black";
 
 static char *program_name   = "setroot";
 
@@ -257,6 +259,9 @@ void init_wall( struct wallpaper *w )
     w->height = w->width   = 0;
     w->xpos   = w->ypos    = 0; // relative to monitor!
 
+	w->span = 0;
+	w->monitor = -1;
+
     w->option = FIT_AUTO;
     w->axis   = NONE;
 
@@ -311,15 +316,14 @@ void parse_opts( unsigned int argc, char **args )
         show_help();
         exit(EXIT_SUCCESS);
     }
-    unsigned int nwalls    = 0;
     unsigned int rmbr      = 0;
+    unsigned int span      = 0;
 
     unsigned int blur_r    = 0;
     unsigned int sharpen_r = 0;
     float contrast_v       = 0;
     float bright_v         = 0;
 
-    char* blank_col              = "black";
     struct rgb_triple *bg_col    = NULL;
     struct rgb_triple *tint_col  = NULL;
 
@@ -328,6 +332,7 @@ void parse_opts( unsigned int argc, char **args )
 
     /* init array for storing wallpapers */
     WALLS = malloc(NUM_MONS * sizeof(struct wallpaper)); verify(WALLS);
+	NUM_WALLS = 0;
 
     for ( unsigned int i = 1 ; i < argc; i++ ) {
         if (streq(args[i], "-h")  || streq(args[i], "--help")) {
@@ -344,11 +349,11 @@ void parse_opts( unsigned int argc, char **args )
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
                 continue;
             }
-            blank_col = args[++i];
+            BLANK_COLOR = args[++i];
 
         /* IMAGE FLAGS */
         } else if (streq(args[i], "--span")) {
-            SPAN_WALL = 1;
+            span = 1;
         } else if (streq(args[i], "--bg-color")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
@@ -413,7 +418,7 @@ void parse_opts( unsigned int argc, char **args )
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
                 continue;
             }
-            bg_col = parse_color(args[i+1]);
+            bg_col = parse_color(args[i + 1]);
             flag = COLOR;
 
         } else if (streq(args[i], "-c")  || streq(args[i], "--center")) {
@@ -433,51 +438,53 @@ void parse_opts( unsigned int argc, char **args )
 
         /* GET IMAGE AND STORE OPTIONS */
         } else {
-            nwalls++;
-            init_wall(&(WALLS[nwalls - 1]));
-
-            WALLS[nwalls - 1].option = flag;
+            NUM_WALLS++;
+            init_wall(&(WALLS[NUM_WALLS - 1]));
 
             if (flag != COLOR && // won't try to load image if flag is COLOR
-                    !(WALLS[nwalls - 1].image = imlib_load_image(args[i]))) {
+                    !(WALLS[NUM_WALLS - 1].image = imlib_load_image(args[i]))) {
                 fprintf(stderr, "Image %s not found.\n", args[i]);
                 exit(1);
             }
+
+            WALLS[NUM_WALLS - 1].option = flag;
+			flag = FIT_AUTO; // reset flag
+
+            if (bg_col != NULL) {
+                WALLS[NUM_WALLS - 1].bgcol = bg_col;
+                bg_col = NULL;
+            } else {
+                WALLS[NUM_WALLS - 1].bgcol = parse_color("black");
+            }
             if (flip != NONE) {
-                WALLS[nwalls - 1].axis = flip;
+                WALLS[NUM_WALLS - 1].axis = flip;
                 flip = NONE;
             }
             if (blur_r) {
-                WALLS[nwalls - 1].blur = blur_r;
+                WALLS[NUM_WALLS - 1].blur = blur_r;
                 blur_r = 0;
             }
             if (sharpen_r) {
-                WALLS[nwalls - 1].sharpen = sharpen_r;
+                WALLS[NUM_WALLS - 1].sharpen = sharpen_r;
                 sharpen_r = 0;
             }
             if (bright_v) {
-                WALLS[nwalls - 1].brightness = bright_v;
+                WALLS[NUM_WALLS - 1].brightness = bright_v;
                 bright_v = 0;
             }
             if (contrast_v) {
-                WALLS[nwalls - 1].contrast = contrast_v;
+                WALLS[NUM_WALLS - 1].contrast = contrast_v;
                 contrast_v = 0;
             }
             if (tint_col != NULL) {
-                WALLS[nwalls - 1].tint = tint_col;
+                WALLS[NUM_WALLS - 1].tint = tint_col;
                 tint_col = NULL;
             }
-            if (bg_col != NULL) {
-                WALLS[nwalls - 1].bgcol = bg_col;
-                bg_col = NULL;
-            } else {
-                WALLS[nwalls - 1].bgcol = parse_color("black");
-            }
-            if (SPAN_WALL) {
-                VSCRN.wall = &(WALLS[nwalls - 1]);
-                break; // remove this line if you want to span the latest wall
-            }
-            if (nwalls == NUM_MONS) // at most one wall per screen or span
+			if (span) {
+				WALLS[NUM_WALLS - 1].span = 1;
+				span = 0;
+			}
+            if (NUM_WALLS == NUM_MONS) // at most one wall per screen or span
                 break;
         }
     }
@@ -485,29 +492,39 @@ void parse_opts( unsigned int argc, char **args )
         store_wall(argc, args);
 
     /* assign walls to monitors */
-    for (unsigned int mn = 0; mn < NUM_MONS; mn++) {
-        /* if not spanning, fill remaining mons with blank walls */
-        if (!SPAN_WALL && mn >= nwalls) {
-            init_wall(&(WALLS[mn]));
-            WALLS[mn].option = COLOR;
-            WALLS[mn].bgcol  = parse_color(blank_col);
-        }
+    for (unsigned int mn = 0; mn < NUM_WALLS; mn++) {
         MONS[mn].wall = &(WALLS[mn]);
     }
 }
 
-void color_bg( struct monitor *mon )
+void clear_background( char *blank_color )
+{
+    struct rgb_triple *col = parse_color(blank_color);
+
+    Imlib_Image bg = imlib_create_image(VSCRN.width, VSCRN.height);
+    if (bg == NULL)
+        die(1, "Failed to create image.");
+
+    imlib_context_set_color(col->r, col->g, col->b, 255);
+    imlib_context_set_image(bg);
+    imlib_image_fill_rectangle(0, 0, VSCRN.width, VSCRN.height);
+	imlib_render_image_on_drawable(0, 0);
+	imlib_free_image_and_decache();
+    free(col);
+}
+
+void solid_color( struct monitor *mon )
 {
     struct wallpaper *fill = mon->wall;
     struct rgb_triple *col = fill->bgcol;
     fill->bgcol = NULL;
 
-    Imlib_Image color_bg = imlib_create_image(mon->width, mon->height);
-    if (color_bg == NULL)
+    Imlib_Image solid_color = imlib_create_image(mon->width, mon->height);
+    if (solid_color == NULL)
         die(1, "Failed to create image.");
 
     imlib_context_set_color(col->r, col->g, col->b, 255);
-    imlib_context_set_image(color_bg);
+    imlib_context_set_image(solid_color);
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
     free(col);
 }
@@ -690,21 +707,25 @@ Pixmap make_bg()
                         BITDEPTH);
 
     imlib_context_set_drawable(canvas);
+	clear_background(BLANK_COLOR);
 
     for (unsigned int i = 0; i < NUM_MONS; i++) {
-        struct monitor *cur_mon;
-        if (SPAN_WALL)
-            cur_mon = &(VSCRN);
-        else
-            cur_mon = &(MONS[i]);
-
-        color_bg(cur_mon);
-
+        struct monitor *cur_mon = &(MONS[i]);
         struct wallpaper *cur_wall = cur_mon->wall;
         fit_type option = cur_wall->option;
 
-        if (option != COLOR) {
-            /* the "canvas" for our image, colored by color_bg above */
+		if (cur_wall == NULL)
+			continue;
+
+        if (cur_wall->span) {
+			cur_mon = &(VSCRN);
+			cur_mon->wall = cur_wall;
+		}
+		/* color the bg (also serves as canvas for img) */
+		solid_color(cur_mon);
+
+		if (option != COLOR) {
+            /* the "canvas" for our image, colored by solid_color above */
             Imlib_Image bg = imlib_context_get_image();
 
             /* load image, set dims */
@@ -785,9 +806,6 @@ Pixmap make_bg()
                                                cur_mon->width,
                                                cur_mon->height);
         imlib_free_image_and_decache();
-
-        if (SPAN_WALL)
-            break;
     }
     imlib_flush_loaders();
     return canvas;

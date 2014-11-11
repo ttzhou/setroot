@@ -23,6 +23,9 @@ struct rgb_triple {
 struct wallpaper {
 	Imlib_Image			image;
 
+	unsigned int		span;
+	int					monitor;
+
 	unsigned int		height;
 	unsigned int		width;
 
