@@ -4,6 +4,11 @@ CHANGELOG
 Pre-Release
 -----------
 
+v0.8
+----
+
++ restructured code to be simpler
+
 v0.7
 ----
 
