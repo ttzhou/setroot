@@ -8,7 +8,7 @@ void store_wall( int argc, char** line );
 void restore_wall();
 
 void init_wall( struct wallpaper *w );
-void clean_wall( struct wallpaper **w );
+void clean_wall( struct wallpaper *w );
 
 void sort_mons_by( int sort_opt );
 
