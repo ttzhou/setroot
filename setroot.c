@@ -612,7 +612,7 @@ void parse_opts( unsigned int argc, char **args )
 
     /* shrink WALLS array appropriately */
     if (num_walls < NUM_MONS) {
-        WALLS = realloc(WALLS, num_walls * sizeof(struct wallpaper)); verify(WALLS);
+        WALLS = realloc(WALLS, num_walls * sizeof(struct wallpaper));
     }
     /* assign walls to monitors */
     for (unsigned int wn = 0; wn < num_walls; wn++) {
