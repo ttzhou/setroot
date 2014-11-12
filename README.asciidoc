@@ -15,7 +15,7 @@ ABOUT
 This program was written as a way for me to learn some C, and also to serve as a
 personal replacement to the excellent `imlibsetroot` and `feh` programs.
 
-I liked `feh's` syntax, but I had no use for its image viewing capabilities, so I
+I liked `feh` 's syntax, but I had no use for its image viewing capabilities, so I
 tried out `imlibsetroot`. I encountered some segfaults/Imlib errors during
 usage, so I started hacking it, but ended up just writing my own program based
 off of it, stripped of extraneous features I saw no need for.
@@ -43,13 +43,13 @@ DEPENDENCIES
 INVOCATION
 ----------
 
-**setroot** [*storage flag*] [*global flag*] { [*image flags, manipulations, options*] \<filename\> }+ [*monitor flag*]
+**setroot** [_storage flag_ [_global flag_] { [_image flags, manipulations, options_] \<filename\> }+ [_monitor flag_]
 
 The order of the filenames determines which monitor the wallpaper is set to. The first invoked filename is set to the first Xinerama monitor; the second to the second; and so on.
 
 If more than one image option is applied, the last one takes effect.
 
-If *n* filenames are supplied for *k* monitors, where *n* > *k*, only the first *k* filenames are processed.
+If _n_ filenames are supplied for _k_ monitors, where _n_ > _k_, only the first _k_ filenames are processed.
 
 MISC
 ----
@@ -68,7 +68,7 @@ STORAGE FLAGS
 
 **--restore**::
 
-	 looks for `$HOME/setroot-restore` and calls invocation sequence <br/> (restores your previously set wallpapers and options)
+	 looks for `$HOME/setroot-restore` and calls invocation sequence (restores your previously set wallpapers and options)
 
 
 GLOBAL FLAGS
@@ -76,7 +76,7 @@ GLOBAL FLAGS
 
 **--blank-color** *#RRGGBB*::
 
-	 if number of monitors exceeds number of walls, sets background <br/> color of blank walls, unless overriden by **--bg-color**
+	 if number of monitors exceeds number of walls, sets background color of blank walls, unless overriden by _--bg-color_
 
 
 IMAGE FLAGS
@@ -84,39 +84,39 @@ IMAGE FLAGS
 
 **--span**::
 
-	 <p>have image span all screens (no cropping) <br/> if more than one image is specified, the later image will be spanned.</p><p>Note that this overrides the `--on` option. Note also that further images that are set (in the case of multiple monitors) will "cover" the spanned image.</p>
+	 have image span all screens (no cropping)  if more than one image is specified, the later image will be spanned.Note that this overrides the `--on` option. Note also that further images that are set (in the case of multiple monitors) will "cover" the spanned image.
 
-**--bg-color** *#RRGGBB*::
+**--bg-color** _#RRGGBB_::
 
 	 set empty space around image to color
 
-**--on** \<*n*\>::
+**--on** <_n_>::
 
-	 assign image to be wallpaper on Xinerama monitor *n*. <p>if not all images are passed this option, the unassigned walls will be placed on monitors by their position in the invocation sequence. images which do have a specified assignment will then be assigned to their monitors, replacing any images which may have already been assigned.</p>
+	 assign image to be wallpaper on Xinerama monitor *n*. if not all images are passed this option, the unassigned walls will be placed on monitors by their position in the invocation sequence. images which do have a specified assignment will then be assigned to their monitors, replacing any images which may have already been assigned.
 
 
 IMAGE MANIPULATIONS
 -------------------
 
-**--blur** \<*radius*\>::
+**--blur** <_radius_>::
 
 	 blur image
 
-**--sharpen** \<*radius*\>::
+**--sharpen** <_radius_>::
 
 	 sharpen image
 
-**--brighten** \<*amount*\>::
+**--brighten** <_amount_>::
 
 	 modify image brightness by amount (between -1 and 1)
 
-**--contrast** \<*amount*\>::
+**--contrast** <_amount_>::
 
 	 modify contrast of image by amount (between -100 and 100)
 
-**--flip**[*hvd*]::
+**--flip**[_hvd_]::
 
-	 flip image [*h*]orizontally, [*v*]ertically, or [*d*]iagonally
+	 flip image [_h_]orizontally, [_v_]ertically, or [_d_]iagonally
 
 **--tint** *#RRGGBB*::
 
@@ -174,13 +174,13 @@ MONITOR FLAGS
 AUTHOR
 ------
 
-**(C) 2014** Tim Zhou \<ttzhou@uwaterloo.ca\>
+**(C) 2014** Tim Zhou <ttzhou@uwaterloo.ca>
 
 
 ACKNOWLEDGMENTS
 ---------------
 
-`set_pixmap_property()` is **(C) 1998** Michael Jennings \<mej@eterm.org\>
+`set_pixmap_property()` is **(C) 1998** Michael Jennings <mej@eterm.org>
 
 `find_desktop()` is a modification of  
-`get_desktop_window()` **(C) 2004-2012** Jonathan Koren \<jonathan@jonathankoren.com\>
+`get_desktop_window()` **(C) 2004-2012** Jonathan Koren <jonathan@jonathankoren.com>
