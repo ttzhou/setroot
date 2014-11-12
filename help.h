@@ -12,7 +12,7 @@ void show_help()
             "\n"\
             "INVOCATION:\n"\
             "\n"\
-            "          setroot [<storage flag>] ( [<image flags>] [<image options>] <filename> )+ \n"\
+            "          setroot [<storage flag>] [<global flags>] ( [<image flags>] [<image options>] <filename> )+ \n"\
             "\n"\
             "          The order of the filenames determine which monitor the wallpaper is set to.\n"\
             "          The first invoked filename is set to the first Xinerama monitor; the second\n"\
@@ -102,5 +102,14 @@ void show_help()
             "\n"\
             "    -sc, --solid-color #RRGGBB:\n"\
             "          set background to solid color #RRGGBB (hex code)\n"\
+            "\n"\
+            "MONITOR FLAGS\n"\
+            "\n"\
+            "    --use-x-geometry\n"\
+            "          number Xinerama monitors from leftmost to rightmost\n"\
+            "\n"\
+            "    --use-y-geometry\n"\
+            "          number Xinerama monitors from topmost to bottommost\n"\
+            "\n"\
             );
 }

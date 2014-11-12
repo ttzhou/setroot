@@ -20,6 +20,11 @@ struct rgb_triple {
 	int r, g, b;
 };
 
+struct pair {
+	unsigned int index;
+	int value;
+};
+
 struct wallpaper {
 	Imlib_Image			image;
 
@@ -54,3 +59,13 @@ struct monitor {
 	struct wallpaper	*wall;
 };
 
+// comparison functions for pairs
+int ascending( const void *a, const void *b )
+{
+    return ( (*((struct pair*) a)).value - (*((struct pair*) b)).value);
+}
+
+int descending( const void *a, const void *b )
+{
+    return ( (*((struct pair*) b)).value - (*((struct pair*) a)).value);
+}

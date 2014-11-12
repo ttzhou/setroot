@@ -36,10 +36,10 @@
 
 #include <Imlib2.h>
 
-#include "util.h"
 #include "classes.h"
 #include "functions.h"
 #include "help.h"
+#include "util.h"
 
 /* globals */
 Display            *XDPY;
@@ -61,9 +61,13 @@ char *BLANK_COLOR = "black";
 static char *program_name   = "setroot";
 
 /* runtime variables */
-const int IMLIB_CACHE_SIZE  = 10240*1024; // I like big walls
-const int IMLIB_COLOR_USAGE = 256;
-const int DITHER_SWITCH     = 0;
+static const int IMLIB_CACHE_SIZE  = 10240*1024; // I like big walls
+static const int IMLIB_COLOR_USAGE = 256;
+static const int DITHER_SWITCH     = 0;
+
+static const int SORT_BY_XINM = 0;
+static const int SORT_BY_XORG = 1;
+static const int SORT_BY_YORG = 2;
 
 /*****************************************************************************
  *
@@ -284,6 +288,49 @@ void clean_wall( struct wallpaper **w )
     }
 }
 
+void sort_mons_by( int sort_opt )
+{
+    if (!XineramaIsActive(XDPY)) {
+        NUM_MONS = 1;
+        MONS[0] = VSCRN;
+        return;
+    }
+    XineramaScreenInfo *XSI
+        = XineramaQueryScreens(XDPY, (int*) &NUM_MONS);
+    MONS = malloc(sizeof(struct monitor) * NUM_MONS); verify(MONS);
+
+    unsigned int i;
+    struct pair values[NUM_MONS];
+
+    if (sort_opt == SORT_BY_XORG) {
+        for ( i = 0; i < NUM_MONS; i++ ) {
+            values[i].value = XSI[i].x_org;
+            values[i].index = i;
+        }
+        qsort(values, NUM_MONS, sizeof(struct pair), ascending);
+
+    } else if (sort_opt == SORT_BY_YORG) {
+        for ( i = 0; i < NUM_MONS; i++ ) {
+            values[i].value = XSI[i].y_org;
+            values[i].index = i;
+        }
+        qsort(values, NUM_MONS, sizeof(struct pair), ascending);
+
+    } else {
+        for ( i = 0; i < NUM_MONS; i++ )
+            values[i].index = i;
+    }
+    for ( i = 0; i < NUM_MONS; i++ ) {
+        MONS[i].height = XSI[values[i].index].height;
+        MONS[i].width  = XSI[values[i].index].width;
+        MONS[i].xpos   = XSI[values[i].index].x_org;
+        MONS[i].ypos   = XSI[values[i].index].y_org;
+        MONS[i].wall   = NULL;
+    }
+    XFree(XSI);
+    XSync(XDPY, False);
+}
+
 struct rgb_triple *parse_color( char *col )
 {
     struct rgb_triple *rgb = malloc(sizeof(struct rgb_triple)); verify(rgb);
@@ -323,10 +370,6 @@ struct rgb_triple *parse_color( char *col )
 
 void parse_opts( unsigned int argc, char **args )
 {
-    if (argc < 2) {
-        show_help();
-        exit(EXIT_SUCCESS);
-    }
     unsigned int rmbr      = 0;
     unsigned int span      = 0;
     int monitor            = -1;
@@ -342,24 +385,28 @@ void parse_opts( unsigned int argc, char **args )
     fit_type flag  = FIT_AUTO;
     flip_type flip = NONE;
 
+    /* set up monitors based on arrangement option */
+    if        (streq(args[argc - 1], "--use-x-geometry")) {
+        sort_mons_by(SORT_BY_XORG);
+    } else if (streq(args[argc - 1], "--use-y-geometry")) {
+        sort_mons_by(SORT_BY_YORG);
+    } else {
+        sort_mons_by(SORT_BY_XINM);
+    }
     /* init array for storing wallpapers */
     WALLS = malloc(NUM_MONS * sizeof(struct wallpaper)); verify(WALLS);
 	unsigned int num_walls = 0;
 
     for ( unsigned int i = 1 ; i < argc; i++ ) {
-        if (streq(args[i], "-h")  || streq(args[i], "--help")) {
-            show_help();
-            exit(EXIT_SUCCESS);
-
         /* STORAGE OPTIONS */
-        } else if (streq(args[i], "--store") && i == 1) {
+        if (streq(args[i], "--store") && i == 1) {
             rmbr = 1;
 
         /* GLOBAL OPTIONS */
         } else if (streq(args[i], "--blank-color")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
-                rmbr = 0; // don't remember since invalid invocation
+                rmbr = 0;
                 continue;
             }
             BLANK_COLOR = args[++i];
@@ -370,14 +417,22 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "--bg-color")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
-                rmbr = 0; // don't remember since invalid invocation
+                rmbr = 0;
                 continue;
             }
             bg_col = parse_color(args[++i]);
+
         } else if (streq(args[i], "--on")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
-                rmbr = 0; // don't remember since invalid invocation
+                rmbr = 0;
+                continue;
+            }
+            if (!isdigit(args[i + 1][0])) {
+                fprintf(stderr, \
+                        "No Xinerama monitor %s. Ignoring '--on' option. \n",\
+                        args[++i]);
+                rmbr = 0;
                 continue;
             }
             monitor = atoi(args[++i]);
@@ -386,7 +441,7 @@ void parse_opts( unsigned int argc, char **args )
                         "No Xinerama monitor %d. Ignoring '--on' option. \n",\
                         monitor);
                 monitor = -1;
-                rmbr = 0; // don't remember since invalid invocation
+                rmbr = 0;
                 continue;
             }
 
@@ -394,7 +449,7 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "--tint")) {
             if (argc == i + 1) {
                 fprintf(stderr, "No color specified.\n");
-                rmbr = 0; // don't remember since invalid invocation
+                rmbr = 0;
                 continue;
             }
             tint_col = parse_color(args[++i]);
@@ -402,56 +457,60 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "--blur")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Blur radius not specified.\n");
-                rmbr = 0; // don't remember since invalid invocation
+                rmbr = 0;
                 continue;
             }
             if (!(isdigit(args[i + 1][0]))) {
                 fprintf(stderr, \
                         "Invalid blur amount %s. No blur applied.\n", \
-                        args[i + 1]);
-                rmbr = 0; // don't remember since invalid invocation
+                        args[++i]);
+                rmbr = 0;
+                continue;
             }
             blur_r = atoi(args[++i]);
 
         } else if (streq(args[i], "--sharpen")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Sharpen radius not specified.\n");
-                rmbr = 0; // don't remember since invalid invocation
+                rmbr = 0;
                 continue;
             }
             if (!(isdigit(args[i + 1][0]))) {
                 fprintf(stderr, \
                         "Invalid sharpen amount %s. No sharpen applied.\n",\
-                        args[i + 1]);
-                rmbr = 0; // don't remember since invalid invocation
+                        args[++i]);
+                rmbr = 0;
+                continue;
             }
             sharpen_r = atoi(args[++i]);
 
         } else if (streq(args[i], "--brighten")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Brightness amount not specified.\n");
-                rmbr = 0; // don't remember since invalid invocation
+                rmbr = 0;
                 continue;
             }
-            if (!isdigit(args[i + 1][0]) || args[i + 1][0] != '-') {
+            if (!isdigit(args[i + 1][0]) && args[i + 1][0] != '-') {
                 fprintf(stderr, \
                         "Invalid brightness %s. No brightening applied.\n",\
-                        args[i + 1]);
-                rmbr = 0; // don't remember since invalid invocation
+                        args[++i]);
+                rmbr = 0;
+                continue;
             }
             bright_v = strtof(args[++i], NULL);
 
         } else if (streq(args[i], "--contrast")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Contrast amount not specified.\n");
-                rmbr = 0; // don't remember since invalid invocation
+                rmbr = 0;
                 continue;
             }
-            if (!isdigit(args[i + 1][0]) || args[i + 1][0] != '-') {
+            if (!isdigit(args[i + 1][0]) && args[i + 1][0] != '-') {
                 fprintf(stderr, \
                         "Invalid contrast %s. No contrast applied.\n",\
-                        args[i + 1]);
-                rmbr = 0; // don't remember since invalid invocation
+                        args[++i]);
+                rmbr = 0;
+                continue;
             }
             contrast_v = strtof(args[++i], NULL);
 
@@ -466,7 +525,7 @@ void parse_opts( unsigned int argc, char **args )
         } else if (streq(args[i], "-sc") || streq(args[i], "--solid-color" )) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
-                rmbr = 0; // don't remember since invalid invocation
+                rmbr = 0;
                 continue;
             }
             bg_col = parse_color(args[i + 1]);
@@ -551,6 +610,10 @@ void parse_opts( unsigned int argc, char **args )
     if (rmbr)
         store_wall(argc, args);
 
+    /* shrink WALLS array appropriately */
+    if (num_walls < NUM_MONS) {
+        WALLS = realloc(WALLS, num_walls * sizeof(struct wallpaper)); verify(WALLS);
+    }
     /* assign walls to monitors */
     for (unsigned int wn = 0; wn < num_walls; wn++) {
         int mn = WALLS[wn].monitor;
@@ -897,23 +960,12 @@ int main(int argc, char** args)
     VSCRN.xpos   = 0;
     VSCRN.ypos   = 0;
 
-    if (XineramaIsActive(XDPY)) {
-        XineramaScreenInfo *XSI
-            = XineramaQueryScreens(XDPY, (int*) &NUM_MONS);
-        MONS = malloc(sizeof(struct monitor) * NUM_MONS); verify(MONS);
-        for (unsigned int i = 0; i < NUM_MONS; i++) {
-            MONS[i].height = XSI[i].height;
-            MONS[i].width  = XSI[i].width;
-            MONS[i].xpos   = XSI[i].x_org;
-            MONS[i].ypos   = XSI[i].y_org;
-            MONS[i].wall   = NULL;
-        }
-        XFree(XSI);
-        XSync(XDPY, False);
-    } else {
-        NUM_MONS = 1;
-        MONS[0] = VSCRN;
+    /* check for acts of desperation */
+    if (argc < 2 || streq(args[1], "-h") || streq(args[1], "--help")) {
+        show_help();
+        exit(EXIT_SUCCESS);
     }
+    /* restore or parse options */
     if (argc > 1 && streq(args[1], "--restore"))
         restore_wall();
     else
