@@ -76,8 +76,7 @@ GLOBAL FLAGS
 
 **--blank-color** _#RRGGBB_::
 
-	 if number of monitors exceeds number of walls, sets background color of blank walls,+
-	 unless overriden by _--bg-color_ option
+	 sets background color of blank walls, unless overriden by _--bg-color_ option
 
 
 IMAGE FLAGS
@@ -85,15 +84,15 @@ IMAGE FLAGS
 
 **--span**::
 
-	 have image span all screens (no cropping).
+	 have image span all screens (no cropping). +
 
-	 If more than one image is specified, the later image will be spanned. Note that this overrides the `--on` option. Note also that further images that are set (in the case of multiple monitors) will "cover" the spanned image.
+     If more than one image is specified, the later image will be spanned. Note that this overrides the `--on` option. Note also that further images that are set (in the case of multiple monitors) will "cover" the spanned image.
 
 **--bg-color** _#RRGGBB_::
 
 	 set empty space around image to color
 
-**--on** < _n_ >::
+**--on** _<n>_::
 
 	 assign image to be wallpaper on Xinerama monitor *n*. if not all images are passed this option, the unassigned walls will be placed on monitors by their position in the invocation sequence. images which do have a specified assignment will then be assigned to their monitors, replacing any images which may have already been assigned.
 
@@ -101,19 +100,19 @@ IMAGE FLAGS
 IMAGE MANIPULATIONS
 -------------------
 
-**--blur** < _radius_ >::
+**--blur** _<radius>_::
 
 	 blur image
 
-**--sharpen** < _radius_ >::
+**--sharpen** _<radius>_::
 
 	 sharpen image
 
-**--brighten** < _amount_ >::
+**--brighten** _<amount>_::
 
 	 modify image brightness by amount (between -1 and 1)
 
-**--contrast** < _amount_ >::
+**--contrast** _<amount>_::
 
 	 modify contrast of image by amount (between -100 and 100)
 
@@ -185,5 +184,5 @@ ACKNOWLEDGMENTS
 
 `set_pixmap_property()` is **(C) 1998** Michael Jennings <mej@eterm.org>
 
-`find_desktop()` is a modification of `get_desktop_window()`+
+`find_desktop()` is a modification of `get_desktop_window()` +
 **(C) 2004-2012** Jonathan Koren <jonathan@jonathankoren.com>
