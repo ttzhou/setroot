@@ -431,7 +431,7 @@ void parse_opts( unsigned int argc, char **args )
             if (!isdigit(args[i + 1][0])) {
                 fprintf(stderr, \
                         "No Xinerama monitor %s. Ignoring '--on' option. \n",\
-                        args[++i]);
+                        args[i + 1]);
                 rmbr = 0;
                 continue;
             }
@@ -463,7 +463,7 @@ void parse_opts( unsigned int argc, char **args )
             if (!(isdigit(args[i + 1][0]))) {
                 fprintf(stderr, \
                         "Invalid blur amount %s. No blur applied.\n", \
-                        args[++i]);
+                        args[i + 1]);
                 rmbr = 0;
                 continue;
             }
@@ -478,7 +478,7 @@ void parse_opts( unsigned int argc, char **args )
             if (!(isdigit(args[i + 1][0]))) {
                 fprintf(stderr, \
                         "Invalid sharpen amount %s. No sharpen applied.\n",\
-                        args[++i]);
+                        args[i + 1]);
                 rmbr = 0;
                 continue;
             }
@@ -493,7 +493,7 @@ void parse_opts( unsigned int argc, char **args )
             if (!isdigit(args[i + 1][0]) && args[i + 1][0] != '-') {
                 fprintf(stderr, \
                         "Invalid brightness %s. No brightening applied.\n",\
-                        args[++i]);
+                        args[i + 1]);
                 rmbr = 0;
                 continue;
             }
@@ -508,7 +508,7 @@ void parse_opts( unsigned int argc, char **args )
             if (!isdigit(args[i + 1][0]) && args[i + 1][0] != '-') {
                 fprintf(stderr, \
                         "Invalid contrast %s. No contrast applied.\n",\
-                        args[++i]);
+                        args[i + 1]);
                 rmbr = 0;
                 continue;
             }
