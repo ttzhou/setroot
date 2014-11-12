@@ -276,14 +276,14 @@ void init_wall( struct wallpaper *w )
     w->image  = NULL;
 }
 
-void clean_wall( struct wallpaper **w )
+void clean_wall( struct wallpaper *w )
 {
-    if ((*w)->bgcol != NULL)
-        free((*w)->bgcol);
-    if ((*w)->tint != NULL)
-        free((*w)->tint);
-    if ((*w)->image != NULL) {
-        imlib_context_set_image((*w)->image);
+    if (w->bgcol != NULL)
+        free(w->bgcol);
+    if (w->tint != NULL)
+        free(w->tint);
+    if (w->image != NULL) {
+        imlib_context_set_image(w->image);
         imlib_free_image_and_decache();
     }
 }
@@ -612,14 +612,14 @@ void parse_opts( unsigned int argc, char **args )
 
     /* shrink WALLS array appropriately */
     if (num_walls < NUM_MONS) {
-        WALLS = realloc(WALLS, num_walls * sizeof(struct wallpaper)); verify(WALLS);
+        WALLS = realloc(WALLS, num_walls * sizeof(struct wallpaper));
     }
     /* assign walls to monitors */
     for (unsigned int wn = 0; wn < num_walls; wn++) {
         int mn = WALLS[wn].monitor;
         /* if wall was previously assigned to mon, clear it */
         if (MONS[mn].wall != NULL)
-            clean_wall(&(MONS[mn].wall));
+            clean_wall(MONS[mn].wall);
         MONS[mn].wall = &(WALLS[wn]);
     }
 }
