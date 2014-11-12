@@ -6,7 +6,7 @@ NAME
 VERSION
 -------
 
-`pre-release: version 0.9 - 2014-11-11`
+`pre-release: version 0.95 - 2014-11-11`
 
 
 ABOUT
@@ -43,7 +43,7 @@ DEPENDENCIES
 INVOCATION
 ----------
 
-**setroot** [\<*storage flag*\>] [\<*global flag*\>] { [\<*image flags*\>] [\<*image options*\>] \<filename\> }+ [\<monitor flag\>]
+**setroot** [*storage flag*] [*global flag*] { [*image flags, manipulations, options*] \<filename\> }+ [*monitor flag*]
 
 The order of the filenames determines which monitor the wallpaper is set to. The
 first invoked filename is set to the first Xinerama monitor; the second to the
@@ -54,6 +54,12 @@ If more than one image option is applied, the last one takes effect.
 If *n* filenames are supplied for *k* monitors, where *n* > *k*, only the first
 *k* filenames are processed.
 
+MISC
+----
+
+**-h, --help**
+> show this help
+
 
 STORAGE FLAGS
 -------------
@@ -63,6 +69,7 @@ STORAGE FLAGS
 
 **--restore**
 > looks for `$HOME/setroot-restore` and calls invocation sequence <br/> (restores your previously set wallpapers and options)
+
 
 GLOBAL FLAGS
 ------------
@@ -109,9 +116,6 @@ IMAGE MANIPULATIONS
 IMAGE OPTIONS
 -------------
 
-**-h, --help**
-> show this help
-
 **-c, --center**
 > place unscaled image centered and cropped to screen
 
@@ -125,7 +129,7 @@ IMAGE OPTIONS
 > scale image (preserve aspect) to fit screen completely (could cut off image)
 
 **-f, --fit**
-> scale image (preserve aspect) to fit screen (entire image on screen) - default setting
+> scale image (preserve aspect) to fit screen (entire image on screen) - default
 
 **-fh, --fit-height**
 > scale image (preserve aspect) until height matches invoked screen
