@@ -1,0 +1,192 @@
+NAME
+----
+
+*setroot* - sets your wallpaper.
+
+VERSION
+-------
+
+`pre-release: version 0.95 - 2014-11-11`
+
+
+ABOUT
+-----
+
+This program was written as a way for me to learn some C, and also to serve as a
+personal replacement to the excellent `imlibsetroot` and `feh` programs.
+
+I liked `feh` 's syntax, but I had no use for its image viewing capabilities, so I
+tried out `imlibsetroot`. I encountered some segfaults/Imlib errors during
+usage, so I started hacking it, but ended up just writing my own program based
+off of it, stripped of extraneous features I saw no need for.
+
+This program in no way constitutes good code. I have absolutely no experience in
+formal programming or software development, I am merely a lowly math major.
+
+Please, if you have stumbled upon this repository somehow and actually use this
+program, feel free to critique the hell out of my code and help me improve. My
+ego died many ages ago in undergrad.
+
+
+INSTALLATION
+------------
+
+`sudo make install (clean)`
+
+
+DEPENDENCIES
+------------
+
+`imlib2`
+
+
+INVOCATION
+----------
+
+*setroot* [_storage flag_] [_global flag_] { [_image flags, manipulations, options_] <filename> }+ [_monitor flag_]
+
+The order of the filenames determines which monitor the wallpaper is set to. The first invoked filename is set to the first Xinerama monitor; the second to the second; and so on.
+
+If more than one image option is applied, the last one takes effect.
+
+If _n_ filenames are supplied for _k_ monitors, where _n_ > _k_, only the first _k_ filenames are processed.
+
+MISC
+----
+
+*-h, --help*::
+
+	 show this help
+
+
+STORAGE FLAGS
+-------------
+
+*--store*::
+
+	 stores valid invocation sequence in `$HOME/.setroot-restore`
+
+*--restore*::
+
+	 looks for `$HOME/setroot-restore` and calls invocation sequence (restores your previously set wallpapers and options)
+
+
+GLOBAL FLAGS
+------------
+
+*--blank-color* _#RRGGBB_::
+
+	 sets background color of blank walls, unless overriden by _--bg-color_ option
+
+
+IMAGE FLAGS
+-----------
+
+*--span*::
+
+	 have image span all screens (no cropping).
+
+If more than one image is specified, the later image will be spanned.
+
+Note that this overrides the _--on_ option. Note also that further images that are set (in the case of multiple monitors) will "cover" the spanned image.
+
+*--bg-color* _#RRGGBB_::
+
+	 set empty space around image to color
+
+*--on* _n_::
+
+	 assign image to be wallpaper on Xinerama monitor _n_
+
+If not all images are passed this option, the unassigned walls will be placed on monitors by their position in the invocation sequence. Images which do have a specified assignment will then be assigned to their monitors, replacing any images which may have already been assigned.
+
+
+IMAGE MANIPULATIONS
+-------------------
+
+*--blur* _<radius>_::
+
+	 blur image
+
+*--sharpen* _<radius>_::
+
+	 sharpen image
+
+*--brighten* _<amount>_::
+
+	 modify image brightness by amount (between -1 and 1)
+
+*--contrast* _<amount>_::
+
+	 modify contrast of image by amount (between -100 and 100)
+
+*--flip*[_hvd_]::
+
+	 flip image [_h_]orizontally, [_v_]ertically, or [_d_]iagonally
+
+*--tint* _#RRGGBB_::
+
+	 tint image with color _#RRGGBB_ (also accepts valid XColor)
+
+
+IMAGE OPTIONS
+-------------
+
+*-c, --center*::
+
+	 place unscaled image centered and cropped to screen
+
+*-t, --tiled*::
+
+	 tile image on invoked screen (Xinerama aware)
+
+*-s, --stretch*::
+
+	 stretch image (disregard aspect) on invoked screen
+
+*-z, --zoom*::
+
+	 scale image (preserve aspect) to fit screen completely (could cut off image)
+
+*-f, --fit*::
+
+	scale image (preserve aspect) to fit screen (entire image on screen) - default
+
+*-fh, --fit-height*::
+
+	 scale image (preserve aspect) until height matches invoked screen
+
+*-fw, --fit-width*::
+
+	 scale image (preserve aspect) until width matches invoked screen
+
+*-sc, --solid-color #RRGGBB*::
+
+	 set background to solid color #RRGGBB (hex code)
+
+
+MONITOR FLAGS
+-------------
+
+*--use-x-geometry*::
+
+	 number Xinerama monitors from leftmost to rightmost
+
+*--use-y-geometry*::
+
+	 number Xinerama monitors from topmost to bottommost
+
+
+AUTHOR
+------
+
+*(C) 2014* Tim Zhou <ttzhou@uwaterloo.ca>
+
+
+ACKNOWLEDGMENTS
+---------------
+
+`set_pixmap_property()` is *(C) 1998* Michael Jennings <mej@eterm.org>
+
+`find_desktop()` is a modification of `get_desktop_window()` +
+*(C) 2004-2012* Jonathan Koren <jonathan@jonathankoren.com>
