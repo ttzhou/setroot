@@ -6,7 +6,7 @@ NAME
 VERSION
 -------
 
-`pre-release: version 0.9 - 2014-11-11`
+`pre-release: version 0.95 - 2014-11-11`
 
 
 ABOUT
