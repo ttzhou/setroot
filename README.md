@@ -43,7 +43,7 @@ DEPENDENCIES
 INVOCATION
 ----------
 
-**setroot** [\<*storage flag*\>] [\<*global flag*\>] { [\<*image flags*\>] [\<*image options*\>] \<filename\> }+
+**setroot** [\<*storage flag*\>] [\<*global flag*\>] { [\<*image flags*\>] [\<*image options*\>] \<filename\> }+ [\<monitor flag\>]
 
 The order of the filenames determines which monitor the wallpaper is set to. The
 first invoked filename is set to the first Xinerama monitor; the second to the
@@ -135,6 +135,16 @@ IMAGE OPTIONS
 
 **-sc, --solid-color #RRGGBB**
 > set background to solid color #RRGGBB (hex code)
+
+
+MONITOR FLAGS
+-------------
+
+**--use-x-geometry**
+> number Xinerama monitors from leftmost to rightmost
+
+**--use-y-geometry**
+> number Xinerama monitors from topmost to bottommost
 
 
 TODO

@@ -4,6 +4,11 @@ CHANGELOG
 Pre-Release
 -----------
 
+v0.95
+-----
+
++ added ability to specifiy monitor arrangement (see README)
+
 v0.9
 ----
 
