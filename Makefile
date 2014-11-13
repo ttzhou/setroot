@@ -1,5 +1,5 @@
 PREFIX   := usr/local
-MANFIX   := ${PREFIX}/share/man/
+MANFIX   := ${PREFIX}/share/man/man1
 
 NAME     := setroot
 CC       := gcc
@@ -15,6 +15,7 @@ all:
 
 install: all
 	mkdir -p         ${DESTDIR}/${PREFIX}
+	mkdir -p         ${DESTDIR}/${MANFIX}
 	cp ${NAME}       ${DESTDIR}/${PREFIX}
 	cp man/${NAME}.1 ${DESTDIR}/${MANFIX}
 
