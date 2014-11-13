@@ -2,8 +2,8 @@
 # Author: ttz <ttzhou@uwaterloo.ca>
 
 _pkgname=setroot
-pkgname=setroot
-pkgver=v1.0
+pkgname=setroot-git
+pkgver=v1.0.0.gffed581
 pkgrel=1
 pkgdesc="simple program that sets your wallpaper. inspired by the *setroots and feh."
 arch=('any')
@@ -19,7 +19,7 @@ md5sums=('SKIP')
 
 pkgver() {
   cd $_pkgname
-  echo $(git describe --always | sed 's|-|.|g').g$(git rev-parse --short HEAD)
+  echo $(git describe --long | sed 's|-|.|g')
 }
 
 build() {

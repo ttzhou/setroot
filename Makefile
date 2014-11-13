@@ -4,15 +4,15 @@ BINDIR   := ${PREFIX}/bin
 
 NAME     := setroot
 CC       := gcc
-OFLAG    := -O0
-CFLAGS   := -std=c99 ${OFLAG} -Wall -Wextra -g -pedantic
-INCLUDES := -I /usr/include/X11
-LIBS     := -L /usr/X11/lib -lX11 -lXinerama `imlib2-config --libs`
+OFLAG    := -O2
+CFLAGS   := -std=c99 -Wall -Wextra ${OFLAG}
+INCLUDES := -I/usr/include/X11/extensions
+LIBS     := -lX11 -lXinerama `imlib2-config --libs`
 
 SRC      := setroot.c
 
 all:
-	${CC} ${CFLAGS} ${SRC} ${INCLUDES} ${LIBS} -o ${NAME}
+	${CC} ${SRC} ${CFLAGS} ${INCLUDES} ${LIBS} -o ${NAME}
 
 install: all
 	mkdir -p         ${DESTDIR}/${BINDIR}
@@ -22,7 +22,7 @@ install: all
 
 uninstall:
 	rm -rf -i ${DESTDIR}/${BINDIR}/${NAME}
-	rm -rf -i ${DESTDIR}/${BINDIR}/${NAME}.1
+	rm -rf -i ${DESTDIR}/${MANDIR}/${NAME}.1
 
 clean:
 	rm -f ${NAME}
