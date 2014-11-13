@@ -1,5 +1,6 @@
 PREFIX   := usr/local
-MANFIX   := ${PREFIX}/share/man/man1
+MANDIR   := ${PREFIX}/share/man/man1
+BINDIR   := ${PREFIX}/bin
 
 NAME     := setroot
 CC       := gcc
@@ -14,14 +15,14 @@ all:
 	${CC} ${CFLAGS} ${SRC} ${INCLUDES} ${LIBS} -o ${NAME}
 
 install: all
-	mkdir -p         ${DESTDIR}/${PREFIX}
-	mkdir -p         ${DESTDIR}/${MANFIX}
-	cp ${NAME}       ${DESTDIR}/${PREFIX}
-	cp man/${NAME}.1 ${DESTDIR}/${MANFIX}
+	mkdir -p         ${DESTDIR}/${BINDIR}
+	mkdir -p         ${DESTDIR}/${MANDIR}
+	cp ${NAME}       ${DESTDIR}/${BINDIR}
+	cp man/${NAME}.1 ${DESTDIR}/${MANDIR}
 
 uninstall:
-	rm -rf -i ${DESTDIR}/${PREFIX}/${NAME}
-	rm -rf -i ${DESTDIR}/${MANFIX}/${NAME}.1
+	rm -rf -i ${DESTDIR}/${BINDIR}/${NAME}
+	rm -rf -i ${DESTDIR}/${BINDIR}/${NAME}.1
 
 clean:
 	rm -f ${NAME}
