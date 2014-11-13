@@ -22,7 +22,7 @@
  *
  ********************************************************************************/
 
-#define _POSIX_C_SOURCE 200809L
+#define _POSIX_C_SOURCE 200809L // for getline
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -56,18 +56,17 @@ struct monitor      VSCRN; // spanned area of all monitors
 
 unsigned int        NUM_MONS  = 0;
 
-char *BLANK_COLOR = "black";
-
-static char *program_name   = "setroot";
-
 /* runtime variables */
-static const int IMLIB_CACHE_SIZE  = 10240*1024; // I like big walls
-static const int IMLIB_COLOR_USAGE = 256;
-static const int DITHER_SWITCH     = 0;
+static       char *program_name = "setroot";
+static const char *BLANK_COLOR  = "black";
 
-static const int SORT_BY_XINM = 0;
-static const int SORT_BY_XORG = 1;
-static const int SORT_BY_YORG = 2;
+static const int   IMLIB_CACHE_SIZE  = 10240*1024; // I like big walls
+static const int   IMLIB_COLOR_USAGE = 256;
+static const int   DITHER_SWITCH     = 0;
+
+static const int   SORT_BY_XINM = 0;
+static const int   SORT_BY_XORG = 1;
+static const int   SORT_BY_YORG = 2;
 
 /*****************************************************************************
  *
@@ -189,9 +188,8 @@ Window find_desktop( Window window )
             Window child = find_desktop(chldrn[i - 1]);
             if ( child != None &&
                     (XGetWindowProperty(XDPY, child, prop_desktop, 0L, 1L,
-                                        False, AnyPropertyType, &type, &format,
-                                        &length, &after, &data) == Success) )
-
+										False, AnyPropertyType, &type, &format,
+										&length, &after, &data) == Success) )
                 return child;
         }
         if (n_chldrn)
@@ -199,7 +197,8 @@ Window find_desktop( Window window )
         return None; // if we did not find a child with property on this node
 
     } else { // no _NET_WM_DESKTOP set, we just draw to root window
-        fprintf(stderr, "_NET_WM_DESKTOP not set; will draw to root window.\n");
+		fprintf(stderr,\
+				"_NET_WM_DESKTOP not set; will draw to root window.\n");
         return ROOT_WIN;
     }
 }
@@ -249,8 +248,10 @@ void restore_wall()
         args[argc - 1] = token;
         token = strtok(NULL, " ");
     }
-    /* shrink to appropriate size */
-    args = realloc(args, argc * sizeof(char*)); verify(args);
+    /* shrink to appropriate size, no need to verify */
+	if (argc < 10)
+		args = realloc(args, argc * sizeof(char*));
+
     parse_opts((int) argc, args);
     free(line);
     free(args);
@@ -331,7 +332,7 @@ void sort_mons_by( int sort_opt )
     XSync(XDPY, False);
 }
 
-struct rgb_triple *parse_color( char *col )
+struct rgb_triple *parse_color( const char *col )
 {
     struct rgb_triple *rgb = malloc(sizeof(struct rgb_triple)); verify(rgb);
 
@@ -379,8 +380,8 @@ void parse_opts( unsigned int argc, char **args )
     float contrast_v       = 0;
     float bright_v         = 0;
 
-    struct rgb_triple *bg_col    = NULL;
-    struct rgb_triple *tint_col  = NULL;
+    struct rgb_triple *bg_col   = NULL;
+    struct rgb_triple *tint_col = NULL;
 
     fit_type flag  = FIT_AUTO;
     flip_type flip = NONE;
@@ -436,6 +437,7 @@ void parse_opts( unsigned int argc, char **args )
                 continue;
             }
             monitor = atoi(args[++i]);
+
             if (monitor > (int) (NUM_MONS - 1) || monitor < 0) {
                 fprintf(stderr, \
                         "No Xinerama monitor %d. Ignoring '--on' option. \n",\
@@ -603,7 +605,7 @@ void parse_opts( unsigned int argc, char **args )
                 break;
         }
     }
-    if (num_walls == 0) {
+    if (!num_walls) {
         fprintf(stderr, "Warning: no images were supplied.\n");
         rmbr = 0;
     }
@@ -612,6 +614,7 @@ void parse_opts( unsigned int argc, char **args )
 
     /* shrink WALLS array appropriately */
     if (num_walls < NUM_MONS) {
+		/* don't need to verify since it is shrinking prechecked memory */
         WALLS = realloc(WALLS, num_walls * sizeof(struct wallpaper));
     }
     /* assign walls to monitors */
@@ -624,7 +627,7 @@ void parse_opts( unsigned int argc, char **args )
     }
 }
 
-void clear_background( char *blank_color )
+void clear_background( const char *blank_color )
 {
     struct rgb_triple *col = parse_color(blank_color);
 
@@ -922,7 +925,7 @@ Pixmap make_bg()
             default:
                 break;
             }
-            /* manipulate image */
+            /* post process image */
             if (cur_wall->blur)
                 imlib_image_blur(cur_wall->blur);
             if (cur_wall->sharpen)
@@ -961,7 +964,7 @@ int main(int argc, char** args)
     VSCRN.ypos   = 0;
 
     /* check for acts of desperation */
-    if (argc < 2 || streq(args[1], "-h") || streq(args[1], "--help")) {
+	if (argc < 2 || streq(args[1], "-h") || streq(args[1], "--help")) {
         show_help();
         exit(EXIT_SUCCESS);
     }
@@ -975,7 +978,7 @@ int main(int argc, char** args)
 
     if (bg) {
         set_pixmap_property(bg);
-        XSetWindowBackgroundPixmap(XDPY, find_desktop(ROOT_WIN), bg);
+		XSetWindowBackgroundPixmap(XDPY, find_desktop(ROOT_WIN), bg);
     }
     free(MONS);
     free(WALLS);

@@ -1,0 +1,35 @@
+# Maintainer: Tim Zhou <ttzhou@uwaterloo.ca>
+# Author: ttz <ttzhou@uwaterloo.ca>
+
+_pkgname=setroot
+pkgname=setroot
+pkgver=v0.95
+pkgrel=1
+pkgdesc="simple program that sets your wallpaper. inspired by the *setroots and feh."
+arch=('i686' 'x86_64')
+url="https://github.com/ttzhou/sxiv"
+license=('GPLv3')
+depends=('imlib2')
+makedepends=('git')
+optdepends=('sxiv: use its image viewer along with key-handler to call setroot')
+provides=("${_pkgname}")
+conflicts=("${_pkgname}")
+source=("git+https://github.com/ttzhou/${_pkgname}.git")
+md5sums=('SKIP')
+
+pkgver() {
+  cd $_pkgname
+  echo "v0.95"
+}
+
+build() {
+  cd $_pkgname
+  make
+}
+
+package() {
+  cd $_pkgname
+  make DESTDIR="$pkgdir" install
+}
+
+# vim:set ts=2 sw=2 et:

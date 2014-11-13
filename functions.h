@@ -13,7 +13,7 @@ void clean_wall( struct wallpaper *w );
 void sort_mons_by( int sort_opt );
 
 void parse_opts( unsigned int argc, char **args );
-struct rgb_triple *parse_color( char *col );
+struct rgb_triple *parse_color( const char *col );
 
 void center_wall( struct monitor *mon );
 void stretch_wall( struct monitor *mon );
