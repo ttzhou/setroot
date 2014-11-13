@@ -34,7 +34,7 @@
 \fBsetroot\fR [\fIstorage flag\fR] [\fIglobal flag\fR] { [\fIimage flags, manipulations, options\fR] <filename> }+ [\fImonitor flag\fR]
 .SH "DESCRIPTION"
 .sp
-\fBsetroot\fR is a lightweight Xinerama\-aware CLI background setter in the vein of imlibsetroot, hsetroot, and feh\&. Its only non\-obvious dependency is Imlib2\&.
+\fBsetroot\fR is a lightweight Xinerama\-aware CLI background setter in the vein of imlibsetroot, hsetroot, and feh\&. Its only non\-obvious dependency is \fIimlib2\fR\&.
 .SH "INVOCATION"
 .sp
 The order of the filenames determines which monitor the wallpaper is set to\&. The first invoked filename is set to the first Xinerama monitor; the second to the second; and so on\&.
@@ -189,6 +189,6 @@ number Xinerama monitors from topmost to bottommost
 \fB\(co 2014\fR Tim Zhou <ttzhou@uwaterloo\&.ca>
 .SH "ACKNOWLEDGMENTS"
 .sp
-set_pixmap_property() is \fB\(co 1998\fR Michael Jennings <mej@eterm\&.org>
+\fIset_pixmap_property()\fI is \fB\(co 1998\fR Michael Jennings <mej@eterm\&.org>
 .sp
-find_desktop() is a modification of get_desktop_window() \fB\(co 2004\-2012\fR Jonathan Koren <jonathan@jonathankoren\&.com>
+\fIfind_desktop()\fI is a modification of get_desktop_window() \fB\(co 2004\-2012\fR Jonathan Koren <jonathan@jonathankoren\&.com>

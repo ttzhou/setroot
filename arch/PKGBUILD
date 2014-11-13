@@ -3,7 +3,7 @@
 
 _pkgname=setroot
 pkgname=setroot
-pkgver=v1.0
+pkgver=v1.0.g09a6ca9
 pkgrel=1
 pkgdesc="simple program that sets your wallpaper. inspired by the *setroots and feh."
 arch=('any')
