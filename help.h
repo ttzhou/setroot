@@ -1,6 +1,6 @@
 void show_ver()
 {
-    printf("setroot - v0.95 11-13-2014\n"\
+    printf("setroot - v1.0 11-13-2014\n"\
            "(C) 2014 Tim Zhou\n");
 }
 

@@ -3,7 +3,7 @@
 
 _pkgname=setroot
 pkgname=setroot
-pkgver=v1.0.g09a6ca9
+pkgver=v1.0.1.g68223a4
 pkgrel=1
 pkgdesc="simple program that sets your wallpaper. inspired by the *setroots and feh."
 arch=('any')
@@ -15,11 +15,11 @@ optdepends=('sxiv: use its image viewer along with key-handler to call setroot')
 provides=("${_pkgname}")
 conflicts=("${_pkgname}")
 source=("git+https://github.com/ttzhou/${_pkgname}.git")
-md5sums=('SKIP')
+sha256sums=('SKIP')
 
 pkgver() {
   cd $_pkgname
-  echo $(git describe --always | sed 's|-|.|g').g$(git rev-parse --short HEAD)
+  echo $(git describe --always | sed 's|-|.|g')
 }
 
 build() {
