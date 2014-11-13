@@ -24,12 +24,12 @@ pkgver() {
 
 build() {
   cd $_pkgname
-  make
+  make PREFIX="/usr"
 }
 
 package() {
   cd $_pkgname
-  make DESTDIR="$pkgdir" install
+  make PREFIX="/usr" DESTDIR="$pkgdir" install
 }
 
 # vim:set ts=2 sw=2 et:

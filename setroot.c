@@ -263,8 +263,7 @@ void init_wall( struct wallpaper *w )
     w->height = w->width = 0;
     w->xpos   = w->ypos  = 0; // relative to monitor!
 
-	w->span = 0;
-	w->monitor = 0;
+	w->span = w->monitor = 0;
 
     w->option = FIT_AUTO;
     w->axis   = NONE;

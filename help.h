@@ -1,12 +1,14 @@
 void show_ver()
 {
-    printf("setroot - v0.9 11-11-2014\n"\
+    printf("setroot - v0.95 11-13-2014\n"\
            "(C) 2014 Tim Zhou\n");
 }
 
 void show_help()
 {
     printf( "\n"\
+            "Protip: type 'man setroot' for the manpage.\n"\
+            "\n"\
             "NAME:\n"\
             "          setroot - sets your wallpaper.\n"\
             "\n"\
@@ -42,6 +44,7 @@ void show_help()
             "\n"\
             "    --span:\n"\
             "          have image span all screens (no cropping) \n"\
+			"\n"\
             "          if more than one image is specified, the later image will be spanned.\n\n"\
             "          Note that this overrides the '--on' option. Note also that further\n"\
 			"          images that are set (in the case of multiple monitors) will 'cover'\n"\
@@ -52,6 +55,7 @@ void show_help()
             "\n"\
 			"    --on <n>\n"\
 			"          assign image to be wallpaper on Xinerama monitor *n*.\n\n"\
+			"\n"\
 			"          If not all images are passed this option, the unassigned walls\n"
 		    "          will be placed on monitors by their position in the invocation sequence.\n\n"\
 			"          Images which do have a specified assignment will then be assigned to their\n"\
