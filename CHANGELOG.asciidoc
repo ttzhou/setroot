@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+Release
+-------
+
+v1.0
+----
+
+- added manpage, PKGBUILD
+- code cleanup
+- awaiting feature requests
+
+
 Pre-Release
 -----------
 

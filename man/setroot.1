@@ -1,0 +1,194 @@
+'\" t
+.\"     Title: setroot
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 11/13/2014
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "SETROOT" "1" "11/13/2014" "v0\.95" "Setroot Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+*setroot* \- sets your wallpaper\&.
+.SH "SYNOPSIS"
+.sp
+\fBsetroot\fR [\fIstorage flag\fR] [\fIglobal flag\fR] { [\fIimage flags, manipulations, options\fR] <filename> }+ [\fImonitor flag\fR]
+.SH "DESCRIPTION"
+.sp
+\fBsetroot\fR is a lightweight Xinerama\-aware CLI background setter in the vein of imlibsetroot, hsetroot, and feh\&. Its only non\-obvious dependency is Imlib2\&.
+.SH "INVOCATION"
+.sp
+The order of the filenames determines which monitor the wallpaper is set to\&. The first invoked filename is set to the first Xinerama monitor; the second to the second; and so on\&.
+.sp
+If more than one image option is applied, the last one takes effect\&.
+.sp
+If \fIn\fR filenames are supplied for \fIk\fR monitors, where \fIn\fR > \fIk\fR, only the first \fIk\fR filenames are processed\&.
+.SH "MISC"
+.PP
+\fB\-h, \-\-help\fR
+.RS 4
+show this help
+.RE
+.SH "STORAGE FLAGS"
+.PP
+\fB\-\-store\fR
+.RS 4
+stores valid invocation sequence in
+$HOME/\&.setroot\-restore
+.RE
+.PP
+\fB\-\-restore\fR
+.RS 4
+looks for
+$HOME/setroot\-restore
+and calls invocation sequence
+
+(restores your previously set wallpapers and options)
+.RE
+.SH "GLOBAL FLAGS"
+.PP
+\fB\-\-blank\-color\fR \fI#RRGGBB\fR
+.RS 4
+sets background color of blank walls, unless overriden by
+\fI\-\-bg\-color\fR
+option
+.RE
+.SH "IMAGE FLAGS"
+.PP
+\fB\-\-span\fR
+.RS 4
+have image span all screens (no cropping)\&.
+.sp
+If more than one image is specified, the later image will be spanned\&.
+.sp
+Note that this overrides the \fI\-\-on\fR option\&.
+.sp
+Note also that further images that are set (in the case of multiple monitors) will "cover" the spanned image\&.
+.RE
+.PP
+\fB\-\-bg\-color\fR \fI#RRGGBB\fR
+.RS 4
+set empty space around image to color
+.RE
+.PP
+\fB\-\-on\fR \fIn\fR
+.RS 4
+assign image to be wallpaper on Xinerama monitor
+\fIn\fR
+.sp
+If not all images are passed this option, the unassigned walls will be placed on monitors by their position in the invocation sequence\&.
+.sp
+Images which do have a specified assignment will then be assigned to their monitors, replacing any images which may have already been assigned\&.
+.RE
+.SH "IMAGE MANIPULATIONS"
+.PP
+\fB\-\-blur\fR \fI<radius>\fR
+.RS 4
+blur image
+.RE
+.PP
+\fB\-\-sharpen\fR \fI<radius>\fR
+.RS 4
+sharpen image
+.RE
+.PP
+\fB\-\-brighten\fR \fI<amount>\fR
+.RS 4
+modify image brightness by amount (between \-1 and 1)
+.RE
+.PP
+\fB\-\-contrast\fR \fI<amount>\fR
+.RS 4
+modify contrast of image by amount (between \-100 and 100)
+.RE
+.PP
+\fB\-\-flip\fR[\fIhvd\fR]
+.RS 4
+flip image [\fIh\fR]orizontally, [\fIv\fR]ertically, or [\fId\fR]iagonally
+.RE
+.PP
+\fB\-\-tint\fR \fI#RRGGBB\fR
+.RS 4
+tint image with color
+\fI#RRGGBB\fR
+(also accepts valid XColor)
+.RE
+.SH "IMAGE OPTIONS"
+.PP
+\fB\-c, \-\-center\fR
+.RS 4
+place unscaled image centered and cropped to screen
+.RE
+.PP
+\fB\-t, \-\-tiled\fR
+.RS 4
+tile image on invoked screen (Xinerama aware)
+.RE
+.PP
+\fB\-s, \-\-stretch\fR
+.RS 4
+stretch image (disregard aspect) on invoked screen
+.RE
+.PP
+\fB\-z, \-\-zoom\fR
+.RS 4
+scale image (preserve aspect) to fit screen completely (could cut off image)
+.RE
+.PP
+\fB\-f, \-\-fit\fR
+.RS 4
+scale image (preserve aspect) to fit screen (entire image on screen) \- default
+.RE
+.PP
+\fB\-fh, \-\-fit\-height\fR
+.RS 4
+scale image (preserve aspect) until height matches invoked screen
+.RE
+.PP
+\fB\-fw, \-\-fit\-width\fR
+.RS 4
+scale image (preserve aspect) until width matches invoked screen
+.RE
+.PP
+\fB\-sc, \-\-solid\-color #RRGGBB\fR
+.RS 4
+set background to solid color #RRGGBB (hex code)
+.RE
+.SH "MONITOR FLAGS"
+.PP
+\fB\-\-use\-x\-geometry\fR
+.RS 4
+number Xinerama monitors from leftmost to rightmost
+.RE
+.PP
+\fB\-\-use\-y\-geometry\fR
+.RS 4
+number Xinerama monitors from topmost to bottommost
+.RE
+.SH "AUTHOR"
+.sp
+\fB\(co 2014\fR Tim Zhou <ttzhou@uwaterloo\&.ca>
+.SH "ACKNOWLEDGMENTS"
+.sp
+set_pixmap_property() is \fB\(co 1998\fR Michael Jennings <mej@eterm\&.org>
+.sp
+find_desktop() is a modification of get_desktop_window() \fB\(co 2004\-2012\fR Jonathan Koren <jonathan@jonathankoren\&.com>
