@@ -14,7 +14,7 @@ makedepends=('git')
 optdepends=('sxiv: use its image viewer along with key-handler to call setroot')
 provides=("${_pkgname}")
 conflicts=("${_pkgname}")
-source=("git+https://github.com/ttzhou/${_pkgname}.git")
+source=("git+https://github.com/ttzhou/${_pkgname}.git#tag=v1.0")
 md5sums=('SKIP')
 
 pkgver() {
