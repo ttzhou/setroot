@@ -28,7 +28,7 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-*setroot* \- sets your wallpaper\&.
+setroot \- sets your wallpaper\&.
 .SH "SYNOPSIS"
 .sp
 \fBsetroot\fR [\fIstorage flag\fR] [\fIglobal flag\fR] { [\fIimage flags, manipulations, options\fR] <filename> }+ [\fImonitor flag\fR]
@@ -80,9 +80,7 @@ have image span all screens (no cropping)\&.
 .sp
 If more than one image is specified, the later image will be spanned\&.
 .sp
-Note that this overrides the \fI\-\-on\fR option\&.
-.sp
-Note also that further images that are set (in the case of multiple monitors) will "cover" the spanned image\&.
+Note that this overrides the \fI\-\-on\fR option\&. Note also that further images that are set (in the case of multiple monitors) will "cover" the spanned image\&.
 .RE
 .PP
 \fB\-\-bg\-color\fR \fI#RRGGBB\fR
@@ -128,9 +126,7 @@ flip image [\fIh\fR]orizontally, [\fIv\fR]ertically, or [\fId\fR]iagonally
 .PP
 \fB\-\-tint\fR \fI#RRGGBB\fR
 .RS 4
-tint image with color
-\fI#RRGGBB\fR
-(also accepts valid XColor)
+tint image with color \fI#RRGGBB\fR (also accepts valid XColor)
 .RE
 .SH "IMAGE OPTIONS"
 .PP
@@ -169,9 +165,9 @@ scale image (preserve aspect) until height matches invoked screen
 scale image (preserve aspect) until width matches invoked screen
 .RE
 .PP
-\fB\-sc, \-\-solid\-color #RRGGBB\fR
+\fB\-sc, \-\-solid\-color\fB \fI#RRGGBB\fR
 .RS 4
-set background to solid color #RRGGBB (hex code)
+set background to solid color \fI#RRGGBB\fR (hex code, also accepts valid XColor)
 .RE
 .SH "MONITOR FLAGS"
 .PP
@@ -189,6 +185,6 @@ number Xinerama monitors from topmost to bottommost
 \fB\(co 2014\fR Tim Zhou <ttzhou@uwaterloo\&.ca>
 .SH "ACKNOWLEDGMENTS"
 .sp
-\fIset_pixmap_property()\fI is \fB\(co 1998\fR Michael Jennings <mej@eterm\&.org>
+\fIset_pixmap_property()\fR is \fB\(co 1998\fR Michael Jennings <mej@eterm\&.org>
 .sp
-\fIfind_desktop()\fI is a modification of get_desktop_window() \fB\(co 2004\-2012\fR Jonathan Koren <jonathan@jonathankoren\&.com>
+\fIfind_desktop()\fR is a modification of get_desktop_window() \fB\(co 2004\-2012\fR Jonathan Koren <jonathan@jonathankoren\&.com>
