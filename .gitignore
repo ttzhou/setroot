@@ -1,3 +1,5 @@
 man/setroot.1.txt
 arch/stable/*.gz
 arch/git/*.gz
+ref
+ref/**
