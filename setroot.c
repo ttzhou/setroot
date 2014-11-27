@@ -268,11 +268,6 @@ void init_wall( struct wallpaper *w )
     w->option = FIT_AUTO;
     w->axis   = NONE;
 
-<<<<<<< HEAD
-    w->brightness = 0;
-	w->contrast   = 1.0;
-=======
->>>>>>> dev
     w->blur       = w->sharpen  = 0;
     w->brightness = 0;
 	w->contrast   = 1.0;
