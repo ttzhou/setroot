@@ -271,6 +271,7 @@ void init_wall( struct wallpaper *w )
     w->brightness = 0;
 	w->contrast   = 1.0;
     w->blur       = w->sharpen  = 0;
+    w->grey       = 0;
 
     w->bgcol  = NULL;
     w->tint   = NULL;
@@ -373,6 +374,7 @@ void parse_opts( unsigned int argc, char **args )
 {
     unsigned int rmbr      = 0;
     unsigned int span      = 0;
+	unsigned int grey      = 0;
     int monitor            = -1;
 
     unsigned int blur_r    = 0;
@@ -448,6 +450,9 @@ void parse_opts( unsigned int argc, char **args )
             }
 
         /* MANIPULATIONS */
+        } else if (streq(args[i], "--greyscale")) {
+			grey = 1;
+
         } else if (streq(args[i], "--tint")) {
             if (argc == i + 1) {
                 fprintf(stderr, "No color specified.\n");
@@ -577,6 +582,9 @@ void parse_opts( unsigned int argc, char **args )
                 WALLS[num_walls - 1].axis = flip;
                 flip = NONE;
             }
+			if (grey) {
+				WALLS[num_walls - 1].grey = grey--;
+			}
             if (blur_r) {
                 WALLS[num_walls - 1].blur = blur_r;
                 blur_r = 0;
@@ -800,6 +808,23 @@ void tile( struct monitor *mon )
     imlib_context_set_blend(0);
 }
 
+void make_greyscale( Imlib_Image *image )
+{
+	imlib_context_set_image(image);
+	unsigned int width = imlib_image_get_width();
+	unsigned int height = imlib_image_get_height();
+	Imlib_Color color;
+
+	for( unsigned int x = 0; x < width; x++) {
+		for( unsigned int y = 0; y < height; y++) {
+			imlib_image_query_pixel(x, y, &color);
+			float avg = 0.21 * color.red + 0.72 * color.green + 0.07 * color.blue;
+			imlib_context_set_color(avg, avg, avg, color.alpha);
+			imlib_image_draw_pixel(x, y, 0);
+		}
+	}
+}
+
 void tint_wall( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
@@ -881,6 +906,10 @@ Pixmap make_bg()
                 imlib_image_flip_diagonal();
                 break;
             }
+			/* greyscale */
+			if (cur_wall->grey)
+				make_greyscale(cur_wall->image);
+
             /* adjust image before we set background */
             Imlib_Color_Modifier adjustments = imlib_create_color_modifier();
             if (adjustments == NULL)
