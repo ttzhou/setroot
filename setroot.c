@@ -268,7 +268,8 @@ void init_wall( struct wallpaper *w )
     w->option = FIT_AUTO;
     w->axis   = NONE;
 
-    w->brightness = w->contrast = 0;
+    w->brightness = 0;
+	w->contrast   = 1.0;
     w->blur       = w->sharpen  = 0;
 
     w->bgcol  = NULL;
@@ -376,7 +377,7 @@ void parse_opts( unsigned int argc, char **args )
 
     unsigned int blur_r    = 0;
     unsigned int sharpen_r = 0;
-    float contrast_v       = 0;
+    float contrast_v       = 1.0;
     float bright_v         = 0;
 
     struct rgb_triple *bg_col   = NULL;
@@ -588,9 +589,9 @@ void parse_opts( unsigned int argc, char **args )
                 WALLS[num_walls - 1].brightness = bright_v;
                 bright_v = 0;
             }
-            if (contrast_v) {
+            if (contrast_v != 1.0) {
                 WALLS[num_walls - 1].contrast = contrast_v;
-                contrast_v = 0;
+                contrast_v = 1.0;
             }
             if (tint_col != NULL) {
                 WALLS[num_walls - 1].tint = tint_col;
