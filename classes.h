@@ -40,6 +40,7 @@ struct wallpaper {
 	struct rgb_triple	*bgcol;
 	struct rgb_triple	*tint;
 
+	unsigned int		grey;
 	unsigned int		blur;
 	unsigned int		sharpen;
 	float				contrast;
