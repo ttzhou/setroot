@@ -813,10 +813,10 @@ void tile( struct monitor *mon )
 
 void make_greyscale( Imlib_Image *image )
 {
+	Imlib_Color color;
 	imlib_context_set_image(image);
 	unsigned int width = imlib_image_get_width();
 	unsigned int height = imlib_image_get_height();
-	Imlib_Color color;
 
 	for( unsigned int x = 0; x < width; x++) {
 		for( unsigned int y = 0; y < height; y++) {
