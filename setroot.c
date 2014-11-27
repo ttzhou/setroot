@@ -270,7 +270,10 @@ void init_wall( struct wallpaper *w )
 
     w->brightness = 0;
 	w->contrast   = 1.0;
+
     w->blur       = w->sharpen  = 0;
+    w->brightness = 0;
+	w->contrast   = 1.0;
     w->grey       = 0;
 
     w->bgcol  = NULL;
@@ -920,7 +923,7 @@ Pixmap make_bg()
                 tint_wall(cur_mon);
             if (cur_wall->brightness)
                 imlib_modify_color_modifier_brightness(cur_wall->brightness);
-            if (cur_wall->contrast)
+            if (cur_wall->contrast != 1.0)
                 imlib_modify_color_modifier_contrast(cur_wall->contrast);
 
             imlib_apply_color_modifier();
