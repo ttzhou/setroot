@@ -4,6 +4,11 @@ CHANGELOG
 Release
 -------
 
+v1.1
+----
+
+- added _greyscale_ option
+
 v1.0
 ----
 
