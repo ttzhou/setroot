@@ -228,7 +228,7 @@ void restore_wall()
 {
 	char *dir;
 	if ((dir = getenv("XDG_CONFIG_DIR")) == NULL)
-		dir = strcat(getenv("HOME"), "/setroot");
+		dir = strcat(getenv("HOME"), "/.config");
 
     char *fn = strcat(dir, "/setroot/.setroot-restore");
     FILE *f = fopen(fn, "r");
