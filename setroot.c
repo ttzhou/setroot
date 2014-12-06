@@ -206,7 +206,7 @@ Window find_desktop( Window window )
 void store_wall( int argc, char** line )
 {
 	char *dir;
-	if ((dir = getenv("XDG_CONFIG_DIR")) == NULL)
+	if ((dir = getenv("XDG_CONFIG_HOME")) == NULL)
 		dir = strcat(getenv("HOME"), "/.config");
 
     char *fn = strcat(dir, "/setroot/.setroot-restore");
@@ -227,7 +227,7 @@ void store_wall( int argc, char** line )
 void restore_wall()
 {
 	char *dir;
-	if ((dir = getenv("XDG_CONFIG_DIR")) == NULL)
+	if ((dir = getenv("XDG_CONFIG_HOME")) == NULL)
 		dir = strcat(getenv("HOME"), "/.config");
 
     char *fn = strcat(dir, "/setroot/.setroot-restore");
