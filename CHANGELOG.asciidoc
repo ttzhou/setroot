@@ -4,6 +4,11 @@ CHANGELOG
 Release
 -------
 
+v1.2
+----
+
+- _--store_ and _--restore_ now use _$\{XDG_CONFIG_DIR:-$HOME/.config\}_
+
 v1.1
 ----
 
