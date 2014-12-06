@@ -6,7 +6,7 @@ NAME
 VERSION
 -------
 
-`release: version 1.1 - 2014-11-27`
+`release: version 1.2 - 2014-12-06`
 
 
 ABOUT
@@ -64,11 +64,11 @@ STORAGE FLAGS
 
 *--store*::
 
-	 stores valid invocation sequence in `${XDG_CONFIG_DIR:-$HOME/.config}/.setroot-restore`
+	 stores valid invocation sequence in `${XDG_CONFIG_DIR:-$HOME/.config}/setroot/.setroot-restore`
 
 *--restore*::
 
-	 looks for `${XDG_CONFIG_DIR:-$HOME/.config}/setroot-restore` and calls invocation sequence (restores your previously set wallpapers and options)
+	 looks for `${XDG_CONFIG_DIR:-$HOME/.config}/setroot/setroot-restore` and calls invocation sequence (restores your previously set wallpapers and options)
 
 
 GLOBAL FLAGS
