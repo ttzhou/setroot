@@ -205,7 +205,11 @@ Window find_desktop( Window window )
 
 void store_wall( int argc, char** line )
 {
-    char *fn = strcat(getenv("HOME"),"/.setroot-restore");
+	char *dir;
+	if ((dir = getenv("XDG_CONFIG_DIR")) == NULL)
+		dir = strcat(getenv("HOME"), "/.config");
+
+    char *fn = strcat(dir, "/setroot/.setroot-restore");
     FILE *f = fopen(fn, "w");
     if (!f) {
         fprintf(stderr, "Could not write to file %s.\n", fn);
@@ -222,9 +226,15 @@ void store_wall( int argc, char** line )
 
 void restore_wall()
 {
-    FILE *f = fopen(strcat(getenv("HOME"),"/.setroot-restore"), "r");
+	char *dir;
+	if ((dir = getenv("XDG_CONFIG_DIR")) == NULL)
+		dir = strcat(getenv("HOME"), "/setroot");
+
+    char *fn = strcat(dir, "/setroot/.setroot-restore");
+    FILE *f = fopen(fn, "r");
     if (!f) {
-        die(1, "Could not find file $HOME/.setroot-restore.\n");
+        fprintf(stderr, "Could not find file %s.\n", fn);
+		exit(1);
     }
     size_t n = 0;
     char *line = NULL;
