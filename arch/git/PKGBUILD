@@ -3,7 +3,7 @@
 
 _pkgname=setroot
 pkgname=setroot-git
-pkgver=v1.2.1.ga3e317b
+pkgver=v1.2.2.g7e07d8e
 pkgrel=1
 pkgdesc="simple program that sets your wallpaper. inspired by the *setroots and feh."
 arch=('any')
