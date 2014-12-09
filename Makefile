@@ -17,6 +17,7 @@ all:
 install: all
 	mkdir -p         ${DESTDIR}/${BINDIR}
 	mkdir -p         ${DESTDIR}/${MANDIR}
+	mkdir -p         ${XDG_CONFIG_HOME:-$HOME/.config}/setroot
 	cp ${NAME}       ${DESTDIR}/${BINDIR}
 	cp man/${NAME}.1 ${DESTDIR}/${MANDIR}
 
