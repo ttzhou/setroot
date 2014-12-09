@@ -210,7 +210,7 @@ void store_wall( int argc, char** line )
 		dir = strcat(getenv("HOME"), "/.config");
 
     char *fn = strcat(dir, "/setroot/.setroot-restore");
-    FILE *f = fopen(fn, "w");
+    FILE *f = fopen(fn, "w+");
     if (!f) {
         fprintf(stderr, "Could not write to file %s.\n", fn);
         exit(1);
