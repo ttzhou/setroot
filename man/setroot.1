@@ -54,12 +54,14 @@ show this help
 .RS 4
 stores valid invocation sequence in
 "${XDG_CONFIG_HOME:-$HOME/.config}/setroot/\&.setroot\-restore"
+.sp
+An error will be raised if the directory has not been created.
 .RE
 .PP
 \fB\-\-restore\fR
 .RS 4
 looks for
-"${XDG_CONFIG_HOME:-$HOME/.config}/\&.setroot\-restore"
+"${XDG_CONFIG_HOME:-$HOME/.config}/setroot/\&.setroot\-restore"
 and calls invocation sequence
 
 (restores your previously set wallpapers and options)

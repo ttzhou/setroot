@@ -3,13 +3,13 @@
 
 _pkgname=setroot
 pkgname=setroot-git
-pkgver=v1.2.gbc3b3d7
+pkgver=v1.2.gdc3c5e2
 pkgrel=1
 pkgdesc="simple program that sets your wallpaper. inspired by the *setroots and feh."
 arch=('any')
 url="https://github.com/ttzhou/setroot"
 license=('GPLv3')
-depends=('imlib2')
+depends=('imlib2' 'libxinerama')
 makedepends=('git')
 optdepends=('sxiv: use its image viewer along with key-handler to call setroot')
 provides=("${_pkgname}")
