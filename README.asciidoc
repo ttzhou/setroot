@@ -66,6 +66,8 @@ STORAGE FLAGS
 
 	 stores valid invocation sequence in `${XDG_CONFIG_HOME:-$HOME/.config}/setroot/.setroot-restore`
 
+An error will be raised if the directory has not been created.
+
 *--restore*::
 
 	 looks for `${XDG_CONFIG_HOME:-$HOME/.config}/setroot/.setroot-restore` and calls invocation sequence (restores your previously set wallpapers and options)
