@@ -209,7 +209,7 @@ void store_wall( int argc, char** line )
 	if ((dir = getenv("XDG_CONFIG_HOME")) == NULL)
 		dir = strcat(getenv("HOME"), "/.config");
 
-    char *fn = strcat(dir, "/setroot/.setroot-restore");
+    char *fn = strcat(dir, "/.setroot-restore");
     FILE *f = fopen(fn, "w");
     if (!f) {
         fprintf(stderr, "Could not write to file %s.\n", fn);
@@ -230,7 +230,7 @@ void restore_wall()
 	if ((dir = getenv("XDG_CONFIG_HOME")) == NULL)
 		dir = strcat(getenv("HOME"), "/.config");
 
-    char *fn = strcat(dir, "/setroot/.setroot-restore");
+    char *fn = strcat(dir, "/.setroot-restore");
     FILE *f = fopen(fn, "r");
     if (!f) {
         fprintf(stderr, "Could not find file %s.\n", fn);
