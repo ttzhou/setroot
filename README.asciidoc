@@ -64,7 +64,7 @@ STORAGE FLAGS
 
 *--store*::
 
-	 stores valid invocation sequence in `${XDG_CONFIG_HOME:-$HOME/.config}/setroot/.setroot-restore` (you should create this path before using _--store_ or you will receive an error)
+	 stores valid invocation sequence in `${XDG_CONFIG_HOME:-$HOME/.config}/setroot/.setroot-restore`
 
 *--restore*::
 
