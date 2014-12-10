@@ -64,11 +64,11 @@ STORAGE FLAGS
 
 *--store*::
 
-	 stores valid invocation sequence in `${XDG_CONFIG_HOME:-$HOME/.config}/.setroot-restore`
+	 stores valid invocation sequence in `${XDG_CONFIG_HOME:-$HOME/.config}/setroot/.setroot-restore` (you should create this path before using _--store_ or you will receive an error)
 
 *--restore*::
 
-	 looks for `${XDG_CONFIG_HOME:-$HOME/.config}/.setroot-restore` and calls invocation sequence (restores your previously set wallpapers and options)
+	 looks for `${XDG_CONFIG_HOME:-$HOME/.config}/setroot/.setroot-restore` and calls invocation sequence (restores your previously set wallpapers and options)
 
 
 GLOBAL FLAGS
