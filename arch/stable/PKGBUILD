@@ -30,6 +30,7 @@ build() {
 
 package() {
   cd $_pkgname
+  mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/setroot
   make PREFIX="usr" DESTDIR="$pkgdir" install
 }
 
