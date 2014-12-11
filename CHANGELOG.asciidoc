@@ -4,6 +4,11 @@ CHANGELOG
 Release
 -------
 
+v1.3
+----
+
+- autocreates the appropriate config directory
+
 v1.2
 ----
 
