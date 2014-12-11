@@ -28,6 +28,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -203,13 +206,48 @@ Window find_desktop( Window window )
     }
 }
 
-void store_wall( int argc, char** line )
+int mkpath(char* path)
 {
-	char *dir;
-	if ((dir = getenv("XDG_CONFIG_HOME")) == NULL)
-		dir = strcat(getenv("HOME"), "/.config");
+	char *cur_dir = malloc(100 * sizeof(char));
+	cur_dir[0] = '\0';
 
-    char *fn = strcat(dir, "/setroot/.setroot-restore");
+	unsigned int path_len = 100;
+    char *token = NULL;
+    token = strtok(path, "/");
+
+    while (token != NULL) {
+		if (strlen(cur_dir) + strlen(token) + 1 > path_len) {
+			path_len  = strlen(cur_dir) + strlen(token) + 1;
+			cur_dir = realloc(cur_dir, (path_len + 1) * sizeof(char));
+		}
+		cur_dir = strcat(cur_dir, "/");
+		cur_dir = strcat(cur_dir, token);
+
+		if ((mkdir(cur_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1)
+			&& (errno != EEXIST))
+			return -1;
+        token = strtok(NULL, "/");
+    }
+	free(cur_dir);
+	return 0;
+}
+
+void store_wall( int argc, char** args )
+{
+	char *config_dir, *path;
+	if ((config_dir = getenv("XDG_CONFIG_HOME")) == NULL) {
+		config_dir = strncat(getenv("HOME"), "/.config", 8*sizeof(char));
+		verify(config_dir);
+	}
+	config_dir = strcat(config_dir, "/setroot"); verify(config_dir);
+	path = strdup(config_dir); verify(path);
+
+	if (mkpath(path) != 0) {
+		fprintf(stderr, "Could not create directory %s.\n",
+				"${XDG_CONFIG_HOME:-$HOME/.config}/setroot");
+		exit(1);
+	}
+    char *fn = strcat(config_dir, "/.setroot-restore"); verify(fn);
     FILE *f = fopen(fn, "w");
     if (!f) {
         fprintf(stderr, "Could not write to file %s.\n", fn);
@@ -217,10 +255,11 @@ void store_wall( int argc, char** line )
     }
     int i;
     for (i = 2; i < argc - 1; i++) { // jump past setroot --store
-        fprintf(f, line[i]);
+        fprintf(f, args[i]);
         fprintf(f, " ");
     }
-    fprintf(f, line[i]); // so we don't add space after last word
+    fprintf(f, args[i]); // so we don't add space after last word
+	free(path);
     fclose(f);
 }
 

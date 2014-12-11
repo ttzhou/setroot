@@ -7,7 +7,7 @@
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "SETROOT" "1" "12/06/2014" "v1\&.1" "Setroot Manual"
+.TH "SETROOT" "1" "12/11/2014" "v1\&.3" "Setroot Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -52,10 +52,10 @@ show this help
 .PP
 \fB\-\-store\fR
 .RS 4
-stores valid invocation sequence in
+stores valid invocation sequence in file ".setroot-restore" in directory
 "${XDG_CONFIG_HOME:-$HOME/.config}/setroot/\&.setroot\-restore"
 .sp
-An error will be raised if the directory has not been created.
+If the directory path and/or file does not exist, it will be created.
 .RE
 .PP
 \fB\-\-restore\fR
