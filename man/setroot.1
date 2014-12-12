@@ -55,7 +55,7 @@ show this help
 stores valid invocation sequence in file ".setroot-restore" in directory
 "${XDG_CONFIG_HOME:-$HOME/.config}/setroot/\&.setroot\-restore"
 .sp
-If the directory path and/or file does not exist, it will be created.
+If the directory path and/or file does not exist, it will be created (see section \fBFILES\fR).
 .RE
 .PP
 \fB\-\-restore\fR
@@ -187,6 +187,11 @@ number Xinerama monitors from leftmost to rightmost
 .RS 4
 number Xinerama monitors from topmost to bottommost
 .RE
+.SH "FILES"
+.sp
+When \fBsetroot --store\fR is called for the first time, \fBsetroot\fR creates the directory "${XDG_CONFIG_HOME:-$HOME/.config}/setroot" and places the file ".setroot-restore" there.
+.sp
+\fBsetroot --restore\fR uses this file to restore the most recent (valid) invocation of \fBsetroot\fR.
 .SH "AUTHOR"
 .sp
 \fB\(co 2014\fR Tim Zhou <ttzhou@uwaterloo\&.ca>
