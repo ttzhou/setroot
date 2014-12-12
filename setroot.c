@@ -211,24 +211,23 @@ int mkpath(char* path)
 	char *cur_dir = malloc(100);
 	cur_dir[0] = '\0';
 
-	unsigned int path_len = 100;
+	unsigned int max_path_len = 100;
     char *token = NULL;
     token = strtok(path, "/");
 
     while (token != NULL) {
-		if (strlen(cur_dir) + strlen(token) + 1 > path_len) {
-			path_len  = strlen(cur_dir) + strlen(token) + 1;
-			cur_dir = realloc(cur_dir, (path_len + 1));
+		if (strlen(cur_dir) + strlen(token) + 1 > max_path_len) {
+			max_path_len  = strlen(cur_dir) + strlen(token) + 1;
+			cur_dir = realloc(cur_dir, (max_path_len + 1));
 		}
 		cur_dir = strncat(cur_dir, "/", 1);
-		cur_dir = strncat(cur_dir, token, sizeof(token) - 1);
+		cur_dir = strncat(cur_dir, token, strlen(token));
 
 		if ((mkdir(cur_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1)
 			&& (errno != EEXIST))
 			return -1;
         token = strtok(NULL, "/");
     }
-
 	free(cur_dir);
 	return 0;
 }
@@ -242,20 +241,19 @@ void store_wall( int argc, char** args )
 		dirlen = (strlen(getenv("HOME")) + 18);
 		cfg_dir = malloc(dirlen); verify(cfg_dir);
 		snprintf(cfg_dir, dirlen, "%s/%s", getenv("HOME"), ".config");
-
 	} else {
 		dirlen = (strlen(getenv("XDG_CONFIG_HOME")) + 10);
 		cfg_dir = malloc(dirlen); verify(cfg_dir);
 		snprintf(cfg_dir, dirlen, "%s", getenv("XDG_CONFIG_HOME"));
 	}
-	cfg_dir = strncat(cfg_dir, "/setroot", dirlen * sizeof(char));
+	cfg_dir = strncat(cfg_dir, "/setroot", dirlen);
 
 	path = malloc(dirlen); verify(path);
-	snprintf(path, dirlen, "%s", cfg_dir);
+	snprintf(cfg_dir, dirlen, "%s", cfg_dir);
 
 	if (mkpath(path) != 0) {
 		fprintf(stderr, "Could not create directory %s.\n",
-				"${XDG_CONFIG_HOME:-$HOME/.config}/setroot");
+				cfg_dir);
 		exit(1);
 	}
 
