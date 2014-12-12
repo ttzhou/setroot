@@ -188,7 +188,9 @@ MONITOR FLAGS
 FILES
 -----
 
-`setroot` creates the directory `${XDG_CONFIG_HOME:-$HOME/.config}/setroot` and places the file `.setroot-restore` there when `setroot --store` is invoked for the first time. `setroot --restore` uses this file to restore the most recent (valid) invocation of `setroot`.
+`setroot` creates the directory `${XDG_CONFIG_HOME:-$HOME/.config}/setroot` and places the file `.setroot-restore` there when `setroot --store` is invoked for the first time.
+
+`setroot --restore` uses this file to restore the most recent (valid) invocation of `setroot`.
 
 AUTHOR
 ------

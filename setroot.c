@@ -41,7 +41,6 @@
 
 #include "classes.h"
 #include "functions.h"
-#include "help.h"
 #include "util.h"
 
 /* globals */
@@ -238,26 +237,23 @@ void store_wall( int argc, char** args )
 	unsigned int dirlen;
 
 	if (getenv("XDG_CONFIG_HOME") == NULL) {
-		dirlen = (strlen(getenv("HOME")) + 18);
+		dirlen = (strlen(getenv("HOME")) + strlen("/.config/setroot") + 1);
 		cfg_dir = malloc(dirlen); verify(cfg_dir);
-		snprintf(cfg_dir, dirlen, "%s/%s", getenv("HOME"), ".config");
+		snprintf(cfg_dir, dirlen, "%s/%s/%s", getenv("HOME"), ".config", "setroot");
 	} else {
-		dirlen = (strlen(getenv("XDG_CONFIG_HOME")) + 10);
+		dirlen = (strlen(getenv("XDG_CONFIG_HOME")) + strlen("/setroot") + 1);
 		cfg_dir = malloc(dirlen); verify(cfg_dir);
-		snprintf(cfg_dir, dirlen, "%s", getenv("XDG_CONFIG_HOME"));
+		snprintf(cfg_dir, dirlen, "%s/%s", getenv("XDG_CONFIG_HOME"), "setroot");
 	}
-	cfg_dir = strncat(cfg_dir, "/setroot", dirlen);
-
 	path = malloc(dirlen); verify(path);
-	snprintf(cfg_dir, dirlen, "%s", cfg_dir);
+	snprintf(path, dirlen, "%s", cfg_dir);
 
 	if (mkpath(path) != 0) {
-		fprintf(stderr, "Could not create directory %s.\n",
-				cfg_dir);
+		fprintf(stderr, "Could not create directory %s.\n", cfg_dir);
 		exit(1);
 	}
 
-	fn = malloc((dirlen + 18));
+	fn = malloc((dirlen + 18)); verify(fn);
 	snprintf(fn, (dirlen + 18), "%s/%s", cfg_dir, ".setroot-restore");
 
     FILE *f = fopen(fn, "w");
@@ -271,37 +267,36 @@ void store_wall( int argc, char** args )
         fprintf(f, " ");
     }
     fprintf(f, args[i]); // so we don't add space after last word
-	free(path); free(cfg_dir); free(fn);
     fclose(f);
+
+	free(path); free(cfg_dir); free(fn);
 }
 
 void restore_wall()
 {
-	char *cfg_dir, *fn;
+	char *fn;
 	unsigned int dirlen;
 
 	if (getenv("XDG_CONFIG_HOME") == NULL) {
-		dirlen = (strlen(getenv("HOME")) + 18);
-		cfg_dir = malloc(dirlen); verify(cfg_dir);
-		snprintf(cfg_dir, dirlen, "%s/%s", getenv("HOME"), ".config");
+		dirlen = (strlen(getenv("HOME")) \
+				+ strlen("/.config/setroot/.setroot-restore") + 1);
+		fn = malloc(dirlen); verify(fn);
+		snprintf(fn, dirlen, "%s/%s/%s/%s", \
+				 getenv("HOME"), ".config", "setroot", ".setroot-restore");
 
 	} else {
-		dirlen = (strlen(getenv("XDG_CONFIG_HOME")) + 10);
-		cfg_dir = malloc(dirlen); verify(cfg_dir);
-		snprintf(cfg_dir, dirlen, "%s", getenv("XDG_CONFIG_HOME"));
+		dirlen = (strlen(getenv("XDG_CONFIG_HOME")) \
+				+ strlen("/setroot/.setroot-restore") + 1);
+		fn = malloc(dirlen); verify(fn);
+		snprintf(fn, dirlen, "%s/%s/%s", \
+			   	 getenv("XDG_CONFIG_HOME"), "setroot", ".setroot-restore");
 	}
-	cfg_dir = strncat(cfg_dir, "/setroot", dirlen * sizeof(char));
-
-	fn = malloc((dirlen + 18));
-	snprintf(fn, (dirlen + 18), "%s/%s", cfg_dir, ".setroot-restore");
-
     FILE *f = fopen(fn, "r");
     if (!f) {
         fprintf(stderr, "Could not find file %s.\n", fn);
 		exit(1);
     }
-
-    size_t n = 0;
+    unsigned int n = 0;
     char *line = NULL;
     if (getline(&line, &n, f) == -1) { // because fuck portability, I'm lazy
         fclose(f);
@@ -328,9 +323,9 @@ void restore_wall()
 		args = realloc(args, argc * sizeof(char*));
 
     parse_opts((int) argc, args);
-	free(fn); free(cfg_dir);
-    free(line); free(args);
     fclose(f);
+
+	free(fn); free(line); free(args);
 }
 
 void init_wall( struct wallpaper *w )
@@ -1072,7 +1067,7 @@ int main(int argc, char** args)
 
     /* check for acts of desperation */
 	if (argc < 2 || streq(args[1], "-h") || streq(args[1], "--help")) {
-        show_help();
+        printf("No options provided. Call \'man setroot\' for help.\n");
         exit(EXIT_SUCCESS);
     }
     /* restore or parse options */
