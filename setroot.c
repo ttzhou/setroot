@@ -1066,7 +1066,7 @@ int main(int argc, char** args)
 
     /* check for acts of desperation */
 	if (argc < 2 || streq(args[1], "-h") || streq(args[1], "--help")) {
-        show_help();
+        printf("No options provided. Call \'man setroot\' for help.\n");
         exit(EXIT_SUCCESS);
     }
     /* restore or parse options */
