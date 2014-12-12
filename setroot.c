@@ -249,7 +249,7 @@ void store_wall( int argc, char** args )
 	cfg_dir = strncat(cfg_dir, "/setroot", dirlen);
 
 	path = malloc(dirlen); verify(path);
-	snprintf(cfg_dir, dirlen, "%s", cfg_dir);
+	snprintf(path, dirlen, "%s", cfg_dir);
 
 	if (mkpath(path) != 0) {
 		fprintf(stderr, "Could not create directory %s.\n",
