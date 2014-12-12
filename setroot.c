@@ -41,7 +41,6 @@
 
 #include "classes.h"
 #include "functions.h"
-#include "help.h"
 #include "util.h"
 
 /* globals */
@@ -250,8 +249,7 @@ void store_wall( int argc, char** args )
 	snprintf(path, dirlen, "%s", cfg_dir);
 
 	if (mkpath(path) != 0) {
-		fprintf(stderr, "Could not create directory %s.\n",
-				cfg_dir);
+		fprintf(stderr, "Could not create directory %s.\n", cfg_dir);
 		exit(1);
 	}
 
@@ -298,7 +296,7 @@ void restore_wall()
         fprintf(stderr, "Could not find file %s.\n", fn);
 		exit(1);
     }
-    size_t n = 0;
+    unsigned int n = 0;
     char *line = NULL;
     if (getline(&line, &n, f) == -1) { // because fuck portability, I'm lazy
         fclose(f);
