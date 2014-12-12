@@ -68,7 +68,7 @@ STORAGE FLAGS
 
 	 stores valid invocation sequence in file `.setroot-restore` located in directory `${XDG_CONFIG_HOME:-$HOME/.config}/setroot`
 
-If the directory path and/or file does not exist, it will be created.
+If the directory path and/or file does not exist, it will be created (see section _FILES_)
 
 *--restore*::
 
@@ -184,6 +184,11 @@ MONITOR FLAGS
 
 	 number Xinerama monitors from topmost to bottommost
 
+
+FILES
+-----
+
+`setroot` creates the directory `${XDG_CONFIG_HOME:-$HOME/.config}/setroot` and places the file `.setroot-restore` there when `setroot --store` is invoked for the first time. `setroot --restore` uses this file to restore the most recent (valid) invocation of `setroot`.
 
 AUTHOR
 ------
