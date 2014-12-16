@@ -287,8 +287,8 @@ void store_wall( int argc, char** args )
 			strncat(arg, "\'", 1);
 			strncat(arg, fullpath, arglen - 2);
 			strncat(arg, "\'", 1);
-			free(fullpath);
 		}
+		free(fullpath);
 		fprintf(f, " %s", arg);
 		free(arg);
     }
@@ -507,13 +507,13 @@ void parse_opts( unsigned int argc, char **args )
             }
             monitor = atoi(args[++i]);
 
-            /*if (monitor > (int) (NUM_MONS - 1) || monitor < 0) {*/
-            if (monitor < 0) {
-                fprintf(stderr, \
-                        "No Xinerama monitor %d. Ignoring '--on' option. \n",\
-                        monitor);
+			if (monitor < 0) {
+				if (!rmbr) {
+					fprintf(stderr, \
+							"No Xinerama monitor %d. Ignoring '--on' option. \n",\
+							monitor);
+				}
                 monitor = -1;
-                rmbr = 0;
                 continue;
             }
 
@@ -696,6 +696,10 @@ void parse_opts( unsigned int argc, char **args )
     /* assign walls to monitors */
     for (unsigned int wn = 0; wn < num_walls; wn++) {
         int mn = WALLS[wn].monitor;
+		if (mn + 1 > NUM_MONS) {
+            clean_wall(&(WALLS[wn]));
+			continue;
+		}
         /* if wall was previously assigned to mon, clear it */
         if (MONS[mn].wall != NULL)
             clean_wall(MONS[mn].wall);
@@ -1065,14 +1069,12 @@ int main(int argc, char** args)
         printf("No options provided. Call \'man setroot\' for help.\n");
         exit(EXIT_SUCCESS);
     }
-    /* restore or parse options */
     if (argc > 1 && streq(args[1], "--restore")) {
         restore_wall();
 		goto cleanup;
-	} else {
-        parse_opts(argc, args);
 	}
 
+	parse_opts(argc, args);
     Pixmap bg = make_bg();
 
     if (bg) {
