@@ -55,7 +55,7 @@ show this help
 creates an executable file ".setroot-restore" located in directory
 "${XDG_CONFIG_HOME:-$HOME/.config}/setroot/\&.setroot\-restore"
 .sp
-If the directory path and/or file does not exist, it will be created (see section \fBFILES\fR).
+If the directory path and/or file does not exist, it will be created (see section \fBFILES\fR)\&.
 .RE
 .PP
 \fB\-\-restore\fR
@@ -96,6 +96,8 @@ assign image to be wallpaper on Xinerama monitor
 If not all images are passed this option, the unassigned walls will be placed on monitors by their position in the invocation sequence\&.
 .sp
 Images which do have a specified assignment will then be assigned to their monitors, replacing any images which may have already been assigned\&.
+.sp
+If \fI\-\-on\fR is supplied a screen which does not exist, no error is raised and the other walls are set as normal\&. This can be used with \fBsetroot --store\fR to "preset" an unconnected monitor's wallpaper\&.
 .RE
 .SH "IMAGE MANIPULATIONS"
 .PP
@@ -187,9 +189,9 @@ number Xinerama monitors from topmost to bottommost
 .RE
 .SH "FILES"
 .sp
-\fBsetroot\fR creates the directory "${XDG_CONFIG_HOME:-$HOME/.config}/setroot" and places an executable file \fB.setroot-restore\fR there when \fBsetroot --store\fR is invoked for the first time.
+\fBsetroot\fR creates the directory "${XDG_CONFIG_HOME:-$HOME/.config}/setroot" and places an executable file \fB.setroot-restore\fR there when \fBsetroot --store\fR is invoked for the first time\&.
 .sp
-\fBsetroot --restore\fR uses this file to restore the most recent (valid) invocation of \fBsetroot\fR.
+\fBsetroot --restore\fR uses this file to restore the most recent (valid) invocation of \fBsetroot\fR\&.
 .SH "AUTHOR"
 .sp
 \fB\(co 2014\fR Tim Zhou <ttzhou@uwaterloo\&.ca>
