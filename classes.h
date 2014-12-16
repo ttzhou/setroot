@@ -27,6 +27,7 @@ struct pair {
 
 struct wallpaper {
 	Imlib_Image			image;
+	char*				fullpath;
 
 	unsigned int		span;
 	int					monitor;

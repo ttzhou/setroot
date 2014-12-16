@@ -23,9 +23,12 @@
  ********************************************************************************/
 
 #define _POSIX_C_SOURCE 200809L // for getline
+#define _DEFAULT_SOURCE // for realpath
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <limits.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
@@ -59,16 +62,16 @@ struct monitor      VSCRN; // spanned area of all monitors
 unsigned int        NUM_MONS  = 0;
 
 /* runtime variables */
-static       char *program_name = "setroot";
-static const char *BLANK_COLOR  = "black";
+static       char  *program_name = "setroot";
+static const char  *BLANK_COLOR  = "black";
 
-static const int   IMLIB_CACHE_SIZE  = 10240*1024; // I like big walls
-static const int   IMLIB_COLOR_USAGE = 256;
-static const int   DITHER_SWITCH     = 0;
+static const int    IMLIB_CACHE_SIZE  = 10240*1024; // I like big walls
+static const int    IMLIB_COLOR_USAGE = 256;
+static const int    DITHER_SWITCH     = 0;
 
-static const int   SORT_BY_XINM = 0;
-static const int   SORT_BY_XORG = 1;
-static const int   SORT_BY_YORG = 2;
+static const int    SORT_BY_XINM = 0;
+static const int    SORT_BY_XORG = 1;
+static const int    SORT_BY_YORG = 2;
 
 /*****************************************************************************
  *
@@ -223,12 +226,14 @@ int mkpath(char* path)
 		cur_dir = strncat(cur_dir, token, strlen(token));
 
 		if ((mkdir(cur_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1)
-			&& (errno != EEXIST))
-			return -1;
+			&& (errno != EEXIST)) {
+			free(cur_dir);
+			return 0;
+		}
         token = strtok(NULL, "/");
     }
 	free(cur_dir);
-	return 0;
+	return 1;
 }
 
 void store_wall( int argc, char** args )
@@ -248,27 +253,51 @@ void store_wall( int argc, char** args )
 	path = malloc(dirlen); verify(path);
 	snprintf(path, dirlen, "%s", cfg_dir);
 
-	if (mkpath(path) != 0) {
+	if (!mkpath(path)) {
 		fprintf(stderr, "Could not create directory %s.\n", cfg_dir);
 		exit(1);
 	}
-
-	fn = malloc((dirlen + 18)); verify(fn);
-	snprintf(fn, (dirlen + 18), "%s/%s", cfg_dir, ".setroot-restore");
+	fn = malloc(dirlen + 18); verify(fn);
+	snprintf(fn, dirlen + 18, "%s/%s", cfg_dir, ".setroot-restore");
 
     FILE *f = fopen(fn, "w");
     if (!f) {
         fprintf(stderr, "Could not write to file %s.\n", fn);
         exit(1);
     }
-    int i;
-    for (i = 2; i < argc - 1; i++) { // jump past setroot --store
-        fprintf(f, args[i]);
-        fprintf(f, " ");
+	fprintf(f, "setroot"); // the initial call
+
+	int i, arglen;
+	char *arg, *fullpath;
+
+	for (i = 2; i < argc; i++) { // jump past --store
+		arglen = strlen(args[i]) + 1;
+		arg = malloc(arglen); verify(arg);
+
+		/* either args[i] is a valid path, since it passed parse_opts, */
+		/* or it is an option, in which case it fails realpath */
+		fullpath = realpath(args[i], NULL);
+
+		if (fullpath == NULL) { // it is not a filename, but an option
+			snprintf(arg, arglen, "%s", args[i]);
+		} else {
+			arglen = strlen(fullpath) + 3;
+			arg = realloc(arg, arglen); verify(arg); arg[0] = '\0';
+			/* C doesn't escape % signs if you use *printf */
+			strncat(arg, "\'", 1);
+			strncat(arg, fullpath, arglen - 2);
+			strncat(arg, "\'", 1);
+			free(fullpath);
+		}
+		fprintf(f, " %s", arg);
+		free(arg);
     }
-    fprintf(f, args[i]); // so we don't add space after last word
     fclose(f);
 
+	if (chmod(fn, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
+		fprintf(stderr, "Could not make file \'%s\' executable.\n", fn);
+		exit(1);
+	}
 	free(path); free(cfg_dir); free(fn);
 }
 
@@ -283,7 +312,6 @@ void restore_wall()
 		fn = malloc(dirlen); verify(fn);
 		snprintf(fn, dirlen, "%s/%s/%s/%s", \
 				 getenv("HOME"), ".config", "setroot", ".setroot-restore");
-
 	} else {
 		dirlen = (strlen(getenv("XDG_CONFIG_HOME")) \
 				+ strlen("/setroot/.setroot-restore") + 1);
@@ -291,41 +319,7 @@ void restore_wall()
 		snprintf(fn, dirlen, "%s/%s/%s", \
 			   	 getenv("XDG_CONFIG_HOME"), "setroot", ".setroot-restore");
 	}
-    FILE *f = fopen(fn, "r");
-    if (!f) {
-        fprintf(stderr, "Could not find file %s.\n", fn);
-		exit(1);
-    }
-    unsigned int n = 0;
-    char *line = NULL;
-    if (getline(&line, &n, f) == -1) { // because fuck portability, I'm lazy
-        fclose(f);
-        die(1, "File corrupt, or file is empty.\n");
-    }
-    /* rarely get more than 10 arguments */
-    char **args = malloc(10 * sizeof(char*)); verify(args);
-    args[0] = program_name;
-
-    /* break arg string into arg array and get argcount */
-    unsigned int argc = 1;
-    char *token = NULL;
-    token = strtok(line, " ");
-
-    while ( token != NULL ) {
-        argc++;
-        if (argc > 10)
-            args = realloc(args, argc * sizeof(char*)); verify(args);
-        args[argc - 1] = token;
-        token = strtok(NULL, " ");
-    }
-    /* shrink to appropriate size, no need to verify */
-	if (argc < 10)
-		args = realloc(args, argc * sizeof(char*));
-
-    parse_opts((int) argc, args);
-    fclose(f);
-
-	free(fn); free(line); free(args);
+	system(fn); free(fn);
 }
 
 void init_wall( struct wallpaper *w )
@@ -1068,10 +1062,12 @@ int main(int argc, char** args)
         exit(EXIT_SUCCESS);
     }
     /* restore or parse options */
-    if (argc > 1 && streq(args[1], "--restore"))
+    if (argc > 1 && streq(args[1], "--restore")) {
         restore_wall();
-    else
+		goto cleanup;
+	} else {
         parse_opts(argc, args);
+	}
 
     Pixmap bg = make_bg();
 
@@ -1079,6 +1075,9 @@ int main(int argc, char** args)
         set_pixmap_property(bg);
 		XSetWindowBackgroundPixmap(XDPY, find_desktop(ROOT_WIN), bg);
     }
+
+	cleanup:
+
     free(MONS);
     free(WALLS);
     XClearWindow(XDPY, ROOT_WIN);
