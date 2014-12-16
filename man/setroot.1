@@ -7,7 +7,7 @@
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "SETROOT" "1" "12/11/2014" "v1\&.3" "Setroot Manual"
+.TH "SETROOT" "1" "12/15/2014" "v1\&.4" "Setroot Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -52,7 +52,7 @@ show this help
 .PP
 \fB\-\-store\fR
 .RS 4
-stores valid invocation sequence in file ".setroot-restore" in directory
+creates an executable file ".setroot-restore" located in directory
 "${XDG_CONFIG_HOME:-$HOME/.config}/setroot/\&.setroot\-restore"
 .sp
 If the directory path and/or file does not exist, it will be created (see section \fBFILES\fR).
@@ -62,9 +62,7 @@ If the directory path and/or file does not exist, it will be created (see sectio
 .RS 4
 looks for
 "${XDG_CONFIG_HOME:-$HOME/.config}/setroot/\&.setroot\-restore"
-and calls invocation sequence
-
-(restores your previously set wallpapers and options)
+and executes it in shell (restores your previously set wallpapers and options)
 .RE
 .SH "GLOBAL FLAGS"
 .PP
@@ -189,7 +187,7 @@ number Xinerama monitors from topmost to bottommost
 .RE
 .SH "FILES"
 .sp
-When \fBsetroot --store\fR is called for the first time, \fBsetroot\fR creates the directory "${XDG_CONFIG_HOME:-$HOME/.config}/setroot" and places the file ".setroot-restore" there.
+\fBsetroot\fR creates the directory "${XDG_CONFIG_HOME:-$HOME/.config}/setroot" and places an executable file \fB.setroot-restore\fR there when \fBsetroot --store\fR is invoked for the first time.
 .sp
 \fBsetroot --restore\fR uses this file to restore the most recent (valid) invocation of \fBsetroot\fR.
 .SH "AUTHOR"

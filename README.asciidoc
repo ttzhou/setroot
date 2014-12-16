@@ -66,13 +66,13 @@ STORAGE FLAGS
 
 *--store*::
 
-	 stores valid invocation sequence in file `.setroot-restore` located in directory `${XDG_CONFIG_HOME:-$HOME/.config}/setroot`
+	 creates executable file `.setroot-restore` located in directory `${XDG_CONFIG_HOME:-$HOME/.config}/setroot`
 
 If the directory path and/or file does not exist, it will be created (see section _FILES_)
 
 *--restore*::
 
-	 looks for `${XDG_CONFIG_HOME:-$HOME/.config}/setroot/.setroot-restore` and calls invocation sequence (restores your previously set wallpapers and options)
+	 looks for `${XDG_CONFIG_HOME:-$HOME/.config}/setroot/.setroot-restore` and executes it in shell (restores your previously set wallpapers and options)
 
 
 GLOBAL FLAGS
@@ -188,9 +188,9 @@ MONITOR FLAGS
 FILES
 -----
 
-`setroot` creates the directory `${XDG_CONFIG_HOME:-$HOME/.config}/setroot` and places the file `.setroot-restore` there when `setroot --store` is invoked for the first time.
+`setroot` creates the directory `${XDG_CONFIG_HOME:-$HOME/.config}/setroot` and places an executable file `.setroot-restore` there when `setroot --store` is invoked for the first time.
 
-`setroot --restore` uses this file to restore the most recent (valid) invocation of `setroot`.
+`setroot --restore` executes this file to restore the most recent (valid) invocation of `setroot`.
 
 AUTHOR
 ------
