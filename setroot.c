@@ -1062,14 +1062,12 @@ int main(int argc, char** args)
         printf("No options provided. Call \'man setroot\' for help.\n");
         exit(EXIT_SUCCESS);
     }
-    /* restore or parse options */
     if (argc > 1 && streq(args[1], "--restore")) {
         restore_wall();
 		goto cleanup;
-	} else {
-        parse_opts(argc, args);
 	}
 
+	parse_opts(argc, args);
     Pixmap bg = make_bg();
 
     if (bg) {
