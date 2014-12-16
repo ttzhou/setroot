@@ -287,8 +287,8 @@ void store_wall( int argc, char** args )
 			strncat(arg, "\'", 1);
 			strncat(arg, fullpath, arglen - 2);
 			strncat(arg, "\'", 1);
-			free(fullpath);
 		}
+		free(fullpath);
 		fprintf(f, " %s", arg);
 		free(arg);
     }
@@ -504,13 +504,13 @@ void parse_opts( unsigned int argc, char **args )
             }
             monitor = atoi(args[++i]);
 
-            /*if (monitor > (int) (NUM_MONS - 1) || monitor < 0) {*/
-            if (monitor < 0) {
-                fprintf(stderr, \
-                        "No Xinerama monitor %d. Ignoring '--on' option. \n",\
-                        monitor);
+			if (monitor > (int) (NUM_MONS - 1) || monitor < 0) {
+				if (!rmbr) {
+					fprintf(stderr, \
+							"No Xinerama monitor %d. Ignoring '--on' option. \n",\
+							monitor);
+				}
                 monitor = -1;
-                rmbr = 0;
                 continue;
             }
 
