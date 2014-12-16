@@ -4,7 +4,7 @@ CHANGELOG
 Release
 -------
 
-v1.4
+v1.4 (testing)
 ----
 
 - handles spaces, special characters, allows you to set wallpaper in advance for unconnected monitors

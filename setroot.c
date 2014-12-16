@@ -507,7 +507,8 @@ void parse_opts( unsigned int argc, char **args )
             }
             monitor = atoi(args[++i]);
 
-            if (monitor > (int) (NUM_MONS - 1) || monitor < 0) {
+            /*if (monitor > (int) (NUM_MONS - 1) || monitor < 0) {*/
+            if (monitor < 0) {
                 fprintf(stderr, \
                         "No Xinerama monitor %d. Ignoring '--on' option. \n",\
                         monitor);

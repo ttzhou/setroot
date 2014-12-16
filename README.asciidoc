@@ -104,6 +104,8 @@ Note that this overrides the _--on_ option. Note also that further images that a
 
 If not all images are passed this option, the unassigned walls will be placed on monitors by their position in the invocation sequence. Images which do have a specified assignment will then be assigned to their monitors, replacing any images which may have already been assigned.
 
+If _--on_ is supplied a screen which does not exist, no error is raised and the other walls are set as normal. This can be used with `setroot --store` to "preset" an unconnected monitor's wallpaper.
+
 
 IMAGE MANIPULATIONS
 -------------------
