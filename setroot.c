@@ -504,7 +504,7 @@ void parse_opts( unsigned int argc, char **args )
             }
             monitor = atoi(args[++i]);
 
-			if (monitor > (int) (NUM_MONS - 1) || monitor < 0) {
+			if (monitor < 0) {
 				if (!rmbr) {
 					fprintf(stderr, \
 							"No Xinerama monitor %d. Ignoring '--on' option. \n",\
@@ -693,6 +693,10 @@ void parse_opts( unsigned int argc, char **args )
     /* assign walls to monitors */
     for (unsigned int wn = 0; wn < num_walls; wn++) {
         int mn = WALLS[wn].monitor;
+		if (mn + 1 > NUM_MONS) {
+            clean_wall(&(WALLS[wn]));
+			continue;
+		}
         /* if wall was previously assigned to mon, clear it */
         if (MONS[mn].wall != NULL)
             clean_wall(MONS[mn].wall);
