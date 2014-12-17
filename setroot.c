@@ -38,7 +38,10 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
+
+#ifdef HAVE_LIBXINERAMA
 #include <X11/extensions/Xinerama.h>
+#endif
 
 #include <Imlib2.h>
 
@@ -208,7 +211,7 @@ Window find_desktop( Window window )
     }
 }
 
-int mkpath(char* path)
+int mkpath( char* path )
 {
 	char *cur_dir = malloc(100);
 	cur_dir[0] = '\0';
@@ -357,6 +360,7 @@ void clean_wall( struct wallpaper *w )
     }
 }
 
+#ifdef HAVE_LIBXINERAMA
 void sort_mons_by( int sort_opt )
 {
     if (!XineramaIsActive(XDPY)) {
@@ -399,6 +403,7 @@ void sort_mons_by( int sort_opt )
     XFree(XSI);
     XSync(XDPY, False);
 }
+#endif
 
 struct rgb_triple *parse_color( const char *col )
 {
@@ -455,6 +460,7 @@ void parse_opts( unsigned int argc, char **args )
     fit_type flag  = FIT_AUTO;
     flip_type flip = NONE;
 
+#ifdef HAVE_LIBXINERAMA
     /* set up monitors based on arrangement option */
     if        (streq(args[argc - 1], "--use-x-geometry")) {
         sort_mons_by(SORT_BY_XORG);
@@ -463,6 +469,12 @@ void parse_opts( unsigned int argc, char **args )
     } else {
         sort_mons_by(SORT_BY_XINM);
     }
+#endif
+#ifndef HAVE_LIBXINERAMA
+	NUM_MONS = 1;
+	MONS = malloc(NUM_MONS * sizeof(struct monitor)); verify(MONS);
+	MONS[0] = VSCRN;
+#endif
     /* init array for storing wallpapers */
     WALLS = malloc(NUM_MONS * sizeof(struct wallpaper)); verify(WALLS);
 	unsigned int num_walls = 0;
@@ -492,7 +504,9 @@ void parse_opts( unsigned int argc, char **args )
             }
             bg_col = parse_color(args[++i]);
 
-        } else if (streq(args[i], "--on")) {
+        }
+#ifdef HAVE_LIBXINERAMA
+		else if (streq(args[i], "--on")) {
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
                 rmbr = 0;
@@ -508,17 +522,17 @@ void parse_opts( unsigned int argc, char **args )
             monitor = atoi(args[++i]);
 
 			if (monitor < 0) {
-				if (!rmbr) {
-					fprintf(stderr, \
-							"No Xinerama monitor %d. Ignoring '--on' option. \n",\
-							monitor);
-				}
+				fprintf(stderr, \
+						"No Xinerama monitor %d. Ignoring '--on' option. \n",\
+						monitor);
+				rmbr = 0;
                 monitor = -1;
                 continue;
             }
-
+        }
+#endif
         /* MANIPULATIONS */
-        } else if (streq(args[i], "--greyscale")) {
+		else if (streq(args[i], "--greyscale")) {
 			grey = 1;
 
         } else if (streq(args[i], "--tint")) {
@@ -690,12 +704,12 @@ void parse_opts( unsigned int argc, char **args )
 
     /* shrink WALLS array appropriately */
     if (num_walls < NUM_MONS) {
-		/* don't need to verify since it is shrinking prechecked memory */
         WALLS = realloc(WALLS, num_walls * sizeof(struct wallpaper));
     }
     /* assign walls to monitors */
     for (unsigned int wn = 0; wn < num_walls; wn++) {
-        int mn = WALLS[wn].monitor;
+        unsigned int mn = WALLS[wn].monitor;
+		/* if the monitor is not connected, clear it then move on */
 		if (mn + 1 > NUM_MONS) {
             clean_wall(&(WALLS[wn]));
 			continue;
@@ -1073,7 +1087,6 @@ int main(int argc, char** args)
         restore_wall();
 		goto cleanup;
 	}
-
 	parse_opts(argc, args);
     Pixmap bg = make_bg();
 

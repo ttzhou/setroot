@@ -20,17 +20,30 @@ struct rgb_triple {
 	int r, g, b;
 };
 
+#ifdef HAVE_LIBXINERAMA
 struct pair {
 	unsigned int index;
 	int value;
 };
+
+// comparison functions for pairs
+int ascending( const void *a, const void *b )
+{
+    return ( (*((struct pair*) a)).value - (*((struct pair*) b)).value);
+}
+
+int descending( const void *a, const void *b )
+{
+    return ( (*((struct pair*) b)).value - (*((struct pair*) a)).value);
+}
+#endif
 
 struct wallpaper {
 	Imlib_Image			image;
 	char*				fullpath;
 
 	unsigned int		span;
-	int					monitor;
+	unsigned int		monitor;
 
 	unsigned int		height;
 	unsigned int		width;
@@ -60,14 +73,3 @@ struct monitor {
 
 	struct wallpaper	*wall;
 };
-
-// comparison functions for pairs
-int ascending( const void *a, const void *b )
-{
-    return ( (*((struct pair*) a)).value - (*((struct pair*) b)).value);
-}
-
-int descending( const void *a, const void *b )
-{
-    return ( (*((struct pair*) b)).value - (*((struct pair*) a)).value);
-}

@@ -6,13 +6,20 @@ NAME     := setroot
 CC       := gcc
 OFLAG    := -O2
 CFLAGS   := -std=c99 -Wall -Wextra ${OFLAG}
-INCLUDES := -I/usr/include/X11/extensions
-LIBS     := -lX11 -lXinerama `imlib2-config --libs`
+LIBS     := -lX11 `imlib2-config --libs`
 
 SRC      := setroot.c
 
+xinerama ?= 1
+
+ifeq (${xinerama},1)
+DEFINES  := -DHAVE_LIBXINERAMA
+INCLUDES := -I/usr/include/X11/extensions
+LIBS     += -lXinerama
+endif
+
 all:
-	${CC} ${SRC} ${CFLAGS} ${INCLUDES} ${LIBS} -o ${NAME}
+	${CC} ${SRC} ${CFLAGS} ${DEFINES} ${INCLUDES} ${LIBS} -o ${NAME}
 
 install: all
 	mkdir -p         ${DESTDIR}/${BINDIR}
