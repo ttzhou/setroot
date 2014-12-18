@@ -10,8 +10,6 @@ LIBS     := -lX11 `imlib2-config --libs`
 
 SRC      := setroot.c
 
-xinerama ?= 1
-
 ifeq (${xinerama},1)
 DEFINES  := -DHAVE_LIBXINERAMA
 INCLUDES := -I/usr/include/X11/extensions
@@ -21,7 +19,7 @@ endif
 all:
 	${CC} ${SRC} ${CFLAGS} ${DEFINES} ${INCLUDES} ${LIBS} -o ${NAME}
 
-install: all
+install: ${NAME} man/${NAME}.1
 	mkdir -p         ${DESTDIR}/${BINDIR}
 	mkdir -p         ${DESTDIR}/${MANDIR}
 	cp ${NAME}       ${DESTDIR}/${BINDIR}
