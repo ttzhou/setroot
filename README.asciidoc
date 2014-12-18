@@ -31,7 +31,6 @@ ego died many ages ago in undergrad.
 INSTALLATION
 ------------
 
-[source,sh]
 ----
 mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/setroot (for storing config files)
 sudo make
