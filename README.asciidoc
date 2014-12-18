@@ -31,20 +31,26 @@ ego died many ages ago in undergrad.
 INSTALLATION
 ------------
 
-[source,sh]
+If you have `libxinerama` installed:
+
 ----
-mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/setroot (for storing config files)
-sudo make
+sudo make xinerama=1
 sudo make install (clean)
 ----
 
+If you don't have `libxinerama` installed:
+
+----
+sudo make xinerama=0
+sudo make install (clean)
+----
 
 DEPENDENCIES
 ------------
 
 `imlib2`
 
-`libxinerama` is an optional dependency; edit the Makefile to remove it if desired.
+`libxinerama` is an optional dependency (see section *INSTALLATION*).
 
 
 INVOCATION
