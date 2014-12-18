@@ -32,11 +32,9 @@ INSTALLATION
 ------------
 
 ----
-mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/setroot (for storing config files)
 sudo make
 sudo make install (clean)
 ----
-
 
 DEPENDENCIES
 ------------
