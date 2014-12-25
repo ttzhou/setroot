@@ -4,6 +4,12 @@ CHANGELOG
 Release
 -------
 
+v1.4.1
+------
+
+- code base changes
+- added error handling cases for --store and --on
+
 v1.4
 ----
 
