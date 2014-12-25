@@ -4,7 +4,6 @@ Window find_desktop();
 void show_ver();
 void show_help();
 
-int mkpath( char* path );
 void store_wall( int argc, char** line );
 void restore_wall();
 
