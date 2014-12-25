@@ -619,7 +619,7 @@ void parse_opts( unsigned int argc, char **args )
                 fprintf(stderr, "Image %s not found.\n", args[i]);
                 exit(1);
 			}
-			if (num_walls == NUM_MONS) {
+			if (num_walls == NUM_MONS || monitor > (int) NUM_MONS - 1) {
 				imlib_context_set_image(image);
 				imlib_free_image_and_decache();
 				continue;
