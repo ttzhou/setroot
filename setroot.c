@@ -211,58 +211,36 @@ Window find_desktop( Window window )
     }
 }
 
-int mkpath( char* path )
-{
-	char *cur_dir = malloc(100);
-	cur_dir[0] = '\0';
-
-	unsigned int max_path_len = 100;
-    char *token = NULL;
-    token = strtok(path, "/");
-
-    while (token != NULL) {
-		if (strlen(cur_dir) + strlen(token) + 1 > max_path_len) {
-			max_path_len  = strlen(cur_dir) + strlen(token) + 1;
-			cur_dir = realloc(cur_dir, (max_path_len + 1));
-		}
-		cur_dir = strncat(cur_dir, "/", 1);
-		cur_dir = strncat(cur_dir, token, strlen(token));
-
-		if ((mkdir(cur_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1)
-			&& (errno != EEXIST)) {
-			free(cur_dir);
-			return 0;
-		}
-        token = strtok(NULL, "/");
-    }
-	free(cur_dir);
-	return 1;
-}
-
 void store_wall( int argc, char** args )
 {
-	char *cfg_dir, *path, *fn;
-	unsigned int dirlen;
+	/*CREATE THE DIRECTORY AND FILE*/
+	char *cfg_dir, *cmd, *fn;
+	unsigned int buflen;
 
 	if (getenv("XDG_CONFIG_HOME") == NULL) {
-		dirlen = (strlen(getenv("HOME")) + strlen("/.config/setroot") + 1);
-		cfg_dir = malloc(dirlen); verify(cfg_dir);
-		snprintf(cfg_dir, dirlen, "%s/%s/%s", getenv("HOME"), ".config", "setroot");
+		buflen = (strlen(getenv("HOME")) + strlen("/.config/setroot") + 1);
+		cfg_dir = malloc(buflen); verify(cfg_dir);
+		snprintf(cfg_dir, buflen, "%s/%s/%s", getenv("HOME"), ".config", "setroot");
 	} else {
-		dirlen = (strlen(getenv("XDG_CONFIG_HOME")) + strlen("/setroot") + 1);
-		cfg_dir = malloc(dirlen); verify(cfg_dir);
-		snprintf(cfg_dir, dirlen, "%s/%s", getenv("XDG_CONFIG_HOME"), "setroot");
+		buflen = (strlen(getenv("XDG_CONFIG_HOME")) + strlen("/setroot") + 1);
+		cfg_dir = malloc(buflen); verify(cfg_dir);
+		snprintf(cfg_dir, buflen, "%s/%s", getenv("XDG_CONFIG_HOME"), "setroot");
 	}
-	path = malloc(dirlen); verify(path);
-	snprintf(path, dirlen, "%s", cfg_dir);
+	buflen += strlen("mkdir -p ");
+	cmd = malloc(buflen); verify(cmd); cmd[0] = '\0';
+	snprintf(cmd, buflen, "mkdir -p %s", cfg_dir);
 
-	if (!mkpath(path)) {
+	if (system(cmd) != 0) {
 		fprintf(stderr, "Could not create directory %s.\n", cfg_dir);
 		exit(1);
 	}
-	fn = malloc(dirlen + 18); verify(fn);
-	snprintf(fn, dirlen + 18, "%s/%s", cfg_dir, ".setroot-restore");
+	free(cmd); cmd = NULL;
 
+	buflen += strlen(".setroot-restore");
+	fn = malloc(buflen); verify(fn);
+	snprintf(fn, buflen, "%s/%s", cfg_dir, ".setroot-restore");
+
+	/*WRITE TO THE FILE*/
     FILE *f = fopen(fn, "w");
     if (!f) {
         fprintf(stderr, "Could not write to file %s.\n", fn);
@@ -270,38 +248,36 @@ void store_wall( int argc, char** args )
     }
 	fprintf(f, "setroot"); // the initial call
 
-	int i, arglen;
-	char *arg, *fullpath;
+	for (int i = 2; i < argc; i++) { // jump past --store
+		char *fullpath = realpath(args[i], NULL);
 
-	for (i = 2; i < argc; i++) { // jump past --store
-		arglen = strlen(args[i]) + 1;
-		arg = malloc(arglen); verify(arg);
+		if (fullpath == NULL) {
+			fprintf(f, " %s", args[i]);
+			continue;
+		}
+		unsigned int pathlen = strlen(fullpath);
 
-		/* either args[i] is a valid path, since it passed parse_opts, */
-		/* or it is an option, in which case it fails realpath */
-		fullpath = realpath(args[i], NULL);
-
-		if (fullpath == NULL) { // it is not a filename, but an option
-			snprintf(arg, arglen, "%s", args[i]);
+		if (strpbrk(".", fullpath) == NULL) {
+			fprintf(f, " %s", args[i]);
+		} else if (isdigit(fullpath[pathlen - 1])) {
+			fprintf(f, " %s", args[i]);
 		} else {
-			arglen = strlen(fullpath) + 3;
-			arg = realloc(arg, arglen); verify(arg); arg[0] = '\0';
-			/* C doesn't escape % signs if you use *printf */
-			strncat(arg, "\'", 1);
-			strncat(arg, fullpath, arglen - 2);
-			strncat(arg, "\'", 1);
+			fprintf(f, " \'%s\'", fullpath);
 		}
 		free(fullpath);
-		fprintf(f, " %s", arg);
-		free(arg);
-    }
+	}
     fclose(f);
 
-	if (chmod(fn, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
+	/*GIVE FILE PROPER PERMISSIONS*/
+	buflen += strlen("chmod a+x ");
+	cmd = malloc(buflen); verify(cmd); cmd[0] = '\0';
+	snprintf(cmd, buflen, "chmod a+x %s", fn);
+
+	if (system(cmd) != 0) {
 		fprintf(stderr, "Could not make file \'%s\' executable.\n", fn);
 		exit(1);
 	}
-	free(path); free(cfg_dir); free(fn);
+	free(fn); free(cmd); free(cfg_dir);
 }
 
 void restore_wall()
@@ -322,7 +298,11 @@ void restore_wall()
 		snprintf(fn, dirlen, "%s/%s/%s", \
 			   	 getenv("XDG_CONFIG_HOME"), "setroot", ".setroot-restore");
 	}
-	system(fn); free(fn);
+	if (system(fn) != 0) {
+		fprintf(stderr, "Could not restore wallpaper. Check file %s.\n", fn);
+		exit(1);
+	}
+	free(fn);
 }
 
 void init_wall( struct wallpaper *w )
@@ -637,13 +617,21 @@ void parse_opts( unsigned int argc, char **args )
 
         /* GET IMAGE AND STORE OPTIONS */
         } else {
+			Imlib_Image *image = imlib_load_image(args[i]);
+			if (image == NULL) {
+                fprintf(stderr, "Image %s not found.\n", args[i]);
+                exit(1);
+			}
+			if (num_walls == NUM_MONS || monitor > (int) NUM_MONS - 1) {
+				imlib_context_set_image(image);
+				imlib_free_image_and_decache();
+				continue;
+			}
             num_walls++;
             init_wall(&(WALLS[num_walls - 1]));
 
-            if (flag != COLOR && // won't try to load image if flag is COLOR
-                    !(WALLS[num_walls - 1].image = imlib_load_image(args[i]))) {
-                fprintf(stderr, "Image %s not found.\n", args[i]);
-                exit(1);
+            if (flag != COLOR) {
+				WALLS[num_walls - 1].image = image;
             }
             WALLS[num_walls - 1].option = flag;
 			flag = FIT_AUTO; // reset flag
@@ -691,8 +679,6 @@ void parse_opts( unsigned int argc, char **args )
 				WALLS[num_walls - 1].span = 1;
 				span = 0;
 			}
-            if (num_walls == NUM_MONS) // at most one wall per screen or span
-                break;
         }
     }
     if (!num_walls) {
@@ -709,11 +695,6 @@ void parse_opts( unsigned int argc, char **args )
     /* assign walls to monitors */
     for (unsigned int wn = 0; wn < num_walls; wn++) {
         unsigned int mn = WALLS[wn].monitor;
-		/* if the monitor is not connected, clear it then move on */
-		if (mn + 1 > NUM_MONS) {
-            clean_wall(&(WALLS[wn]));
-			continue;
-		}
         /* if wall was previously assigned to mon, clear it */
         if (MONS[mn].wall != NULL)
             clean_wall(MONS[mn].wall);
