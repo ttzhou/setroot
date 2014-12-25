@@ -5,7 +5,7 @@ BINDIR   := ${PREFIX}/bin
 NAME     := setroot
 CC       := gcc
 OFLAG    := -O2
-CFLAGS   := -std=c99 -Wall -Wextra ${OFLAG}
+CFLAGS   := -std=c99 -Wall -g -Wextra ${OFLAG}
 LIBS     := -lX11 `imlib2-config --libs`
 
 SRC      := setroot.c
