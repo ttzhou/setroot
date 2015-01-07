@@ -4,6 +4,13 @@ CHANGELOG
 Release
 -------
 
+v1.4.2
+------
+
+- fixed bugs (very, very rare) caused by hash marks in cli arguments when re/storing
+- `setroot` now adds a backslash to escape the hash marks in `.setroot-restore`
+- currently does not escape backslashes on their own... if anyone complains i'll add it :)
+
 v1.4.1
 ------
 

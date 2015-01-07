@@ -277,7 +277,19 @@ void store_wall( int argc, char** args )
 		fprintf(stderr, "Could not make file \'%s\' executable.\n", fn);
 		exit(1);
 	}
-	free(fn); free(cmd); free(cfg_dir);
+	free(cmd); free(cfg_dir);
+
+	/*ESCAPE HASH MARKS*/
+	buflen = strlen("sed -i 's/\\#/\\\\#/g' ")\
+			 + strlen(fn) + 1;
+
+	cmd = malloc(buflen); verify(cmd); cmd[0] = '\0';
+	snprintf(cmd, buflen, "sed -i \'s/\\#/\\\\#/g\' %s", fn);
+
+	if (system(cmd) != 0)
+		exit(1);
+
+	free(cmd); free(fn);
 }
 
 void restore_wall()
