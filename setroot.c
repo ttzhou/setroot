@@ -456,8 +456,10 @@ void parse_opts( unsigned int argc, char **args )
     /* set up monitors based on arrangement option */
     if        (streq(args[argc - 1], "--use-x-geometry")) {
         sort_mons_by(SORT_BY_XORG);
+        argc--;
     } else if (streq(args[argc - 1], "--use-y-geometry")) {
         sort_mons_by(SORT_BY_YORG);
+        argc--;
     } else {
         sort_mons_by(SORT_BY_XINM);
     }
