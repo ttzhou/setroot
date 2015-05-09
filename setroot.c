@@ -632,13 +632,15 @@ void parse_opts( unsigned int argc, char **args )
         /* GET IMAGE AND STORE OPTIONS */
         } else {
 			Imlib_Image *image = imlib_load_image(args[i]);
-			if (image == NULL) {
+			if (image == NULL && flag != COLOR) {
                 fprintf(stderr, "Image %s not found.\n", args[i]);
                 exit(1);
 			}
 			if (num_walls == NUM_MONS || monitor > (int) NUM_MONS - 1) {
-				imlib_context_set_image(image);
-				imlib_free_image_and_decache();
+				if (flag != COLOR) {
+					imlib_context_set_image(image);
+					imlib_free_image_and_decache();
+				}
 				continue;
 			}
             num_walls++;
