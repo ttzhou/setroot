@@ -4,6 +4,12 @@ CHANGELOG
 Release
 -------
 
+v1.4.4
+------
+
+- fixed issue with --solid-color treating hex code as image
+- unfortunately had to use a third level of indentation (sorry Mr. Torvalds for skirting the line)
+
 v1.4.3
 ------
 
