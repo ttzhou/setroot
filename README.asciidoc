@@ -30,7 +30,22 @@ ego died many ages ago in undergrad.
 
 INSTALLATION
 ------------
+Arch
+~~~~
+Install https://aur.archlinux.org/packages/setroot/[setroot] or https://aur.archlinux.org/packages/setroot-git/[setroot-git] from the AUR.
 
+Nix
+~~~
+Setroot can also be installed using https://nixos.org/nix/[nix], which is a distro-independent package manager.
+
+----
+nix-env -i setroot
+----
+
+Overriding `enableXinerama` to false will install setroot without xinerama support.
+
+Manual
+~~~~~~
 If you have `libxinerama` installed:
 
 ----
