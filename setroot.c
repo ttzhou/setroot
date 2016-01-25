@@ -500,18 +500,16 @@ void parse_opts( unsigned int argc, char **args )
 
         }
 		else if (streq(args[i], "--on")) {
-#ifdef HAVE_LIBXINERAMA
+#ifndef HAVE_LIBXINERAMA
+			fprintf(stderr, "'setroot' was not compiled with Xinerama, '--on' is not supported. No wallpaper will be set.\n");
+			rmbr = 0;
+			exit(1);
+#else
             if (argc == i + 1) {
                 fprintf(stderr, "Not enough arguments for %s.\n", args[i]);
                 rmbr = 0;
                 continue;
-#endif
-#ifndef HAVE_LIBXINERAMA
-			fprintf(stderr, "'setroot' was not compiled with Xinerama, '--on' is not supported. No wallpaper will be set.");
-			rmbr = 0;
-			exit(1);
-#endif
-#ifdef HAVE_LIBXINERAMA
+			}
             if (!isdigit(args[i + 1][0])) {
                 fprintf(stderr, \
                         "No Xinerama monitor %s. Ignoring '--on' option. \n",\
