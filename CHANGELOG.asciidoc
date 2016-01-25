@@ -4,6 +4,11 @@ CHANGELOG
 Release
 -------
 
+v1.4.5
+------
+
+- added some msgs for `--on` option if `setroot` was compiled without Xinerama support.
+
 v1.4.4
 ------
 

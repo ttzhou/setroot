@@ -6,7 +6,7 @@ NAME
 VERSION
 -------
 
-`release: version 1.4.4 - 2015-05-12`
+`release: version 1.4.5 - 2016-01-25`
 
 
 ABOUT
@@ -79,7 +79,7 @@ STORAGE FLAGS
 
 	 creates executable file `.setroot-restore` located in directory `${XDG_CONFIG_HOME:-$HOME/.config}/setroot`
 
-If the directory path and/or file does not exist, it will be created (see section _FILES_)
+If the directory path and/or file does not exist, it will be created (see section *FILES*)
 
 *--restore*::
 
@@ -116,6 +116,8 @@ Note that this overrides the _--on_ option. Note also that further images that a
 If not all images are passed this option, the unassigned walls will be placed on monitors by their position in the invocation sequence. Images which do have a specified assignment will then be assigned to their monitors, replacing any images which may have already been assigned.
 
 If _--on_ is supplied a screen which does not exist, no error is raised and the other walls are set as normal. This can be used with `setroot --store` to "preset" an unconnected monitor's wallpaper.
+
+If `setroot` was not compiled with Xinerama support (see section *INSTALLATION*) then `--on` is considered an invalid command and the program will terminate with exit status 1.
 
 
 IMAGE MANIPULATIONS
