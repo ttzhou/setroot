@@ -145,18 +145,15 @@ void set_pixmap_property(Pixmap p)
 
 /*****************************************************************************
  *
- *  find_desktop() is a slight modification of: get_desktop_window()
+ *  set_desktop() is a slight modification of: get_desktop_window()
  *  which is (c) 2004-2012 Jonathan Koren <jonathan@jonathankoren.com>
  *
- *  find_desktop() finds the window that draws the desktop. This is mainly
- *  for those weird DEs that don't draw backgrounds to root window.
+ *  set_desktop() finds the window that draws the desktop and sets wallpaper.
+ *  This is mainly for those weird DEs that don't draw backgrounds
+ *  to root window.
  *
  *  The original code was taken from imlibsetroot, by Jonathan Koren.
  *  His email is <jonathan@jonathankoren.com>.
- *
- *  I added the ability to search through all windows, not just children of root
- *  as his did. There's no performance penalty since 99.9% of the time
- *  it is just the root window and search ends immediately.
  *
  *  We call this on the root window to start, in main.
  *
@@ -165,50 +162,50 @@ void set_pixmap_property(Pixmap p)
 Window find_desktop( Window window )
 {
     Atom prop_desktop, type;
+    Window desktop_window = None;
 
     int format;
+	int chld_has_property = 0;
     unsigned long length, after;
     unsigned char *data;
 
-    Window root, prnt;
+    Window root;
+    Window prnt;
+    Window chld;
     Window *chldrn;
     unsigned int n_chldrn = 0;
 
-    // check if a desktop has been set by WM
-    prop_desktop = XInternAtom(XDPY, "_NET_WM_DESKTOP", True);
+    prop_desktop = XInternAtom(XDPY, "_NET_WM_WINDOW_TYPE_DESKTOP", True);
 
     if (prop_desktop != None) {
-        // start by checking the window itself
-        if (XGetWindowProperty(XDPY, window, prop_desktop,
-                    0L, 1L, False, AnyPropertyType,
-                    &type, &format, &length, &after,
-                    &data) == Success)
-            return window;
-        // otherwise run XQueryTree; if it fails, kill program
         if (!XQueryTree(XDPY, window, &root, &prnt, &chldrn, &n_chldrn)) {
             fprintf(stderr, "XQueryTree() failed!\n");
             exit(1);
         }
-        // XQueryTree succeeded, but no property found on parent window,
-        // so recurse on each child. Since prop_desktop exists, we
-        // will eventually find it.
-        for (unsigned int i = n_chldrn; i != 0; i--) { // makes for loop faster
-            Window child = find_desktop(chldrn[i - 1]);
-            if ( child != None &&
-                    (XGetWindowProperty(XDPY, child, prop_desktop, 0L, 1L,
+        for (unsigned int i = n_chldrn; i != 0; i--) {
+            chld = chldrn[i - 1];
+            chld_has_property = XGetWindowProperty(XDPY, chld, prop_desktop, 0L, 1L,
 										False, AnyPropertyType, &type, &format,
-										&length, &after, &data) == Success) )
-                return child;
-        }
-        if (n_chldrn)
-            XFree(chldrn); // pun not intended
-        return None; // if we did not find a child with property on this node
+										&length, &after, &data);
 
-    } else { // no _NET_WM_DESKTOP set, we just draw to root window
-		fprintf(stderr,\
-				"_NET_WM_DESKTOP not set; will draw to root window.\n");
-        return ROOT_WIN;
+            if (chld_has_property == Success && type != None)
+				desktop_window = chld;
+        }
+        if (XGetWindowProperty(XDPY, window, prop_desktop,
+							   0L, 1L, False, AnyPropertyType,
+							   &type, &format, &length, &after,
+							   &data) == Success)
+			desktop_window = window;
+
+    } else {
+		fprintf(stderr, "_NET_WM_WINDOW_TYPE_DESKTOP not set.\n");
     }
+
+	if (n_chldrn)
+		XFree(chldrn); // pun not intended
+
+	XFree(data);
+	return desktop_window;
 }
 
 void store_wall( int argc, char** args )
