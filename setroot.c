@@ -145,10 +145,10 @@ void set_pixmap_property(Pixmap p)
 
 /*****************************************************************************
  *
- *  set_desktop() is a slight modification of: get_desktop_window()
+ *  find_desktop() is a slight modification of: get_desktop_window()
  *  which is (c) 2004-2012 Jonathan Koren <jonathan@jonathankoren.com>
  *
- *  set_desktop() finds the window that draws the desktop and sets wallpaper.
+ *  find_desktop() finds the window that draws the desktop and sets wallpaper.
  *  This is mainly for those weird DEs that don't draw backgrounds
  *  to root window.
  *
@@ -162,7 +162,7 @@ void set_pixmap_property(Pixmap p)
 Window find_desktop( Window window )
 {
     Atom prop_desktop, type;
-    Window desktop_window = None;
+    Window desktop_window = ROOT_WIN;
 
     int format;
 	int chld_has_property = 0;
@@ -191,10 +191,12 @@ Window find_desktop( Window window )
             if (chld_has_property == Success && type != None)
 				desktop_window = chld;
         }
-        if (XGetWindowProperty(XDPY, window, prop_desktop,
+        if ((XGetWindowProperty(XDPY, window, prop_desktop,
 							   0L, 1L, False, AnyPropertyType,
 							   &type, &format, &length, &after,
 							   &data) == Success)
+				&& type != None)
+
 			desktop_window = window;
 
     } else {
