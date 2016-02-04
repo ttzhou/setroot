@@ -175,7 +175,7 @@ Window find_desktop( Window window )
     Window *chldrn;
     unsigned int n_chldrn = 0;
 
-    prop_desktop = XInternAtom(XDPY, "_NET_WM_WINDOW_TYPE", True);
+    prop_desktop = XInternAtom(XDPY, "_NET_WM_WINDOW_TYPE_DESKTOP", True);
 
     if (prop_desktop != None) {
         if (!XQueryTree(XDPY, window, &root, &prnt, &chldrn, &n_chldrn)) {
