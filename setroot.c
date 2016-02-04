@@ -175,7 +175,7 @@ Window find_desktop( Window window )
     Window *chldrn;
     unsigned int n_chldrn = 0;
 
-    prop_desktop = XInternAtom(XDPY, "_NET_WM_WINDOW_TYPE_DESKTOP", True);
+    prop_desktop = XInternAtom(XDPY, "_NET_WM_WINDOW_TYPE", True);
 
     if (prop_desktop != None) {
         if (!XQueryTree(XDPY, window, &root, &prnt, &chldrn, &n_chldrn)) {
@@ -184,23 +184,27 @@ Window find_desktop( Window window )
         }
         for (unsigned int i = n_chldrn; i != 0; i--) {
             chld = chldrn[i - 1];
-            chld_has_property = XGetWindowProperty(XDPY, chld, prop_desktop, 0L, 1L,
-										False, AnyPropertyType, &type, &format,
-										&length, &after, &data);
+            chld_has_property = XGetWindowProperty(XDPY, chld, prop_desktop,
+												   0L, 1L, False,
+												   AnyPropertyType, &type, &format,
+												   &length, &after, &data);
 
-            if (chld_has_property == Success && type != None)
+            if (chld_has_property == Success && type != None) {
 				desktop_window = chld;
+				break;
+			}
         }
         if ((XGetWindowProperty(XDPY, window, prop_desktop,
-							   0L, 1L, False, AnyPropertyType,
-							   &type, &format, &length, &after,
-							   &data) == Success)
-				&& type != None)
+							    0L, 1L, False, AnyPropertyType,
+							    &type, &format, &length, &after,
+							    &data) == Success)
+			 && type != None)
 
-			desktop_window = window;
+				desktop_window = window;
 
     } else {
-		fprintf(stderr, "_NET_WM_WINDOW_TYPE_DESKTOP not set.\n");
+		fprintf(stderr, "Cannot find window that sets wallpaper. \
+						 Defaulting to root window. \n");
     }
 
 	if (n_chldrn)
