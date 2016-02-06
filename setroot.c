@@ -202,17 +202,14 @@ Window find_desktop( Window window )
 
 				desktop_window = window;
 
+		if (data) XFree(data);
+
+		if (n_chldrn) XFree(chldrn);
+
     } else {
 		fprintf(stderr, "Cannot find window that sets wallpaper. \
 						 Defaulting to root window. \n");
-    }
-
-	if (n_chldrn)
-		XFree(chldrn); // pun not intended
-
-	if (data)
-		XFree(data);
-	return desktop_window;
+    } return desktop_window;
 }
 
 void store_wall( int argc, char** args )
