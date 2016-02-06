@@ -207,8 +207,8 @@ Window find_desktop( Window window )
 		if (n_chldrn) XFree(chldrn);
 
     } else {
-		fprintf(stderr, "Cannot find window that sets wallpaper. \
-						 Defaulting to root window. \n");
+		fprintf(stderr, "Cannot find window that sets wallpaper. "
+						"Defaulting to root window.\n");
     } return desktop_window;
 }
 
