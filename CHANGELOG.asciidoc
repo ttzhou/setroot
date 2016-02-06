@@ -4,6 +4,11 @@ CHANGELOG
 Release
 -------
 
+v1.4.6
+------
+
+- merged pull request #11
+
 v1.4.5
 ------
 
