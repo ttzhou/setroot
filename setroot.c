@@ -167,7 +167,7 @@ Window find_desktop( Window window )
     int format;
 	int chld_has_property = 0;
     unsigned long length, after;
-    unsigned char *data;
+    unsigned char *data = NULL;
 
     Window root;
     Window prnt;
@@ -210,7 +210,8 @@ Window find_desktop( Window window )
 	if (n_chldrn)
 		XFree(chldrn); // pun not intended
 
-	XFree(data);
+	if (data)
+		XFree(data);
 	return desktop_window;
 }
 
