@@ -266,13 +266,13 @@ void store_wall( int argc, char** args )
 		char *fullpath = realpath(args[i], NULL);
 
 		if (fullpath == NULL) {
-			fprintf(f, " %s", args[i]);
+			fprintf(f, " \'%s\'", args[i]);
 			continue;
 		}
 		unsigned int pathlen = strlen(fullpath);
 
 		if ((strpbrk(fullpath, ".") == NULL) || isdigit(fullpath[pathlen - 1]))
-			fprintf(f, " %s", args[i]);
+			fprintf(f, " \'%s\'", args[i]);
 		else
 			fprintf(f, " \'%s\'", fullpath);
 
@@ -291,16 +291,16 @@ void store_wall( int argc, char** args )
 	}
 	free(cmd); free(cfg_dir);
 
-	/*ESCAPE HASH MARKS*/
-	buflen = strlen("sed -i 's/\\#/\\\\#/g' ") + strlen(fn) + 1;
+	/*[>ESCAPE HASH MARKS<]*/
+	/*buflen = strlen("sed -i 's/\\#/\\\\#/g' ") + strlen(fn) + 1;*/
 
-	cmd = malloc(buflen); verify(cmd); cmd[0] = '\0';
-	snprintf(cmd, buflen, "sed -i \'s/\\#/\\\\#/g\' %s", fn);
+	/*cmd = malloc(buflen); verify(cmd); cmd[0] = '\0';*/
+	/*snprintf(cmd, buflen, "sed -i \'s/\\#/\\\\#/g\' %s", fn);*/
 
-	if (system(cmd) != 0)
-		exit(1);
+	/*if (system(cmd) != 0)*/
+		/*exit(1);*/
 
-	free(cmd); free(fn);
+	/*free(cmd); free(fn);*/
 }
 
 void restore_wall()
