@@ -161,55 +161,68 @@ void set_pixmap_property(Pixmap p)
 
 Window find_desktop( Window window )
 {
-    Atom prop_desktop, type;
-    Window desktop_window = ROOT_WIN;
+    Atom prop_desktop, prop_type;
 
-    int format;
-	int chld_has_property = 0;
-    unsigned long length, after;
-    unsigned char *data = NULL;
+	Atom ret_type;
+    int ret_format;
+    unsigned long n_ret, ret_bytes_left;
+    Atom *ret_props = NULL;
+
+	Atom prop;
+
+	int has_property = 0;
+	int has_children = 0;
+    unsigned int n_children = 0;
 
     Window root;
-    Window prnt;
-    Window chld;
-    Window *chldrn;
-    unsigned int n_chldrn = 0;
+    Window parent;
+    Window child;
+    Window *children;
 
+    prop_type = XInternAtom(XDPY, "_NET_WM_WINDOW_TYPE", True);
     prop_desktop = XInternAtom(XDPY, "_NET_WM_WINDOW_TYPE_DESKTOP", True);
 
-    if (prop_desktop != None) {
-        if (!XQueryTree(XDPY, window, &root, &prnt, &chldrn, &n_chldrn)) {
-            fprintf(stderr, "XQueryTree() failed!\n");
-            exit(1);
-        }
-        for (unsigned int i = n_chldrn; i != 0; i--) {
-            chld = chldrn[i - 1];
-            chld_has_property = XGetWindowProperty(XDPY, chld, prop_desktop,
-												   0L, 1L, False,
-												   AnyPropertyType, &type, &format,
-												   &length, &after, &data);
-
-            if (chld_has_property == Success && type != None) {
-				desktop_window = chld;
-				break;
-			}
-        }
-        if ((XGetWindowProperty(XDPY, window, prop_desktop,
-							    0L, 1L, False, AnyPropertyType,
-							    &type, &format, &length, &after,
-							    &data) == Success)
-			 && type != None)
-
-				desktop_window = window;
-
-		if (data) XFree(data);
-
-		if (n_chldrn) XFree(chldrn);
-
-    } else {
-		fprintf(stderr, "Cannot find window that sets wallpaper. "
+	if (prop_type == None) {
+		fprintf(stderr, "Could not find window with _NET_WM_WINDOW_TYPE set. "
 						"Defaulting to root window.\n");
-    } return desktop_window;
+		return None;
+	}
+
+	// check current window
+	has_property = XGetWindowProperty(XDPY, window, prop_type,
+									  0L, sizeof(Atom),
+									  False,
+									  XA_ATOM,
+									  &ret_type,
+									  &ret_format,
+									  &n_ret, &ret_bytes_left,
+									  (unsigned char **) &ret_props);
+
+	if (has_property == Success && ret_props && n_ret > 0 && ret_type == XA_ATOM) {
+		for (unsigned int i = 0; i < n_ret; i++) {
+			prop = ret_props[i];
+			if (prop == prop_desktop) {
+				XFree(ret_props);
+				return window;
+			}
+		} XFree(ret_props);
+	}
+	// otherwise, recursively check children; first call XQueryTree
+	has_children = XQueryTree(XDPY, window, &root, &parent, &children, &n_children);
+
+	if (!has_children) {
+		fprintf(stderr, "XQueryTree() failed!\n");
+		exit(1);
+	}
+
+	for (unsigned int i = 0; i < n_children; i++) {
+		child = find_desktop(children[i]);
+		if (child == None)
+			continue;
+
+		XFree(children);
+		return child;
+	} return None;
 }
 
 void store_wall( int argc, char** args )
@@ -1080,6 +1093,8 @@ int main(int argc, char** args)
     VSCRN.xpos   = 0;
     VSCRN.ypos   = 0;
 
+	Window desktop_window = None;
+
     /* check for acts of desperation */
 	if (argc < 2 || streq(args[1], "-h") || streq(args[1], "--help")) {
         printf("No options provided. Call \'man setroot\' for help.\n");
@@ -1087,17 +1102,24 @@ int main(int argc, char** args)
     }
     if (argc > 1 && streq(args[1], "--restore")) {
         restore_wall();
-		goto cleanup;
+		goto CLEANUP;
 	}
 	parse_opts(argc, args);
     Pixmap bg = make_bg();
 
     if (bg) {
         set_pixmap_property(bg);
-		XSetWindowBackgroundPixmap(XDPY, find_desktop(ROOT_WIN), bg);
+		XSetWindowBackgroundPixmap(XDPY, ROOT_WIN, bg);
+
+		desktop_window = find_desktop(ROOT_WIN);
+
+		if (desktop_window != None) {
+			XSetWindowBackgroundPixmap(XDPY, desktop_window, bg);
+			XClearWindow(XDPY, desktop_window);
+		}
     }
 
-	cleanup:
+	CLEANUP:
 
     free(MONS);
     free(WALLS);
