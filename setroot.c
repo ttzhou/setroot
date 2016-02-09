@@ -234,11 +234,11 @@ void store_wall( int argc, char** args )
 	if (getenv("XDG_CONFIG_HOME") == NULL) {
 		buflen = (strlen(getenv("HOME")) + strlen("/.config/setroot_test") + 1);
 		cfg_dir = malloc(buflen); verify(cfg_dir);
-		snprintf(cfg_dir, buflen, "%s/%s/%s", getenv("HOME"), ".config", "setroot_test");
+		snprintf(cfg_dir, buflen, "%s/%s/%s", getenv("HOME"), ".config", "setroot");
 	} else {
 		buflen = (strlen(getenv("XDG_CONFIG_HOME")) + strlen("/setroot_test") + 1);
 		cfg_dir = malloc(buflen); verify(cfg_dir);
-		snprintf(cfg_dir, buflen, "%s/%s", getenv("XDG_CONFIG_HOME"), "setroot_test");
+		snprintf(cfg_dir, buflen, "%s/%s", getenv("XDG_CONFIG_HOME"), "setroot");
 	}
 	/*CREATE DIRECTORY*/
 	if (mkdir(cfg_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1 && errno != EEXIST) {
@@ -265,7 +265,8 @@ void store_wall( int argc, char** args )
 			continue;
 		}
 		unsigned int pathlen = strlen(fullpath);
-
+		/* if does not contain an extension, or it does but ends in a digit, */
+		/* then its not an image*/
 		if ((strpbrk(fullpath, ".") == NULL) || isdigit(fullpath[pathlen - 1]))
 			fprintf(f, " \'%s\'", args[i]);
 		else
