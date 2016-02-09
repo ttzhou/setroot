@@ -271,13 +271,11 @@ void store_wall( int argc, char** args )
 		}
 		unsigned int pathlen = strlen(fullpath);
 
-		if (strpbrk(".", fullpath) == NULL) {
+		if ((strpbrk(fullpath, ".") == NULL) || isdigit(fullpath[pathlen - 1]))
 			fprintf(f, " %s", args[i]);
-		} else if (isdigit(fullpath[pathlen - 1])) {
-			fprintf(f, " %s", args[i]);
-		} else {
+		else
 			fprintf(f, " \'%s\'", fullpath);
-		}
+
 		free(fullpath);
 	}
     fclose(f);
@@ -294,8 +292,7 @@ void store_wall( int argc, char** args )
 	free(cmd); free(cfg_dir);
 
 	/*ESCAPE HASH MARKS*/
-	buflen = strlen("sed -i 's/\\#/\\\\#/g' ")\
-			 + strlen(fn) + 1;
+	buflen = strlen("sed -i 's/\\#/\\\\#/g' ") + strlen(fn) + 1;
 
 	cmd = malloc(buflen); verify(cmd); cmd[0] = '\0';
 	snprintf(cmd, buflen, "sed -i \'s/\\#/\\\\#/g\' %s", fn);
