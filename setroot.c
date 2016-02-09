@@ -228,29 +228,24 @@ Window find_desktop( Window window )
 void store_wall( int argc, char** args )
 {
 	/*CREATE THE DIRECTORY AND FILE*/
-	char *cfg_dir, *cmd, *fn;
+	char *cfg_dir,*fn;
 	unsigned int buflen;
 
 	if (getenv("XDG_CONFIG_HOME") == NULL) {
-		buflen = (strlen(getenv("HOME")) + strlen("/.config/setroot") + 1);
+		buflen = (strlen(getenv("HOME")) + strlen("/.config/setroot_test") + 1);
 		cfg_dir = malloc(buflen); verify(cfg_dir);
-		snprintf(cfg_dir, buflen, "%s/%s/%s", getenv("HOME"), ".config", "setroot");
+		snprintf(cfg_dir, buflen, "%s/%s/%s", getenv("HOME"), ".config", "setroot_test");
 	} else {
-		buflen = (strlen(getenv("XDG_CONFIG_HOME")) + strlen("/setroot") + 1);
+		buflen = (strlen(getenv("XDG_CONFIG_HOME")) + strlen("/setroot_test") + 1);
 		cfg_dir = malloc(buflen); verify(cfg_dir);
-		snprintf(cfg_dir, buflen, "%s/%s", getenv("XDG_CONFIG_HOME"), "setroot");
+		snprintf(cfg_dir, buflen, "%s/%s", getenv("XDG_CONFIG_HOME"), "setroot_test");
 	}
-	buflen += strlen("mkdir -p ");
-	cmd = malloc(buflen); verify(cmd); cmd[0] = '\0';
-	snprintf(cmd, buflen, "mkdir -p %s", cfg_dir);
-
-	if (system(cmd) != 0) {
+	/*CREATE DIRECTORY*/
+	if (mkdir(cfg_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1 && errno != EEXIST) {
 		fprintf(stderr, "Could not create directory %s.\n", cfg_dir);
 		exit(1);
 	}
-	free(cmd); cmd = NULL;
-
-	buflen += strlen(".setroot-restore");
+	buflen += strlen(".setroot-restore") + 1;
 	fn = malloc(buflen); verify(fn);
 	snprintf(fn, buflen, "%s/%s", cfg_dir, ".setroot-restore");
 
@@ -277,30 +272,13 @@ void store_wall( int argc, char** args )
 			fprintf(f, " \'%s\'", fullpath);
 
 		free(fullpath);
-	}
-    fclose(f);
+	} fclose(f);
 
 	/*GIVE FILE PROPER PERMISSIONS*/
-	buflen += strlen("chmod a+x ");
-	cmd = malloc(buflen); verify(cmd); cmd[0] = '\0';
-	snprintf(cmd, buflen, "chmod a+x %s", fn);
-
-	if (system(cmd) != 0) {
+	if (chmod(fn, S_IRWXU | S_IRGRP | S_IROTH | S_IXOTH) != 0) {
 		fprintf(stderr, "Could not make file \'%s\' executable.\n", fn);
 		exit(1);
-	}
-	free(cmd); free(cfg_dir);
-
-	/*[>ESCAPE HASH MARKS<]*/
-	/*buflen = strlen("sed -i 's/\\#/\\\\#/g' ") + strlen(fn) + 1;*/
-
-	/*cmd = malloc(buflen); verify(cmd); cmd[0] = '\0';*/
-	/*snprintf(cmd, buflen, "sed -i \'s/\\#/\\\\#/g\' %s", fn);*/
-
-	/*if (system(cmd) != 0)*/
-		/*exit(1);*/
-
-	/*free(cmd); free(fn);*/
+	} free(fn); free(cfg_dir);
 }
 
 void restore_wall()
