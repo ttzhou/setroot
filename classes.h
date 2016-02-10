@@ -39,7 +39,7 @@ descending( const void *a, const void *b )
 #endif
 
 struct station {
-	struct monitors		*monitor;
+	struct monitor		*monitors;
 };
 
 struct monitor {

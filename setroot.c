@@ -46,7 +46,7 @@
 #include <Imlib2.h>
 
 #include "classes.h"
-#include "functions.h"
+/*#include "functions.h"*/
 #include "util.h"
 
 /* globals */
@@ -58,11 +58,12 @@ int                 BITDEPTH;
 Colormap            COLORMAP;
 Visual             *VISUAL;
 
-struct wallpaper   *WALLS = NULL;
-struct monitor     *MONS  = NULL;
+struct station	   *STATION  = NULL;
+struct wallpaper   *WALLS    = NULL;
+struct monitor     *MONS     = NULL;
 struct monitor      VSCRN; // spanned area of all monitors
 
-unsigned int        NUM_MONS  = 0;
+unsigned int        NUM_MONS = 0;
 
 /* runtime variables */
 static       char  *program_name = "setroot";
@@ -98,7 +99,8 @@ static const int    SORT_BY_YORG = 2;
  *
  *****************************************************************************/
 
-void set_pixmap_property(Pixmap p)
+void
+set_pixmap_property(Pixmap p)
 {
     Atom prop_root, prop_setroot, type;
     int format;
@@ -160,7 +162,8 @@ void set_pixmap_property(Pixmap p)
  *
  *****************************************************************************/
 
-Window find_desktop( Window window )
+Window
+find_desktop( Window window )
 {
     Atom prop_desktop, prop_type;
 
@@ -230,7 +233,8 @@ Window find_desktop( Window window )
 	} return None;
 }
 
-void store_wall( int argc, char** args )
+void
+store_call( int argc, char** args )
 {
 	/*CREATE THE DIRECTORY AND FILE*/
 	char *cfg_dir,*fn, *fullpath;
@@ -291,7 +295,8 @@ void store_wall( int argc, char** args )
 	} free(fn); free(cfg_dir);
 }
 
-void restore_wall()
+void
+restore()
 {
 	char *fn;
 	unsigned int dirlen;
@@ -313,6 +318,27 @@ void restore_wall()
 		fprintf(stderr, "Could not restore wallpaper. Check file %s.\n", fn);
 		exit(1);
 	} free(fn);
+}
+
+void
+init_station( struct station *s )
+{
+	s->monitors   = NULL;
+}
+
+void
+init_monitor( struct monitor *m,
+			  unsigned int h, unsigned int w,
+			  unsigned int xp, unsigned int yp
+			)
+{
+	m->height = h;
+	m->width  = w;
+
+	m->xpos = xp;
+	m->ypos = yp;
+
+	m->wall = NULL;
 }
 
 void init_wall( struct wallpaper *w )
@@ -661,7 +687,7 @@ int main(int argc, char** args)
         exit(EXIT_SUCCESS);
     }
     if (argc > 1 && streq(args[1], "--restore")) {
-        restore_wall();
+        restore();
 		goto CLEANUP;
 	}
 	parse_opts(argc, args);
