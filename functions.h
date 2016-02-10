@@ -1,5 +1,5 @@
-void set_pixmap_property(Pixmap p);
-Window find_desktop();
+void set_pixmap_property( Pixmap p );
+Window find_desktop( Window window );
 
 void show_ver();
 void show_help();
@@ -15,7 +15,6 @@ void sort_mons_by( int sort_opt );
 #endif
 
 void parse_opts( unsigned int argc, char **args );
-struct rgb_triple *parse_color( const char *col );
 
 void center_wall( struct monitor *mon );
 void stretch_wall( struct monitor *mon );
@@ -31,3 +30,5 @@ void brighten( struct monitor *mon );
 void contrast( struct monitor *mon );
 
 Pixmap make_bg();
+
+struct rgb_triple *parse_color( const char *col );
