@@ -46,7 +46,7 @@
 #include <Imlib2.h>
 
 #include "classes.h"
-/*#include "functions.h"*/
+#include "functions.h"
 #include "util.h"
 
 /* globals */
@@ -59,9 +59,7 @@ Colormap            COLORMAP;
 Visual             *VISUAL;
 
 struct station	   *STATION  = NULL;
-struct wallpaper   *WALLS    = NULL;
-struct monitor     *MONS     = NULL;
-struct monitor      VSCRN; // spanned area of all monitors
+struct monitor     *STNSCRN; // spanned area of all monitors
 
 unsigned int        NUM_MONS = 0;
 
@@ -320,18 +318,54 @@ restore()
 	} free(fn);
 }
 
-void
-init_station( struct station *s )
+struct station
+*init_station()
 {
-	s->monitors   = NULL;
+	struct station *s = malloc(sizeof(struct station));
+	verify(s);
+
+	unsigned int nm = 1;
+
+#ifdef HAVE_LIBXINERAMA
+	XineramaScreenInfo *XSI = XineramaQueryScreens(XDPY, &nm);
+
+	if (nm == 0) {
+		fprintf(stderr, "Problem detecting Xinerama screens!"
+						"Exiting program!\n");
+		exit(1);
+	}
+#endif
+
+	s->num_mons = nm;
+	s->monitors = malloc(sizeof(struct monitor*) * nm);
+
+#ifdef HAVE_LIBXINERAMA
+	unsigned int i;
+	struct monitor *m = NULL;
+
+	for (i = 0; i < nm; i++) {
+		m = init_monitor(XSI[i]->height,
+						 XSI[i]->height,
+						 XSI[i]->x_org,
+						 XSI[i]->y_org);
+
+		(s->monitors)[i] = m;
+	}
+	XFree(XSI);
+#else
+	s->monitors[0] = STNSCRN;
+#endif
+	XSync(XDPY, False);
+	return s;
 }
 
-void
-init_monitor( struct monitor *m,
-			  unsigned int h, unsigned int w,
-			  unsigned int xp, unsigned int yp
-			)
+struct monitor
+*init_monitor( unsigned int h, unsigned int w,
+			   unsigned int xp, unsigned int yp )
 {
+	struct monitor *m = malloc(sizeof(struct monitor));
+	verify(m);
+
 	m->height = h;
 	m->width  = w;
 
@@ -339,10 +373,16 @@ init_monitor( struct monitor *m,
 	m->ypos = yp;
 
 	m->wall = NULL;
+
+	return m;
 }
 
-void init_wall( struct wallpaper *w )
+struct wallpaper
+*init_wall()
 {
+	struct wallpaper *w = malloc(sizeof(struct wallpaper));
+	verify(w);
+
     w->height     = w->width    = 0;
     w->xpos       = w->ypos     = 0; // relative to monitor!
 	w->span       = w->monitor  = 0;
@@ -358,11 +398,26 @@ void init_wall( struct wallpaper *w )
     w->bgcol      = NULL;
     w->tint       = NULL;
     w->image      = NULL;
+
+	return w;
 }
 
 void
 clean_station( struct station *s )
 {
+	unsigned int i;
+	unsigned int nm = s->num_mons;
+
+	if (nm == 0) return;
+
+	for (i = 0; i < nm; i++)
+		clean_monitor((s->monitors)[i]);
+}
+
+void
+clean_monitor( struct monitor *m )
+{
+	if (m->wall != NULL) clean_wall(m->wall);
 }
 
 void
@@ -379,8 +434,38 @@ clean_wall( struct wallpaper *w )
 }
 
 #ifdef HAVE_LIBXINERAMA
-void sort_mons_by( int sort_opt )
+void sort_mons_by( struct station *s, int sort_opt )
 {
+	unsigned int i;
+	unsigned int nm = s->nm;
+
+	struct pair values[nm];
+	struct monitor (*new_order)[nm];
+
+	if (sort_opt == SORT_BY_XORG) {
+		for ( i = 0; i < nm; i++ ) {
+			values[i].value = (s->monitors)[i]->x_pos;
+			values[i].index = i;
+		}
+		qsort(values, nm, sizeof(struct pair), ascending);
+	} else if (sort_opt == SORT_BY_YORG) {
+		for ( i = 0; i < nm; i++ ) {
+			values[i].value = (s->monitors)[i]->y_pos;
+			values[i].index = i;
+		}
+		qsort(values, nm, sizeof(struct pair), ascending);
+	} else {
+		for ( i = 0; i < nm; i++ ) {
+			values[i].value = 0;
+			values[i].index = i;
+		}
+	}
+
+	for ( i = 0 ; i < nm ; i++ )
+		new_order[i] = (s->monitors)[values[i].index];
+
+	for ( i = 0 ; i < nm ; i++ )
+		(s->monitors)[i] = new_order[i];
 }
 #endif
 
@@ -424,21 +509,18 @@ struct rgb_triple *parse_color( const char *col )
     return rgb;
 }
 
-void parse_opts( unsigned int argc, char **args )
-{
-}
-
-void clear_background( const char *blank_color )
+void clear_background( const char *blank_color, Pixmap canvas )
 {
     struct rgb_triple *col = parse_color(blank_color);
 
-    Imlib_Image bg = imlib_create_image(VSCRN.width, VSCRN.height);
+    Imlib_Image bg = imlib_create_image(STNSCRN->width, STNSCRN->height);
     if (bg == NULL)
         die(1, "Failed to create image.");
 
     imlib_context_set_color(col->r, col->g, col->b, 255);
+    imlib_context_set_drawable(canvas);
     imlib_context_set_image(bg);
-    imlib_image_fill_rectangle(0, 0, VSCRN.width, VSCRN.height);
+    imlib_image_fill_rectangle(0, 0, STNSCRN->width, STNSCRN->height);
 	imlib_render_image_on_drawable(0, 0);
 	imlib_free_image_and_decache();
     free(col);
@@ -638,7 +720,80 @@ void tint_wall( struct monitor *mon )
     free(tint);
 }
 
-Pixmap make_bg()
+void
+parse_opts( unsigned int argc, char **args )
+{
+	/*VARIOUS FLAGS*/
+	unsigned int store		  = 0;
+	unsigned int span   	  = 0;
+
+	int monitor         	  = -1;
+
+	unsigned int blur_r 	  = 0;
+	unsigned int shrp_r 	  = 0;
+	float contrast_v    	  = 1.0;
+	float bright_v      	  = 0.0;
+
+	unsigned int grey   	  = 0;
+	struct rgb_triple *bg_col = NULL;
+	struct rgb_triple *tn_col = NULL;
+
+	fit_t  aspect			  = FIT_AUTO;
+	flip_t axis				  = NONE;
+
+	/* argument counter and argument buffer */
+	unsigned int i;
+	char *flag;
+
+	unsigned int cur_mon  = 0;
+
+	/*PARSE THE OPTIONS AND STORE IN APPROP. STRUCTS*/
+	for (i = 1; i < argc; i++) {
+
+		flag = args[i];
+
+		/*STORE FLAG MUST BE FIRST*/
+		if			(streq(flag, "--store") && i == 1) {
+			store = 1;
+
+		/*GLOBAL OPTIONS*/
+		} else if	(streq(flag, "--blank-color")) {
+			if (argc == i + 1) {
+				fprintf(stderr, "No color was provided for %s! ",
+								"Exiting with status 1.\n",
+								args[i]);
+				exit(1);
+			} BLANK_COLOR = args[++i];
+
+		/*IMAGE FLAGS*/
+		} else if	(streq(flag, "--span")) {
+			span = 1;
+		} else if	(streq(flag, "--bg-color")) {
+			if (argc == i + 1) {
+				fprintf(stderr, "No color was provided for %s! ",
+								"Exiting with status 1.\n",
+								args[i]);
+				exit(1);
+			} bg_col = parse_color(args[++i]);
+
+		} else if	(streq(flag, "--on")) {
+#ifndef HAVE_LIBXINERAMA
+			fprintf(stderr, "'setroot' was not compiled with Xinerama "
+							"support. '--on' is not supported. "
+							"Exiting with status 1.\n",
+							args[i]);
+			exit(1);
+#else
+#endif
+		} else {
+
+
+		}
+	}
+}
+
+Pixmap
+make_bg()
 {
     imlib_context_set_display(XDPY);
     imlib_context_set_visual(VISUAL);
@@ -666,22 +821,6 @@ int main(int argc, char** args)
                 program_name, XDisplayName(NULL));
         exit(1);
     }
-    DSCRN_NUM    = DefaultScreen(XDPY);
-    DSCRN        = ScreenOfDisplay(XDPY, DSCRN_NUM);
-    ROOT_WIN     = RootWindow(XDPY, DSCRN_NUM);
-    COLORMAP     = DefaultColormap(XDPY, DSCRN_NUM);
-    VISUAL       = DefaultVisual(XDPY, DSCRN_NUM);
-    BITDEPTH     = DefaultDepth(XDPY, DSCRN_NUM);
-
-    VSCRN.height = DSCRN->height;
-    VSCRN.width  = DSCRN->width;
-    VSCRN.wall   = NULL;
-    VSCRN.xpos   = 0;
-    VSCRN.ypos   = 0;
-
-	Window desktop_window = None;
-
-    /* check for acts of desperation */
 	if (argc < 2 || streq(args[1], "-h") || streq(args[1], "--help")) {
         printf("No options provided. Call \'man setroot\' for help.\n");
         exit(EXIT_SUCCESS);
@@ -690,6 +829,35 @@ int main(int argc, char** args)
         restore();
 		goto CLEANUP;
 	}
+
+    DSCRN_NUM    = DefaultScreen(XDPY);
+    DSCRN        = ScreenOfDisplay(XDPY, DSCRN_NUM);
+    ROOT_WIN     = RootWindow(XDPY, DSCRN_NUM);
+    COLORMAP     = DefaultColormap(XDPY, DSCRN_NUM);
+    VISUAL       = DefaultVisual(XDPY, DSCRN_NUM);
+    BITDEPTH     = DefaultDepth(XDPY, DSCRN_NUM);
+
+	/*STNSCRN is the cumulative screen area of all monitors*/
+	STNSCRN		 = init_monitor(DSCRN->height,
+								DSCRN->width,
+								0, 0);
+
+	STATION		 = init_station();
+
+#ifdef HAVE_LIBXINERAMA
+	if			(streq(args[argc - 1], "--use-x-geometry")) {
+		sort_mons_by(STATION, SORT_BY_XORG);
+		argc--;
+	} else if	(streq(args[argc - 1], "--use-y-geometry")) {
+		sort_mons_by(STATION, SORT_BY_YORG);
+		argc--;
+	} else {
+		sort_mons_by(STATION, SORT_BY_XINM);
+	}
+#endif
+
+	Window desktop_window = None;
+
 	parse_opts(argc, args);
     Pixmap bg = make_bg();
 
@@ -707,8 +875,8 @@ int main(int argc, char** args)
 
 	CLEANUP:
 
-    free(MONS);
-    free(WALLS);
+	clean_station(STATION);
+
     XClearWindow(XDPY, ROOT_WIN);
     XFlush(XDPY);
     XCloseDisplay(XDPY);

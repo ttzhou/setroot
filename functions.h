@@ -7,11 +7,18 @@ void show_help();
 void store_wall( int argc, char** line );
 void restore_wall();
 
-void init_wall( struct wallpaper *w );
+struct wallpaper *init_wall();
+struct monitor *init_monitor( unsigned int h, unsigned int w,
+							  unsigned int xp, unsigned int yp );
+
+struct station *init_station();
+
 void clean_wall( struct wallpaper *w );
+void clean_monitor( struct monitor *m );
+void clean_station( struct station *s );
 
 #ifdef HAVE_LIBXINERAMA
-void sort_mons_by( int sort_opt );
+void sort_mons_by( struct station *s, int sort_opt );
 #endif
 
 void parse_opts( unsigned int argc, char **args );

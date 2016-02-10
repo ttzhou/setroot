@@ -19,6 +19,7 @@ typedef enum FLIP_TYPE {
 struct rgb_triple { int r, g, b; };
 
 #ifdef HAVE_LIBXINERAMA
+// used for quicksort
 struct pair {
 	unsigned int index;
 	int value;
@@ -39,7 +40,8 @@ descending( const void *a, const void *b )
 #endif
 
 struct station {
-	struct monitor		*monitors;
+	struct monitor		**monitors;
+	unsigned int		num_mons;
 };
 
 struct monitor {
@@ -54,7 +56,7 @@ struct monitor {
 
 struct wallpaper {
 	Imlib_Image			image;
-	char*				image_path;
+	char 				*image_path;
 
 	unsigned int		span;
 	unsigned int		monitor;
