@@ -5,8 +5,7 @@ typedef enum FIT_TYPE {
     FIT_AUTO,
     FIT_HEIGHT,
     FIT_WIDTH,
-    ZOOM,
-	COLOR
+    ZOOM
 } fit_t;
 
 typedef enum FLIP_TYPE {
@@ -19,6 +18,7 @@ typedef enum FLIP_TYPE {
 struct rgb_triple { int r, g, b; };
 
 #ifdef HAVE_LIBXINERAMA
+// used for quicksort
 struct pair {
 	unsigned int index;
 	int value;
@@ -38,13 +38,16 @@ descending( const void *a, const void *b )
 }
 #endif
 
-struct station {
-	struct monitors		*monitor;
+struct screen {
+	struct monitor		**monitors;
+	unsigned int		num_mons;
+	unsigned int		screen_width;
+	unsigned int		screen_height;
 };
 
 struct monitor {
-    unsigned int		height;
     unsigned int		width;
+    unsigned int		height;
 
     unsigned int		xpos;
     unsigned int		ypos;
@@ -54,13 +57,13 @@ struct monitor {
 
 struct wallpaper {
 	Imlib_Image			image;
-	char*				image_path;
+	char 				*image_path;
 
 	unsigned int		span;
 	unsigned int		monitor;
 
-	unsigned int		height;
 	unsigned int		width;
+	unsigned int		height;
 
 	int					xpos;
 	int					ypos;
@@ -68,7 +71,7 @@ struct wallpaper {
 	struct rgb_triple	*bgcol;
 	struct rgb_triple	*tint;
 
-	unsigned int		grey;
+	unsigned int		greyscale;
 	unsigned int		blur;
 	unsigned int		sharpen;
 	float				contrast;
