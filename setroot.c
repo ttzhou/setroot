@@ -1,6 +1,6 @@
-/********************************************************************************
+/*****************************************************************************
  *
- *  Copyright (c) 2014 Tim Zhou <ttzhou@uwaterloo.ca>
+ *  Copyright (c) 2014-2016 Tim Zhou <ttzhou@uwaterloo.ca>
  *
  *  set_pixmap_property() is (c) 1998 Michael Jennings <mej@eterm.org>
  *
@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- ********************************************************************************/
+ *****************************************************************************/
 
 #define _POSIX_C_SOURCE 200809L // for getline
 #define _DEFAULT_SOURCE // for realpath
@@ -120,7 +120,8 @@ void set_pixmap_property(Pixmap p)
 
             if (data_root && data_setroot)
                 if ((type == XA_PIXMAP) &&
-                        (*((Pixmap *) data_root) == *((Pixmap *) data_setroot)))
+                    (*((Pixmap *) data_root) == *((Pixmap *) data_setroot)))
+
                     XKillClient(XDPY, *((Pixmap *) data_root));
 
             if (data_setroot) { free(data_setroot); }
@@ -198,7 +199,9 @@ Window find_desktop( Window window )
 									  &n_ret, &ret_bytes_left,
 									  (unsigned char **) &ret_props);
 
-	if (has_property == Success && ret_props && n_ret > 0 && ret_type == XA_ATOM) {
+	if (has_property == Success &&
+		ret_props && n_ret > 0 && ret_type == XA_ATOM) {
+
 		for (unsigned int i = 0; i < n_ret; i++) {
 			prop = ret_props[i];
 			if (prop == prop_desktop) {
@@ -208,7 +211,9 @@ Window find_desktop( Window window )
 		} XFree(ret_props);
 	}
 	// otherwise, recursively check children; first call XQueryTree
-	has_children = XQueryTree(XDPY, window, &root, &parent, &children, &n_children);
+	has_children = XQueryTree(XDPY, window,
+							  &root, &parent,
+							  &children, &n_children);
 
 	if (!has_children) {
 		fprintf(stderr, "XQueryTree() failed!\n");
@@ -228,20 +233,25 @@ Window find_desktop( Window window )
 void store_wall( int argc, char** args )
 {
 	/*CREATE THE DIRECTORY AND FILE*/
-	char *cfg_dir,*fn;
+	char *cfg_dir,*fn, *fullpath;
 	unsigned int buflen;
 
 	if (getenv("XDG_CONFIG_HOME") == NULL) {
-		buflen = (strlen(getenv("HOME")) + strlen("/.config/setroot_test") + 1);
+		buflen = strlen(getenv("HOME") + strlen("/.config/setroot") + 1);
 		cfg_dir = malloc(buflen); verify(cfg_dir);
-		snprintf(cfg_dir, buflen, "%s/%s/%s", getenv("HOME"), ".config", "setroot");
+		snprintf(cfg_dir, buflen, "%s/%s/%s", getenv("HOME"),
+											  ".config",
+											  "setroot");
 	} else {
-		buflen = (strlen(getenv("XDG_CONFIG_HOME")) + strlen("/setroot_test") + 1);
+		buflen = strlen(getenv("XDG_CONFIG_HOME") + strlen("/setroot") + 1);
 		cfg_dir = malloc(buflen); verify(cfg_dir);
-		snprintf(cfg_dir, buflen, "%s/%s", getenv("XDG_CONFIG_HOME"), "setroot");
+		snprintf(cfg_dir, buflen, "%s/%s", getenv("XDG_CONFIG_HOME"),
+												  "setroot");
 	}
 	/*CREATE DIRECTORY*/
-	if (mkdir(cfg_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1 && errno != EEXIST) {
+	if (mkdir(cfg_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1
+		&& errno != EEXIST) {
+
 		fprintf(stderr, "Could not create directory %s.\n", cfg_dir);
 		exit(1);
 	}
@@ -255,23 +265,22 @@ void store_wall( int argc, char** args )
         fprintf(stderr, "Could not write to file %s.\n", fn);
         exit(1);
     }
-	fprintf(f, "setroot"); // the initial call
 
+	fprintf(f, "setroot"); // the initial call
 	for (int i = 2; i < argc; i++) { // jump past --store
-		char *fullpath = realpath(args[i], NULL);
+		fullpath = realpath(args[i], NULL);
 
 		if (fullpath == NULL) {
 			fprintf(f, " \'%s\'", args[i]);
 			continue;
 		}
 		unsigned int pathlen = strlen(fullpath);
-		/* if does not contain an extension, or it does but ends in a digit, */
-		/* then its not an image*/
+		/* if does not contain a period, or it does but ends in a digit, */
+		/* then assume it is a flag or a flag option */
 		if ((strpbrk(fullpath, ".") == NULL) || isdigit(fullpath[pathlen - 1]))
 			fprintf(f, " \'%s\'", args[i]);
 		else
 			fprintf(f, " \'%s\'", fullpath);
-
 		free(fullpath);
 	} fclose(f);
 
@@ -303,28 +312,26 @@ void restore_wall()
 	if (system(fn) != 0) {
 		fprintf(stderr, "Could not restore wallpaper. Check file %s.\n", fn);
 		exit(1);
-	}
-	free(fn);
+	} free(fn);
 }
 
 void init_wall( struct wallpaper *w )
 {
-    w->height = w->width = 0;
-    w->xpos   = w->ypos  = 0; // relative to monitor!
+    w->height     = w->width    = 0;
+    w->xpos       = w->ypos     = 0; // relative to monitor!
+	w->span       = w->monitor  = 0;
 
-	w->span = w->monitor = 0;
-
-    w->option = FIT_AUTO;
-    w->axis   = NONE;
+    w->option     = FIT_AUTO;
+    w->axis       = NONE;
 
     w->blur       = w->sharpen  = 0;
     w->brightness = 0;
 	w->contrast   = 1.0;
     w->grey       = 0;
 
-    w->bgcol  = NULL;
-    w->tint   = NULL;
-    w->image  = NULL;
+    w->bgcol      = NULL;
+    w->tint       = NULL;
+    w->image      = NULL;
 }
 
 void clean_wall( struct wallpaper *w )
@@ -347,8 +354,7 @@ void sort_mons_by( int sort_opt )
         MONS[0] = VSCRN;
         return;
     }
-    XineramaScreenInfo *XSI
-        = XineramaQueryScreens(XDPY, (int*) &NUM_MONS);
+    XineramaScreenInfo *XSI = XineramaQueryScreens(XDPY, (int*) &NUM_MONS);
     MONS = malloc(sizeof(struct monitor) * NUM_MONS); verify(MONS);
 
     unsigned int i;
@@ -389,6 +395,7 @@ struct rgb_triple *parse_color( const char *col )
     struct rgb_triple *rgb = malloc(sizeof(struct rgb_triple)); verify(rgb);
 
     if (col[0] == '#') {
+
         char *rr = malloc(3 * sizeof(char)); verify(rr);
         char *gg = malloc(3 * sizeof(char)); verify(gg);
         char *bb = malloc(3 * sizeof(char)); verify(bb);
@@ -398,12 +405,14 @@ struct rgb_triple *parse_color( const char *col )
         rgb->r = hextoint(rr);
         rgb->g = hextoint(gg);
         rgb->b = hextoint(bb);
+
         if (!(rgb->r >= 0 && rgb->r <= 255) ||
             !(rgb->g >= 0 && rgb->g <= 255) ||
             !(rgb->b >= 0 && rgb->b <= 255) ||
             strlen(col) != 7) {
 
-            fprintf(stderr, "Invalid hex code %s; defaulting to #000000.\n", col);
+            fprintf(stderr,
+					"Invalid hex code %s; defaulting to #000000.\n", col);
             rgb->r = rgb->g = rgb->b = 0;
         }
         free(rr); free(gg); free(bb);
@@ -488,7 +497,9 @@ void parse_opts( unsigned int argc, char **args )
         }
 		else if (streq(args[i], "--on")) {
 #ifndef HAVE_LIBXINERAMA
-			fprintf(stderr, "'setroot' was not compiled with Xinerama, '--on' is not supported. No wallpaper will be set.\n");
+			fprintf(stderr, "'setroot' was not compiled with Xinerama;"
+							"'--on' is not supported."
+							"No wallpaper will be set.\n");
 			rmbr = 0;
 			exit(1);
 #else
@@ -498,8 +509,8 @@ void parse_opts( unsigned int argc, char **args )
                 continue;
 			}
             if (!isdigit(args[i + 1][0])) {
-                fprintf(stderr, \
-                        "No Xinerama monitor %s. Ignoring '--on' option. \n",\
+                fprintf(stderr,
+                        "No Xinerama monitor %s. Ignoring '--on' option. \n",
                         args[++i]);
                 rmbr = 0;
                 continue;
@@ -507,8 +518,8 @@ void parse_opts( unsigned int argc, char **args )
             monitor = atoi(args[++i]);
 
 			if (monitor < 0) {
-				fprintf(stderr, \
-						"No Xinerama monitor %d. Ignoring '--on' option. \n",\
+				fprintf(stderr,
+						"No Xinerama monitor %d. Ignoring '--on' option. \n",
 						monitor);
 				rmbr = 0;
                 monitor = -1;
@@ -536,7 +547,7 @@ void parse_opts( unsigned int argc, char **args )
             }
             if (!(isdigit(args[i + 1][0]))) {
                 fprintf(stderr, \
-                        "Invalid blur amount %s. No blur applied.\n", \
+                        "Invalid blur amount %s. No blur applied.\n",
                         args[++i]);
                 rmbr = 0;
                 continue;
@@ -551,7 +562,7 @@ void parse_opts( unsigned int argc, char **args )
             }
             if (!(isdigit(args[i + 1][0]))) {
                 fprintf(stderr, \
-                        "Invalid sharpen amount %s. No sharpen applied.\n",\
+                        "Invalid sharpen amount %s. No sharpen applied.\n",
                         args[++i]);
                 rmbr = 0;
                 continue;
@@ -566,7 +577,7 @@ void parse_opts( unsigned int argc, char **args )
             }
             if (!isdigit(args[i + 1][0]) && args[i + 1][0] != '-') {
                 fprintf(stderr, \
-                        "Invalid brightness %s. No brightening applied.\n",\
+                        "Invalid brightness %s. No brightening applied.\n",
                         args[++i]);
                 rmbr = 0;
                 continue;
@@ -581,7 +592,7 @@ void parse_opts( unsigned int argc, char **args )
             }
             if (!isdigit(args[i + 1][0]) && args[i + 1][0] != '-') {
                 fprintf(stderr, \
-                        "Invalid contrast %s. No contrast applied.\n",\
+                        "Invalid contrast %s. No contrast applied.\n",
                         args[++i]);
                 rmbr = 0;
                 continue;
@@ -888,11 +899,12 @@ void make_greyscale( Imlib_Image *image )
 	imlib_context_set_image(image);
 	unsigned int width = imlib_image_get_width();
 	unsigned int height = imlib_image_get_height();
+	float avg = 0.0;
 
 	for( unsigned int x = 0; x < width; x++) {
 		for( unsigned int y = 0; y < height; y++) {
 			imlib_image_query_pixel(x, y, &color);
-			float avg = 0.21 * color.red + 0.72 * color.green + 0.07 * color.blue;
+			avg = 0.21 * color.red + 0.72 * color.green + 0.07 * color.blue;
 			imlib_context_set_color(avg, avg, avg, color.alpha);
 			imlib_image_draw_pixel(x, y, 0);
 		}
