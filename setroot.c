@@ -237,13 +237,13 @@ void store_wall( int argc, char** args )
 	unsigned int buflen;
 
 	if (getenv("XDG_CONFIG_HOME") == NULL) {
-		buflen = strlen(getenv("HOME") + strlen("/.config/setroot") + 1);
+		buflen = strlen(getenv("HOME")) + strlen("/.config/setroot") + 1;
 		cfg_dir = malloc(buflen); verify(cfg_dir);
 		snprintf(cfg_dir, buflen, "%s/%s/%s", getenv("HOME"),
 											  ".config",
 											  "setroot");
 	} else {
-		buflen = strlen(getenv("XDG_CONFIG_HOME") + strlen("/setroot") + 1);
+		buflen = strlen(getenv("XDG_CONFIG_HOME")) + strlen("/setroot") + 1;
 		cfg_dir = malloc(buflen); verify(cfg_dir);
 		snprintf(cfg_dir, buflen, "%s/%s", getenv("XDG_CONFIG_HOME"),
 												  "setroot");
