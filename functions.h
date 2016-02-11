@@ -8,14 +8,14 @@ void store_wall( int argc, char** line );
 void restore_wall();
 
 struct wallpaper *init_wall();
-struct monitor *init_monitor( unsigned int h, unsigned int w,
+struct monitor *init_monitor( unsigned int w, unsigned int h,
 							  unsigned int xp, unsigned int yp );
 
-struct station *init_station();
+struct screen *init_screen( unsigned int sw, unsigned int sh );
 
 void clean_wall( struct wallpaper *w );
 void clean_monitor( struct monitor *m );
-void clean_station( struct station *s );
+void clean_screen( struct screen *s );
 
 #ifdef HAVE_LIBXINERAMA
 void sort_mons_by( struct station *s, int sort_opt );

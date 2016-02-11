@@ -39,14 +39,16 @@ descending( const void *a, const void *b )
 }
 #endif
 
-struct station {
+struct screen {
 	struct monitor		**monitors;
 	unsigned int		num_mons;
+	unsigned int		screen_width;
+	unsigned int		screen_height;
 };
 
 struct monitor {
-    unsigned int		height;
     unsigned int		width;
+    unsigned int		height;
 
     unsigned int		xpos;
     unsigned int		ypos;
@@ -61,8 +63,8 @@ struct wallpaper {
 	unsigned int		span;
 	unsigned int		monitor;
 
-	unsigned int		height;
 	unsigned int		width;
+	unsigned int		height;
 
 	int					xpos;
 	int					ypos;

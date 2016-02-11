@@ -51,14 +51,14 @@
 
 /* globals */
 Display            *XDPY;
-unsigned int        DSCRN_NUM;
-Screen             *DSCRN;
+unsigned int        XSCRN_NUM;
+Screen             *XSCRN;
 Window              ROOT_WIN;
 int                 BITDEPTH;
 Colormap            COLORMAP;
 Visual             *VISUAL;
 
-struct station	   *STATION  = NULL;
+struct screen	   *SCREEN  = NULL;
 struct monitor     *STNSCRN; // spanned area of all monitors
 
 unsigned int        NUM_MONS = 0;
@@ -314,14 +314,14 @@ restore()
 	}
 	if (system(fn) != 0) {
 		fprintf(stderr, "Could not restore wallpaper. Check file %s.\n", fn);
-		exit(1);
+		exit(127);
 	} free(fn);
 }
 
-struct station
-*init_station()
+struct screen
+*init_screen( unsigned int sw, unsigned int sh )
 {
-	struct station *s = malloc(sizeof(struct station));
+	struct screen *s = malloc(sizeof(struct screen));
 	verify(s);
 
 	unsigned int nm = 1;
@@ -336,7 +336,10 @@ struct station
 	}
 #endif
 
-	s->num_mons = nm;
+	s->num_mons		 = nm;
+	s->screen_width  = sw;
+	s->screen_height = sh;
+
 	s->monitors = malloc(sizeof(struct monitor*) * nm);
 
 #ifdef HAVE_LIBXINERAMA
@@ -353,21 +356,21 @@ struct station
 	}
 	XFree(XSI);
 #else
-	s->monitors[0] = STNSCRN;
+	(s->monitors)[0] = init_monitor(sw, sh, 0, 0);
 #endif
 	XSync(XDPY, False);
 	return s;
 }
 
 struct monitor
-*init_monitor( unsigned int h, unsigned int w,
+*init_monitor( unsigned int w, unsigned int h,
 			   unsigned int xp, unsigned int yp )
 {
 	struct monitor *m = malloc(sizeof(struct monitor));
 	verify(m);
 
-	m->height = h;
 	m->width  = w;
+	m->height = h;
 
 	m->xpos = xp;
 	m->ypos = yp;
@@ -403,7 +406,7 @@ struct wallpaper
 }
 
 void
-clean_station( struct station *s )
+clean_screen( struct screen *s )
 {
 	unsigned int i;
 	unsigned int nm = s->num_mons;
@@ -434,7 +437,7 @@ clean_wall( struct wallpaper *w )
 }
 
 #ifdef HAVE_LIBXINERAMA
-void sort_mons_by( struct station *s, int sort_opt )
+void sort_mons_by( struct screen *s, int sort_opt )
 {
 	unsigned int i;
 	unsigned int nm = s->nm;
@@ -509,11 +512,13 @@ struct rgb_triple *parse_color( const char *col )
     return rgb;
 }
 
-void clear_background( const char *blank_color, Pixmap canvas )
+void
+clear_background( const char *blank_color, Pixmap canvas )
 {
     struct rgb_triple *col = parse_color(blank_color);
 
-    Imlib_Image bg = imlib_create_image(STNSCRN->width, STNSCRN->height);
+    Imlib_Image bg = imlib_create_image(SCREEN->screen_width,
+										SCREEN->screen_height);
     if (bg == NULL)
         die(1, "Failed to create image.");
 
@@ -526,7 +531,8 @@ void clear_background( const char *blank_color, Pixmap canvas )
     free(col);
 }
 
-void solid_color( struct monitor *mon )
+void
+solid_color( struct monitor *mon )
 {
     struct wallpaper *fill = mon->wall;
     struct rgb_triple *col = fill->bgcol;
@@ -605,7 +611,8 @@ void fit_height( struct monitor *mon )
     imlib_context_set_blend(0);
 }
 
-void fit_width( struct monitor *mon )
+void
+fit_width( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
@@ -627,7 +634,8 @@ void fit_width( struct monitor *mon )
     imlib_context_set_blend(0);
 }
 
-void fit_auto( struct monitor *mon )
+void
+fit_auto( struct monitor *mon )
 {
     if (mon->width >= mon->height) { // for normal monitors
         if (   mon->wall->width * (1.0 / mon->wall->height)
@@ -644,7 +652,8 @@ void fit_auto( struct monitor *mon )
     }
 }
 
-void zoom_fill( struct monitor *mon ) // basically works opposite of fit_auto
+void
+zoom_fill( struct monitor *mon ) // basically works opposite of fit_auto
 {
     if (mon->width >= mon->height) { // for normal monitors
         if (   mon->wall->width * (1.0 / mon->wall->height)
@@ -661,7 +670,8 @@ void zoom_fill( struct monitor *mon ) // basically works opposite of fit_auto
     }
 }
 
-void tile( struct monitor *mon )
+void
+tile( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
 
@@ -727,69 +737,159 @@ parse_opts( unsigned int argc, char **args )
 	unsigned int store		  = 0;
 	unsigned int span   	  = 0;
 
-	int monitor         	  = -1;
+	int assign_to_mon      	  = -1;
 
 	unsigned int blur_r 	  = 0;
 	unsigned int shrp_r 	  = 0;
 	float contrast_v    	  = 1.0;
 	float bright_v      	  = 0.0;
 
-	unsigned int grey   	  = 0;
+	unsigned int greyscale 	  = 0;
 	struct rgb_triple *bg_col = NULL;
 	struct rgb_triple *tn_col = NULL;
 
 	fit_t  aspect			  = FIT_AUTO;
 	flip_t axis				  = NONE;
 
+	char *image_path		  = NULL;
+	Imlib_Image *image		  = NULL;
+
 	/* argument counter and argument buffer */
 	unsigned int i;
-	char *flag;
+	char *token;
 
-	unsigned int cur_mon  = 0;
+	unsigned int num_walls  = 0;
 
 	/*PARSE THE OPTIONS AND STORE IN APPROP. STRUCTS*/
 	for (i = 1; i < argc; i++) {
 
-		flag = args[i];
+		token = args[i];
 
 		/*STORE FLAG MUST BE FIRST*/
-		if			(streq(flag, "--store") && i == 1) {
+		if			(streq(token, "--store") && i == 1) {
 			store = 1;
 
 		/*GLOBAL OPTIONS*/
-		} else if	(streq(flag, "--blank-color")) {
-			if (argc == i + 1) {
-				fprintf(stderr, "No color was provided for %s! ",
-								"Exiting with status 1.\n",
-								args[i]);
-				exit(1);
-			} BLANK_COLOR = args[++i];
+		} else if	(streq(token, "--blank-color")) {
+			if (argc == i + 1)
+				tfargs_error(token);
+
+			BLANK_COLOR = args[++i];
 
 		/*IMAGE FLAGS*/
-		} else if	(streq(flag, "--span")) {
+		} else if	(streq(token, "--span")) {
 			span = 1;
-		} else if	(streq(flag, "--bg-color")) {
-			if (argc == i + 1) {
-				fprintf(stderr, "No color was provided for %s! ",
-								"Exiting with status 1.\n",
-								args[i]);
-				exit(1);
-			} bg_col = parse_color(args[++i]);
+		} else if	(streq(token, "--bg-color")) {
+			if (argc == i + 1)
+				tfargs_error(token);
 
-		} else if	(streq(flag, "--on")) {
+			bg_col = parse_color(args[++i]);
+
+		} else if	(streq(token, "--on")) {
 #ifndef HAVE_LIBXINERAMA
 			fprintf(stderr, "'setroot' was not compiled with Xinerama "
 							"support. '--on' is not supported. "
-							"Exiting with status 1.\n",
-							args[i]);
+							"Exiting with status 1.\n");
 			exit(1);
 #else
+			if (argc == i + 1)
+				tfargs_error(flag);
+
+			char valid[strlen(args[i + 1]) + 1]; valid[0] = '\0';
+			val = strtol(args[i + 1], valid, 10);
+
+			/* if we don't get an integer */
+			if (valid[0] != '\0') {
+				fprintf(stderr, "'%s' is not an integer. "
+								"Exiting with status 1.\n",
+								args[i + 1]);
+				exit(1);
+			} assign_to_mon = (int) val;
+
+			if (assign_to_mon < 0 || assign_to_mon >= SCREEN->nm)
+				assign_to_mon = -1;
 #endif
+		/* MANIPULATIONS */
+		} else if (streq(token, "--greyscale")) {
+			greyscale = 1;
+
+        } else if (streq(token, "--tint")) {
+            if (argc == i + 1)
+				tfargs_error(token);
+
+            tn_col = parse_color(args[++i]);
+
+        } else if (streq(token, "--blur")) {
+            if (argc == i + 1)
+				tfargs_error(token);
+
+			blur_r = parse_int(args[++i]);
+
+        } else if (streq(token, "--sharpen")) {
+            if (argc == i + 1)
+				tfargs_error(token);
+
+			shrp_r = parse_int(args[++i]);
+
+        } else if (streq(token, "--brighten")) {
+            if (argc == i + 1)
+				tfargs_error(token);
+
+			bright_v = parse_float(args[++i]);
+
+        } else if (streq(token, "--contrast")) {
+            if (argc == i + 1)
+				tfargs_error(token);
+
+			contrast_v = parse_float(args[++i]);
+
+        } else if (streq(token, "--fliph")) {
+            axis = HORIZONTAL;
+        } else if (streq(token, "--flipv")) {
+            axis = VERTICAL;
+        } else if (streq(token, "--flipd")) {
+            axis = DIAGONAL;
+
+        /* IMAGE OPTIONS */
+        } else if (streq(token, "-sc") || streq(token, "--solid-color" )) {
+            if (argc == i + 1)
+				tfargs_error(token);
+            bg_col = parse_color(args[i + 1]);
+            aspect = COLOR;
+
+        } else if (streq(token, "-c")  || streq(token, "--center")) {
+            aspect = CENTER;
+        } else if (streq(token, "-s")  || streq(token, "--stretch")) {
+            aspect = STRETCH;
+        } else if (streq(token, "-fh") || streq(token, "--fit-height")) {
+            aspect = FIT_HEIGHT;
+        } else if (streq(token, "-fw") || streq(token, "--fit-width")) {
+            aspect = FIT_WIDTH;
+        } else if (streq(token, "-f")  || streq(token, "--fit-auto")) {
+            aspect = FIT_AUTO;
+        } else if (streq(token, "-z")  || streq(token, "--zoom")) {
+            aspect = ZOOM;
+        } else if (streq(token, "-t")  || streq(token, "--tiled")) {
+            aspect = TILE;
+
+		/* if all of the above fail, treat it like an image path */
 		} else {
-
-
+			image_path = token;
 		}
-	}
+
+		if (image_path == NULL)
+			continue;
+
+		image = imlib_load_image(image_path);
+
+		if (image == NULL)
+			invalid_img_error(image_path);
+
+		num_walls++;
+	} // end for loop
+
+	if (store)
+		store_call(argc, args);
 }
 
 Pixmap
@@ -806,8 +906,8 @@ make_bg()
     Pixmap canvas
         = XCreatePixmap(XDPY,
                         ROOT_WIN,
-                        DSCRN->width,
-                        DSCRN->height,
+                        XSCRN->width,
+                        XSCRN->height,
                         BITDEPTH);
 
     imlib_context_set_drawable(canvas);
@@ -830,29 +930,24 @@ int main(int argc, char** args)
 		goto CLEANUP;
 	}
 
-    DSCRN_NUM    = DefaultScreen(XDPY);
-    DSCRN        = ScreenOfDisplay(XDPY, DSCRN_NUM);
-    ROOT_WIN     = RootWindow(XDPY, DSCRN_NUM);
-    COLORMAP     = DefaultColormap(XDPY, DSCRN_NUM);
-    VISUAL       = DefaultVisual(XDPY, DSCRN_NUM);
-    BITDEPTH     = DefaultDepth(XDPY, DSCRN_NUM);
+    XSCRN_NUM    = DefaultScreen(XDPY);
+    XSCRN        = ScreenOfDisplay(XDPY, XSCRN_NUM);
+    ROOT_WIN     = RootWindow(XDPY, XSCRN_NUM);
+    COLORMAP     = DefaultColormap(XDPY, XSCRN_NUM);
+    VISUAL       = DefaultVisual(XDPY, XSCRN_NUM);
+    BITDEPTH     = DefaultDepth(XDPY, XSCRN_NUM);
 
-	/*STNSCRN is the cumulative screen area of all monitors*/
-	STNSCRN		 = init_monitor(DSCRN->height,
-								DSCRN->width,
-								0, 0);
-
-	STATION		 = init_station();
+	SCREEN		 = init_screen(XSCRN->width, XSCRN->height);
 
 #ifdef HAVE_LIBXINERAMA
 	if			(streq(args[argc - 1], "--use-x-geometry")) {
-		sort_mons_by(STATION, SORT_BY_XORG);
+		sort_mons_by(SCREEN, SORT_BY_XORG);
 		argc--;
 	} else if	(streq(args[argc - 1], "--use-y-geometry")) {
-		sort_mons_by(STATION, SORT_BY_YORG);
+		sort_mons_by(SCREEN, SORT_BY_YORG);
 		argc--;
 	} else {
-		sort_mons_by(STATION, SORT_BY_XINM);
+		sort_mons_by(SCREEN, SORT_BY_XINM);
 	}
 #endif
 
@@ -875,7 +970,7 @@ int main(int argc, char** args)
 
 	CLEANUP:
 
-	clean_station(STATION);
+	clean_screen(SCREEN);
 
     XClearWindow(XDPY, ROOT_WIN);
     XFlush(XDPY);
