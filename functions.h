@@ -18,7 +18,7 @@ void clean_monitor( struct monitor *m );
 void clean_screen( struct screen *s );
 
 #ifdef HAVE_LIBXINERAMA
-void sort_mons_by( struct station *s, int sort_opt );
+void sort_mons_by( struct screen *s, int sort_opt );
 #endif
 
 void parse_opts( unsigned int argc, char **args );

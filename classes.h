@@ -5,8 +5,7 @@ typedef enum FIT_TYPE {
     FIT_AUTO,
     FIT_HEIGHT,
     FIT_WIDTH,
-    ZOOM,
-	COLOR
+    ZOOM
 } fit_t;
 
 typedef enum FLIP_TYPE {
