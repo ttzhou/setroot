@@ -546,7 +546,7 @@ void
 solid_color( struct monitor *mon )
 {
     struct wallpaper *w = mon->wall;
-    struct rgb_triple *col = w->bgcol;
+    struct rgb_triple *col = w->bgcol; // won't be null
 
     Imlib_Image solid_color = imlib_create_image(mon->width, mon->height);
     if (solid_color == NULL)
@@ -562,9 +562,14 @@ void
 center_wall( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
+    struct rgb_triple *col = wall->bgcol;
 
     Imlib_Image centered_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(centered_image);
+    if (col != NULL) {
+        imlib_context_set_color(col->r, col->g, col->b, 255);
+        imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
+    }
     imlib_context_set_blend(1);
 
     /* this is where we place the image in absolute coordinates */
@@ -588,9 +593,14 @@ void
 stretch_wall( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
+    struct rgb_triple *col = wall->bgcol;
 
     Imlib_Image stretched_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(stretched_image);
+    if (col != NULL) {
+        imlib_context_set_color(col->r, col->g, col->b, 255);
+        imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
+    }
     imlib_context_set_blend(1);
 
     imlib_blend_image_onto_image(wall->image, 0,
@@ -608,9 +618,14 @@ void
 fit_height( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
+    struct rgb_triple *col = wall->bgcol;
 
     Imlib_Image fit_height_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(fit_height_image);
+    if (col != NULL) {
+        imlib_context_set_color(col->r, col->g, col->b, 255);
+        imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
+    }
     imlib_context_set_blend(1);
 
     float scaled_width = wall->width * mon->height * (1.0 / wall->height);
@@ -632,9 +647,14 @@ void
 fit_width( struct monitor *mon )
 {
     struct wallpaper *wall = mon->wall;
+    struct rgb_triple *col = wall->bgcol;
 
     Imlib_Image fit_width_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(fit_width_image);
+    if (col != NULL) {
+        imlib_context_set_color(col->r, col->g, col->b, 255);
+        imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
+    }
     imlib_context_set_blend(1);
 
     float scaled_height =  wall->height * mon->width * (1.0 / wall->width);
@@ -818,25 +838,25 @@ void
 parse_opts( unsigned int argc, char **args )
 {
 	/*VARIOUS FLAGS*/
-	unsigned int store		  = 0;
-	unsigned int span   	  = 0;
+	unsigned int store	    = 0;
+	unsigned int span       = 0;
 
-	int assign_to_mon      	  = -1;
+	int assign_to_mon       = -1;
 
-	unsigned int blur_r 	  = 0;
-	unsigned int shrp_r 	  = 0;
-	float contrast_v    	  = 1.0;
-	float bright_v      	  = 0.0;
+	char *bg_col            = NULL;
+	char *tn_col            = NULL;
 
-	unsigned int greyscale 	  = 0;
-	struct rgb_triple *bg_col = NULL;
-	struct rgb_triple *tn_col = NULL;
+	unsigned int blur_r     = 0;
+	unsigned int shrp_r     = 0;
+	float contrast_v        = 1.0;
+	float bright_v          = 0.0;
 
-	fit_t  aspect			  = FIT_AUTO;
-	flip_t axis				  = NONE;
+	unsigned int greyscale  = 0;
 
-	char *image_path		  = NULL;
-	Imlib_Image image		  = NULL;
+	fit_t  aspect		    = FIT_AUTO;
+	flip_t axis			    = NONE;
+
+	char *image_path	    = NULL;
 
 	/* argument counter and argument buffer */
 	unsigned int i;
@@ -865,7 +885,7 @@ parse_opts( unsigned int argc, char **args )
 		} else if	(streq(token, "--span")) {
 			span = 1;
 		} else if	(streq(token, "--bg-color")) {
-			bg_col = parse_color(args[++i]);
+			bg_col = args[++i];
 
 		} else if	(streq(token, "--on")) {
 #ifndef HAVE_LIBXINERAMA
@@ -888,7 +908,7 @@ parse_opts( unsigned int argc, char **args )
 			greyscale = 1;
 
         } else if (streq(token, "--tint")) {
-            tn_col = parse_color(args[++i]);
+            tn_col = args[++i];
 
         } else if (streq(token, "--blur")) {
 			blur_r = parse_int(args[++i]);
@@ -911,7 +931,7 @@ parse_opts( unsigned int argc, char **args )
 
         /* IMAGE OPTIONS */
         } else if (streq(token, "-sc") || streq(token, "--solid-color" )) {
-            bg_col = parse_color(args[++i]);
+            bg_col = args[++i];
             image_path = "__COLOR__";
 
         } else if (streq(token, "-c")  || streq(token, "--center")) {
@@ -952,14 +972,15 @@ parse_opts( unsigned int argc, char **args )
 		struct wallpaper *w = init_wall();
 
 		if (!streq(image_path, "__COLOR__")) {
-			image = imlib_load_image(image_path);
+			Imlib_Image image = imlib_load_image(image_path);
             imlib_context_set_image(image);
-            w->width = imlib_image_get_width();
+
+            w->image  = image;
+            w->width  = imlib_image_get_width();
             w->height = imlib_image_get_height();
 
 			if (image == NULL) invalid_img_error(image_path);
 		}
-		w->image		= image;
 		w->image_path	= image_path;
 		w->option		= aspect;
 		w->axis			= axis;
@@ -973,8 +994,8 @@ parse_opts( unsigned int argc, char **args )
 		if (bright_v != 0.0)	w->brightness = bright_v;
 		if (contrast_v != 0.0)	w->contrast   = contrast_v;
 
-        if (bg_col != NULL)     w->bgcol      = bg_col;
-        if (tn_col != NULL)     w->tint       = tn_col;
+        if (bg_col != NULL)     w->bgcol      = parse_color(bg_col);
+        if (tn_col != NULL)     w->tint       = parse_color(tn_col);
 
         /*if for some reason a wall was already assigned to*/
         /*designated monitor, clean it*/
