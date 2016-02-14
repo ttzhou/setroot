@@ -877,22 +877,8 @@ parse_opts( unsigned int argc, char **args )
 							"Exiting with status 1.\n");
 			exit(1);
 #else
-			char **nondigits = malloc(sizeof(char*));
-			long int val = strtol(args[++i], nondigits, 10);
+            assign_to_mon = parse_int(args[++i]);
 
-			/* if we don't get an integer */
-			if ((*nondigits)[0] != '\0') {
-				fprintf(stderr, "'--on' failed; '%s' is not an integer. "
-								"Exiting with status 1.\n",
-								args[i + 1]);
-				exit(1);
-			}
-            assign_to_mon = (int) val;
-
-            if (nondigits != NULL) {
-                free(nondigits);
-                nondigits = NULL;
-            }
 			if (assign_to_mon < 0) {
 				fprintf(stderr, "Monitor %d does not exist. "
 								"Exiting with status 1.\n",
@@ -1117,9 +1103,9 @@ int main(int argc, char** args)
                 program_name, XDisplayName(NULL));
         exit(1);
     }
-	if (argc < 2 || streq(args[1], "-h") || streq(args[1], "--help")) {
-        printf("No options provided. Call \'man setroot\' for help.\n");
-        exit(EXIT_SUCCESS);
+	if (argc < 2) {
+        printf("No options were provided. Call \'man setroot\' for help.\n");
+        exit(1);
     }
     if (argc > 1 && streq(args[1], "--restore")) {
         restore();

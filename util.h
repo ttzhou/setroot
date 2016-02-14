@@ -40,29 +40,43 @@ invalid_img_error( const char* path )
 int
 parse_int( const char* intstring )
 {
-	char *invalid_digits;
-	long int val = strtol(intstring, &invalid_digits, 10);
+	char **invalid_digits = malloc(sizeof(char*));
+	verify(invalid_digits);
+
+	long int val = strtol(intstring, invalid_digits, 10);
 
 	/* if we don't get an integer */
-	if (invalid_digits[0] != '\0') {
-		fprintf(stderr, "'%s' is not a float. "
+	if ((*invalid_digits)[0] != '\0') {
+		fprintf(stderr, "'%s' is not a valid integer. "
 				"Exiting with status 1.\n",
 				intstring);
 		exit(1);
-	} return val;
+	}
+	if (invalid_digits != NULL) {
+		free(invalid_digits);
+		invalid_digits = NULL;
+	}
+	return (int) val;
 }
 
 float
 parse_float( const char* floatstring )
 {
-	char *invalid_digits;
-	float val = strtof(floatstring, &invalid_digits);
+	char **invalid_digits = malloc(sizeof(char*));
+	verify(invalid_digits);
 
-	/* if we don't get an integer */
-	if (invalid_digits[0] != '\0') {
-		fprintf(stderr, "'%s' is not a float. "
+	long int val = strtof(floatstring, invalid_digits);
+
+	/* if we don't get a float*/
+	if ((*invalid_digits)[0] != '\0') {
+		fprintf(stderr, "'%s' is not a valid float. "
 				"Exiting with status 1.\n",
 				floatstring);
 		exit(1);
-	} return val;
+	}
+	if (invalid_digits != NULL) {
+		free(invalid_digits);
+		invalid_digits = NULL;
+	}
+	return (float) val;
 }
