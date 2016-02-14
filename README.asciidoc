@@ -6,7 +6,7 @@ NAME
 VERSION
 -------
 
-`release: version 1.5 - 2016-02-08`
+`release: version 2.0 - 2016-02-14`
 
 
 ABOUT
@@ -58,11 +58,13 @@ INVOCATION
 
 *setroot* [_storage flag_] [_global flag_] { [_image flags, manipulations, options_] <filename> }+ [_monitor flag_]
 
-The order of the filenames determines which monitor the wallpaper is set to. The first invoked filename is set to the first Xinerama monitor; the second to the second; and so on.
+The order of the filenames determines which monitor the wallpaper is set to. The first invoked filename is set to the first Xinerama monitor, the second to the second, and so on.
 
 If more than one image option is applied, the last one takes effect.
 
-If _n_ filenames are supplied for _k_ monitors, where _n_ > _k_, only the first _k_ filenames are processed.
+If _n_ filenames are supplied for _k_ monitors, where _n_ > _k_, only the first _k_ filenames will be processed.
+
+An illegal invocation sequence will result in setroot terminating with exit status 1.
 
 MISC
 ----
