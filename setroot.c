@@ -779,7 +779,6 @@ flip_image( struct wallpaper *w )
     imlib_context_set_image(w->image);
 
     switch (w->axis) {
-
     case HORIZONTAL:
         imlib_image_flip_horizontal();
         break;
@@ -1039,8 +1038,8 @@ make_bg( struct screen *s )
                                   s->screen_height,
                                   BITDEPTH);
 
-    blank_screen(s, BLANK_COLOR, &canvas);
     imlib_context_set_drawable(canvas);
+    blank_screen(s, BLANK_COLOR, &canvas);
 
     unsigned int i;
     unsigned int nm = s->num_mons;
@@ -1121,6 +1120,14 @@ int main(int argc, char** args)
                 program_name, XDisplayName(NULL));
         exit(1);
     }
+    XSCRN_NUM    = DefaultScreen(XDPY);
+    XSCRN        = ScreenOfDisplay(XDPY, XSCRN_NUM);
+    ROOT_WIN     = RootWindow(XDPY, XSCRN_NUM);
+    COLORMAP     = DefaultColormap(XDPY, XSCRN_NUM);
+    VISUAL       = DefaultVisual(XDPY, XSCRN_NUM);
+    BITDEPTH     = DefaultDepth(XDPY, XSCRN_NUM);
+	SCREEN		 = init_screen(XSCRN->width, XSCRN->height);
+
 	if (argc < 2) {
         printf("No options were provided. Call \'man setroot\' for help.\n");
         exit(1);
@@ -1129,16 +1136,6 @@ int main(int argc, char** args)
         restore();
 		goto CLEANUP;
 	}
-
-    XSCRN_NUM    = DefaultScreen(XDPY);
-    XSCRN        = ScreenOfDisplay(XDPY, XSCRN_NUM);
-    ROOT_WIN     = RootWindow(XDPY, XSCRN_NUM);
-    COLORMAP     = DefaultColormap(XDPY, XSCRN_NUM);
-    VISUAL       = DefaultVisual(XDPY, XSCRN_NUM);
-    BITDEPTH     = DefaultDepth(XDPY, XSCRN_NUM);
-
-	SCREEN		 = init_screen(XSCRN->width, XSCRN->height);
-
 #ifdef HAVE_LIBXINERAMA
 	if			(streq(args[argc - 1], "--use-x-geometry")) {
 		sort_mons_by(SCREEN, SORT_BY_XORG);
