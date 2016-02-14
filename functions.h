@@ -23,16 +23,27 @@ void clean_screen( struct screen *s );
 void sort_mons_by( struct screen *s, int sort_opt );
 #endif
 
-void parse_opts( unsigned int argc, char **args );
 void blank_screen( struct screen *s, const char *blank_color, Pixmap *canvas );
 
 void center_wall( struct monitor *mon );
-//void stretch_wall( struct monitor *mon, Pixmap *canvas);
-//void fit_height( struct monitor *mon, Pixmap *canvas);
-//void fit_width( struct monitor *mon, Pixmap *canvas);
-//void fit_auto( struct monitor *mon, Pixmap *canvas);
-//void zoom_fill( struct monitor *mon, Pixmap *canvas);
-//void tile_wall( struct monitor *mon, Pixmap *canvas);
-//void solid_color( struct monitor *mon, Pixmap *canvas);
+void stretch_wall( struct monitor *mon );
+void fit_height( struct monitor *mon );
+void fit_width( struct monitor *mon );
+void fit_auto( struct monitor *mon );
+void zoom_fill( struct monitor *mon );
+void tile_wall( struct monitor *mon );
+void solid_color( struct monitor *mon );
+
+void make_greyscale( struct wallpaper *w );
+void tint_image( struct wallpaper *w );
+void flip_image( struct wallpaper *w );
+
+void change_contrast( struct wallpaper * w);
+void change_brightness( struct wallpaper * w);
+
+void blur_wall( struct wallpaper * w);
+void sharpen_wall( struct wallpaper * w);
+
+void parse_opts( unsigned int argc, char **args );
 
 Pixmap make_bg( struct screen *s );

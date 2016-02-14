@@ -470,7 +470,7 @@ void sort_mons_by( struct screen *s, int sort_opt )
 			values[i].value = (s->monitors)[i]->ypos;
 			values[i].index = i;
 		}
-		qsort(values, nm, sizeof(struct pair), ascending);
+		qsort(values, nm, sizeof(struct pair), descending);
 	} else {
 		for ( i = 0; i < nm; i++ ) {
 			values[i].value = 0;
@@ -871,6 +871,12 @@ parse_opts( unsigned int argc, char **args )
 	for (i = 1; i < argc; i++) {
 
 		token = args[i];
+
+        /*ignore geometry flags*/
+        if (streq(token, "--use-x-geometry") ||
+            streq(token, "--use-y-geometry"))
+            continue;
+
         /* if we have a flag and nothing after it */
         if (argc == i + 1 && token[0] == '-')
             tfargs_error(token);
@@ -1123,6 +1129,11 @@ int main(int argc, char** args)
                 program_name, XDisplayName(NULL));
         exit(1);
     }
+	if (argc < 2) {
+        printf("No options were provided. Call \'man setroot\' for help.\n");
+        exit(1);
+    }
+
     XSCRN_NUM    = DefaultScreen(XDPY);
     XSCRN        = ScreenOfDisplay(XDPY, XSCRN_NUM);
     ROOT_WIN     = RootWindow(XDPY, XSCRN_NUM);
@@ -1131,27 +1142,19 @@ int main(int argc, char** args)
     BITDEPTH     = DefaultDepth(XDPY, XSCRN_NUM);
 	SCREEN		 = init_screen(XSCRN->width, XSCRN->height);
 
-	if (argc < 2) {
-        printf("No options were provided. Call \'man setroot\' for help.\n");
-        exit(1);
-    }
+#ifdef HAVE_LIBXINERAMA
+	if			(streq(args[argc - 1], "--use-x-geometry"))
+		sort_mons_by(SCREEN, SORT_BY_XORG);
+	else if	(streq(args[argc - 1], "--use-y-geometry"))
+		sort_mons_by(SCREEN, SORT_BY_YORG);
+	else
+		sort_mons_by(SCREEN, SORT_BY_XINM);
+#endif
+
     if (argc > 1 && streq(args[1], "--restore")) {
         restore();
 		goto CLEANUP;
-	}
-#ifdef HAVE_LIBXINERAMA
-	if			(streq(args[argc - 1], "--use-x-geometry")) {
-		sort_mons_by(SCREEN, SORT_BY_XORG);
-		argc--;
-	} else if	(streq(args[argc - 1], "--use-y-geometry")) {
-		sort_mons_by(SCREEN, SORT_BY_YORG);
-		argc--;
-	} else {
-		sort_mons_by(SCREEN, SORT_BY_XINM);
-	}
-#endif
-
-	Window desktop_window = None;
+	} Window desktop_window = None;
 
 	parse_opts(argc, args);
     Pixmap bg = make_bg(SCREEN);
