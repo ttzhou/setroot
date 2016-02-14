@@ -7,7 +7,7 @@
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "SETROOT" "1" "02/08/2016" "v1\&.5" "Setroot Manual"
+.TH "SETROOT" "1" "02/14/2016" "v2\&.0" "Setroot Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -41,7 +41,9 @@ The order of the filenames determines which monitor the wallpaper is set to\&. T
 .sp
 If more than one image option is applied, the last one takes effect\&.
 .sp
-If \fIn\fR filenames are supplied for \fIk\fR monitors, where \fIn\fR > \fIk\fR, only the first \fIk\fR filenames are processed\&.
+If \fIn\fR filenames are supplied for \fIk\fR monitors, where \fIn\fR > \fIk\fR, only the first \fIk\fR filenames will be processed\&.
+.sp
+An illegal invocation sequence will result in setroot terminating with exit status \fB1\fR\&.
 .SH "MISC"
 .PP
 \fB\-h, \-\-help\fR

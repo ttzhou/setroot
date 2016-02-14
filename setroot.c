@@ -85,8 +85,7 @@ static const int    SORT_BY_YORG = 2;
  *  a part of the Enlightenment project, to implement pseudotransparency.
  *
  *  I do not take credit for any of this code nor do I intend to use it in any
- *  way for self-gain. (Although I did change "ESETROOT_PMAP_ID" to
- *  "_SETROOT_PMAP_ID" for shameless self advertisement.)
+ *  way for self-gain.
  *
  *  For explanation, see http://www.eterm.org/docs/view.php?doc=ref and read
  *  section titled "Transparency".
@@ -98,44 +97,44 @@ static const int    SORT_BY_YORG = 2;
 void
 set_pixmap_property(Pixmap p)
 {
-    Atom prop_root, prop_setroot, type;
+    Atom prop_root, prop_esetroot, type;
     int format;
     unsigned long length, after;
-    unsigned char *data_root, *data_setroot;
+    unsigned char *data_root, *data_esetroot;
 
     prop_root = XInternAtom(XDPY, "_XROOTPMAP_ID", True);
-    prop_setroot = XInternAtom(XDPY, "_SETROOTPMAP_ID", True);
+    prop_esetroot = XInternAtom(XDPY, "ESETROOTPMAP_ID", True);
 
-    if ((prop_root != None) && (prop_setroot != None)) {
+    if ((prop_root != None) && (prop_esetroot != None)) {
         XGetWindowProperty(XDPY, ROOT_WIN, prop_root, 0L, 1L, False,
                 AnyPropertyType, &type, &format,
                 &length, &after, &data_root);
 
         if (type == XA_PIXMAP) {
-            XGetWindowProperty(XDPY, ROOT_WIN, prop_setroot, 0L, 1L,
+            XGetWindowProperty(XDPY, ROOT_WIN, prop_esetroot, 0L, 1L,
                     False, AnyPropertyType, &type, &format,
-                    &length, &after, &data_setroot);
+                    &length, &after, &data_esetroot);
 
-            if (data_root && data_setroot)
+            if (data_root && data_esetroot)
                 if ((type == XA_PIXMAP) &&
-                    (*((Pixmap *) data_root) == *((Pixmap *) data_setroot)))
+                    (*((Pixmap *) data_root) == *((Pixmap *) data_esetroot)))
 
                     XKillClient(XDPY, *((Pixmap *) data_root));
 
-            if (data_setroot) { free(data_setroot); }
+            if (data_esetroot) { free(data_esetroot); }
         }
         if (data_root) { free(data_root); }
     }
 
     prop_root = XInternAtom(XDPY, "_XROOTPMAP_ID", False);
-    prop_setroot = XInternAtom(XDPY, "_SETROOTPMAP_ID", False);
+    prop_esetroot = XInternAtom(XDPY, "ESETROOTPMAP_ID", False);
 
-    if (prop_root == None || prop_setroot == None)
+    if (prop_root == None || prop_esetroot == None)
         die(1, "creation of pixmap property failed");
 
     XChangeProperty(XDPY, ROOT_WIN, prop_root, XA_PIXMAP, 32,
                     PropModeReplace, (unsigned char *) &p, 1);
-    XChangeProperty(XDPY, ROOT_WIN, prop_setroot, XA_PIXMAP, 32,
+    XChangeProperty(XDPY, ROOT_WIN, prop_esetroot, XA_PIXMAP, 32,
                     PropModeReplace, (unsigned char *) &p, 1);
 
     XSetCloseDownMode(XDPY, RetainPermanent);
@@ -844,7 +843,7 @@ parse_opts( unsigned int argc, char **args )
 	char *token;
 
 	unsigned int max_mon_index = SCREEN->num_mons - 1;
-	unsigned int num_walls     = 0;
+	unsigned int cur_mon_index = 0;
 
 	/*PARSE THE OPTIONS AND STORE IN APPROP. STRUCTS*/
 	for (i = 1; i < argc; i++) {
@@ -875,17 +874,22 @@ parse_opts( unsigned int argc, char **args )
 							"Exiting with status 1.\n");
 			exit(1);
 #else
-			char *nondigits; nondigits[0] = '\0';
-			long int val = strtol(args[i + 1], &nondigits, 10);
+			char **nondigits = malloc(sizeof(char*));
+			long int val = strtol(args[++i], nondigits, 10);
 
 			/* if we don't get an integer */
-			if (nondigits[0] != '\0') {
-				fprintf(stderr, "'%s' is not an integer. "
+			if ((*nondigits)[0] != '\0') {
+				fprintf(stderr, "'--on' failed; '%s' is not an integer. "
 								"Exiting with status 1.\n",
 								args[i + 1]);
 				exit(1);
-			} assign_to_mon = (int) val;
+			}
+            assign_to_mon = (int) val;
 
+            if (nondigits != NULL) {
+                free(nondigits);
+                nondigits = NULL;
+            }
 			if (assign_to_mon < 0) {
 				fprintf(stderr, "Monitor %d does not exist. "
 								"Exiting with status 1.\n",
@@ -946,13 +950,17 @@ parse_opts( unsigned int argc, char **args )
         /*assume anything that is not a flag ends one invocation sequence*/
         if (image_path == NULL) continue;
 
-        /*if we're assigning to a non-existent monitor*/
-        /*then don't do anything (just reset the flags)*/
+        if (cur_mon_index > max_mon_index) {
+            cur_mon_index = max_mon_index;
+            goto RESET_FLAGS;
+        }
+        if (assign_to_mon == -1)
+            assign_to_mon = cur_mon_index;
+
         if (assign_to_mon > (int) max_mon_index)
             goto RESET_FLAGS;
 
-        num_walls++;
-        if (num_walls - 1 > max_mon_index) continue;
+        cur_mon_index++;
 
 		/* start creating the wall and assigning it to monitor */
 		struct wallpaper *w = init_wall();
@@ -970,6 +978,7 @@ parse_opts( unsigned int argc, char **args )
 		w->option		= aspect;
 		w->axis			= axis;
         w->span         = span;
+        w->monitor      = assign_to_mon;
 
 		if (greyscale != 0)		w->greyscale  = greyscale;
 		if (blur_r != 0)		w->blur		  = blur_r;
@@ -980,9 +989,6 @@ parse_opts( unsigned int argc, char **args )
 
         if (bg_col != NULL)     w->bgcol      = bg_col;
         if (tn_col != NULL)     w->tint       = tn_col;
-
-        w->monitor = (assign_to_mon != -1) ? assign_to_mon :
-                                             (int) num_walls - 1;
 
         /*if for some reason a wall was already assigned to*/
         /*designated monitor, clean it*/
@@ -995,6 +1001,7 @@ parse_opts( unsigned int argc, char **args )
 
         } (SCREEN->monitors)[w->monitor]->wall = w;
 
+
 RESET_FLAGS:
         span = greyscale = blur_r = shrp_r = 0;
         contrast_v = (bright_v = 0.0) + 1.0;
@@ -1005,7 +1012,6 @@ RESET_FLAGS:
         assign_to_mon = -1;
 
 	} // end for loop
-
 	if (store) store_call(argc, args);
 }
 
