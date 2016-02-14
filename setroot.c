@@ -1120,6 +1120,11 @@ int main(int argc, char** args)
                 program_name, XDisplayName(NULL));
         exit(1);
     }
+	if (argc < 2) {
+        printf("No options were provided. Call \'man setroot\' for help.\n");
+        exit(1);
+    }
+
     XSCRN_NUM    = DefaultScreen(XDPY);
     XSCRN        = ScreenOfDisplay(XDPY, XSCRN_NUM);
     ROOT_WIN     = RootWindow(XDPY, XSCRN_NUM);
@@ -1127,15 +1132,6 @@ int main(int argc, char** args)
     VISUAL       = DefaultVisual(XDPY, XSCRN_NUM);
     BITDEPTH     = DefaultDepth(XDPY, XSCRN_NUM);
 	SCREEN		 = init_screen(XSCRN->width, XSCRN->height);
-
-	if (argc < 2) {
-        printf("No options were provided. Call \'man setroot\' for help.\n");
-        exit(1);
-    }
-    if (argc > 1 && streq(args[1], "--restore")) {
-        restore();
-		goto CLEANUP;
-	}
 #ifdef HAVE_LIBXINERAMA
 	if			(streq(args[argc - 1], "--use-x-geometry")) {
 		sort_mons_by(SCREEN, SORT_BY_XORG);
@@ -1147,8 +1143,10 @@ int main(int argc, char** args)
 		sort_mons_by(SCREEN, SORT_BY_XINM);
 	}
 #endif
-
-	Window desktop_window = None;
+    if (argc > 1 && streq(args[1], "--restore")) {
+        restore();
+		goto CLEANUP;
+	} Window desktop_window = None;
 
 	parse_opts(argc, args);
     Pixmap bg = make_bg(SCREEN);
