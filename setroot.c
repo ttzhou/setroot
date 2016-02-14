@@ -59,8 +59,6 @@ Colormap            COLORMAP;
 Visual             *VISUAL;
 
 struct screen	   *SCREEN  = NULL;
-struct monitor     *STNSCRN; // spanned area of all monitors
-
 unsigned int        NUM_MONS = 0;
 
 /* runtime variables */
@@ -226,9 +224,10 @@ find_desktop( Window window )
 		if (child == None)
 			continue;
 
-		XFree(children);
 		return child;
-	} return None;
+	} if (n_children) XFree(children);
+
+    return None;
 }
 
 void
@@ -340,7 +339,7 @@ struct screen
 	s->screen_width  = sw;
 	s->screen_height = sh;
 
-	s->monitors = malloc(sizeof(struct monitor *) * nm);
+	s->monitors = (struct monitor **) malloc(nm*sizeof(struct monitor *));
     verify(s->monitors);
 
 #ifdef HAVE_LIBXINERAMA
@@ -348,14 +347,13 @@ struct screen
 	struct monitor *m = NULL;
 
 	for (i = 0; i < nm; i++) {
-		m = init_monitor(XSI[i].height,
+		m = init_monitor(XSI[i].width,
 						 XSI[i].height,
 						 XSI[i].x_org,
 						 XSI[i].y_org);
 
 		(s->monitors)[i] = m;
-	}
-	XFree(XSI);
+	} XFree(XSI);
 #else
 	(s->monitors)[0] = init_monitor(sw, sh, 0, 0);
 #endif
@@ -412,28 +410,41 @@ clean_screen( struct screen *s )
 	unsigned int i;
 	unsigned int nm = s->num_mons;
 
-	if (nm == 0) return;
+    if (s->monitors == NULL || nm == 0) return;
 
-	for (i = 0; i < nm; i++)
+	for (i = 0; i < nm; i++) {
 		clean_monitor((s->monitors)[i]);
+        free((s->monitors)[i]);
+    } free(s->monitors);
+
+    s->monitors = NULL;
 }
 
 void
 clean_monitor( struct monitor *m )
 {
-	if (m->wall != NULL) clean_wall(m->wall);
+	if (m->wall == NULL) return;
+
+    clean_wall(m->wall);
+    free(m->wall);
+    m->wall = NULL;
 }
 
 void
 clean_wall( struct wallpaper *w )
 {
-    if (w->bgcol != NULL)
+    if (w->bgcol != NULL) {
         free(w->bgcol);
-    if (w->tint != NULL)
+        w->bgcol = NULL;
+    }
+    if (w->tint != NULL) {
         free(w->tint);
+        w->tint = NULL;
+    }
     if (w->image != NULL) {
         imlib_context_set_image(w->image);
         imlib_free_image_and_decache();
+        w->image = NULL;
     }
 }
 
@@ -546,7 +557,6 @@ solid_color( struct monitor *mon )
     imlib_context_set_image(solid_color);
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
     w->image = solid_color;
-    imlib_context_set_blend(0);
 }
 
 void
@@ -569,7 +579,8 @@ center_wall( struct monitor *mon )
                                  wall->width, wall->height);
 
     imlib_context_set_image(wall->image);
-    imlib_free_image_and_decache();
+    imlib_free_image();
+    imlib_context_set_image(centered_image);
     wall->image = centered_image;
     imlib_context_set_blend(0);
 }
@@ -826,7 +837,7 @@ parse_opts( unsigned int argc, char **args )
 	flip_t axis				  = NONE;
 
 	char *image_path		  = NULL;
-	Imlib_Image *image		  = NULL;
+	Imlib_Image image		  = NULL;
 
 	/* argument counter and argument buffer */
 	unsigned int i;
@@ -839,6 +850,9 @@ parse_opts( unsigned int argc, char **args )
 	for (i = 1; i < argc; i++) {
 
 		token = args[i];
+        /* if we have a flag and nothing after it */
+        if (argc == i + 1 && token[0] == '-')
+            tfargs_error(token);
 
 		/*STORE FLAG MUST BE FIRST*/
 		if			(streq(token, "--store") && i == 1) {
@@ -846,18 +860,12 @@ parse_opts( unsigned int argc, char **args )
 
 		/*GLOBAL OPTIONS*/
 		} else if	(streq(token, "--blank-color")) {
-			if (argc == i + 1)
-				tfargs_error(token);
-
 			BLANK_COLOR = args[++i];
 
 		/*IMAGE FLAGS*/
 		} else if	(streq(token, "--span")) {
 			span = 1;
 		} else if	(streq(token, "--bg-color")) {
-			if (argc == i + 1)
-				tfargs_error(token);
-
 			bg_col = parse_color(args[++i]);
 
 		} else if	(streq(token, "--on")) {
@@ -867,9 +875,6 @@ parse_opts( unsigned int argc, char **args )
 							"Exiting with status 1.\n");
 			exit(1);
 #else
-			if (argc == i + 1)
-				tfargs_error(token);
-
 			char *nondigits; nondigits[0] = '\0';
 			long int val = strtol(args[i + 1], &nondigits, 10);
 
@@ -893,33 +898,18 @@ parse_opts( unsigned int argc, char **args )
 			greyscale = 1;
 
         } else if (streq(token, "--tint")) {
-            if (argc == i + 1)
-				tfargs_error(token);
-
             tn_col = parse_color(args[++i]);
 
         } else if (streq(token, "--blur")) {
-            if (argc == i + 1)
-				tfargs_error(token);
-
 			blur_r = parse_int(args[++i]);
 
         } else if (streq(token, "--sharpen")) {
-            if (argc == i + 1)
-				tfargs_error(token);
-
 			shrp_r = parse_int(args[++i]);
 
         } else if (streq(token, "--brighten")) {
-            if (argc == i + 1)
-				tfargs_error(token);
-
 			bright_v = parse_float(args[++i]);
 
         } else if (streq(token, "--contrast")) {
-            if (argc == i + 1)
-				tfargs_error(token);
-
 			contrast_v = parse_float(args[++i]);
 
         } else if (streq(token, "--fliph")) {
@@ -931,9 +921,7 @@ parse_opts( unsigned int argc, char **args )
 
         /* IMAGE OPTIONS */
         } else if (streq(token, "-sc") || streq(token, "--solid-color" )) {
-            if (argc == i + 1)
-				tfargs_error(token);
-            bg_col = parse_color(args[i + 1]);
+            bg_col = parse_color(args[++i]);
             image_path = "__COLOR__";
 
         } else if (streq(token, "-c")  || streq(token, "--center")) {
@@ -963,15 +951,20 @@ parse_opts( unsigned int argc, char **args )
         if (assign_to_mon > (int) max_mon_index)
             goto RESET_FLAGS;
 
+        num_walls++;
+        if (num_walls - 1 > max_mon_index) continue;
+
 		/* start creating the wall and assigning it to monitor */
+		struct wallpaper *w = init_wall();
+
 		if (!streq(image_path, "__COLOR__")) {
 			image = imlib_load_image(image_path);
+            imlib_context_set_image(image);
+            w->width = imlib_image_get_width();
+            w->height = imlib_image_get_height();
 
 			if (image == NULL) invalid_img_error(image_path);
 		}
-		struct wallpaper *w = init_wall();
-		num_walls++;
-
 		w->image		= image;
 		w->image_path	= image_path;
 		w->option		= aspect;
@@ -996,7 +989,7 @@ parse_opts( unsigned int argc, char **args )
         if ((SCREEN->monitors)[w->monitor]->wall != NULL) {
             int taken_index = w->monitor;
 
-            clean_wall(((SCREEN->monitors)[taken_index])->wall);
+            clean_wall((SCREEN->monitors)[taken_index]->wall);
             free((SCREEN->monitors)[taken_index]->wall);
             (SCREEN->monitors)[taken_index]->wall = NULL;
 
@@ -1027,14 +1020,14 @@ make_bg( struct screen *s )
     imlib_set_color_usage(IMLIB_COLOR_USAGE);
     imlib_context_set_dither(DITHER_SWITCH);
 
-    Pixmap canvas
-        = XCreatePixmap(XDPY,
-                        ROOT_WIN,
-                        s->screen_width,
-                        s->screen_height,
-                        BITDEPTH);
+    Pixmap canvas = XCreatePixmap(XDPY,
+                                  ROOT_WIN,
+                                  s->screen_width,
+                                  s->screen_height,
+                                  BITDEPTH);
 
     blank_screen(s, BLANK_COLOR, &canvas);
+    imlib_context_set_drawable(canvas);
 
     unsigned int i;
     unsigned int nm = s->num_mons;
@@ -1067,7 +1060,6 @@ make_bg( struct screen *s )
                 cur_mon->xpos   = 0;
                 cur_mon->ypos   = 0;
             }
-
             switch (w->option) {
             case CENTER:
                 center_wall(cur_mon);
@@ -1097,13 +1089,12 @@ make_bg( struct screen *s )
             if (w->blur != 0)       blur_wall(w);
             if (w->sharpen != 0)    sharpen_wall(w);
         }
-        /*set the context and render it to drawable*/
+        /*set context and render image to drawable*/
         imlib_context_set_image(w->image);
-        imlib_render_image_on_drawable_at_size(cur_mon->xpos + w->xpos,
-                                               cur_mon->ypos + w->ypos,
-                                               cur_mon->width,
-                                               cur_mon->height);
+        imlib_render_image_on_drawable(cur_mon->xpos + w->xpos,
+                                       cur_mon->ypos + w->ypos);
         imlib_free_image_and_decache();
+        w->image = NULL;
     }
     imlib_flush_loaders();
     return canvas;
@@ -1152,20 +1143,20 @@ int main(int argc, char** args)
 	parse_opts(argc, args);
     Pixmap bg = make_bg(SCREEN);
 
-    if (bg) {
+    if (bg != None) {
         set_pixmap_property(bg);
 		XSetWindowBackgroundPixmap(XDPY, ROOT_WIN, bg);
 
-		desktop_window = find_desktop(ROOT_WIN);
+        desktop_window = find_desktop(ROOT_WIN);
 
-		if (desktop_window != None) {
-			XSetWindowBackgroundPixmap(XDPY, desktop_window, bg);
-			XClearWindow(XDPY, desktop_window);
-		}
+        if (desktop_window != None) {
+            XSetWindowBackgroundPixmap(XDPY, desktop_window, bg);
+            XClearWindow(XDPY, desktop_window);
+        }
     }
 	CLEANUP:
 
-    clean_screen(SCREEN);
+    clean_screen(SCREEN); free(SCREEN);
 
     XClearWindow(XDPY, ROOT_WIN);
     XFlush(XDPY);

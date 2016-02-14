@@ -13,6 +13,8 @@ struct monitor *init_monitor( unsigned int w, unsigned int h,
 
 struct screen *init_screen( unsigned int sw, unsigned int sh );
 
+struct rgb_triple *parse_color( const char *col );
+
 void clean_wall( struct wallpaper *w );
 void clean_monitor( struct monitor *m );
 void clean_screen( struct screen *s );
@@ -24,7 +26,7 @@ void sort_mons_by( struct screen *s, int sort_opt );
 void parse_opts( unsigned int argc, char **args );
 void blank_screen( struct screen *s, const char *blank_color, Pixmap *canvas );
 
-//void center_wall( struct monitor *mon, Pixmap *canvas);
+void center_wall( struct monitor *mon );
 //void stretch_wall( struct monitor *mon, Pixmap *canvas);
 //void fit_height( struct monitor *mon, Pixmap *canvas);
 //void fit_width( struct monitor *mon, Pixmap *canvas);
@@ -33,6 +35,4 @@ void blank_screen( struct screen *s, const char *blank_color, Pixmap *canvas );
 //void tile_wall( struct monitor *mon, Pixmap *canvas);
 //void solid_color( struct monitor *mon, Pixmap *canvas);
 
-Pixmap make_bg_for( struct screen *s );
-
-struct rgb_triple *parse_color( const char *col );
+Pixmap make_bg( struct screen *s );
