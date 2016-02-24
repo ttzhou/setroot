@@ -467,7 +467,7 @@ void sort_mons_by( struct screen *s, int sort_opt )
 			values[i].value = (s->monitors)[i]->ypos;
 			values[i].index = i;
 		}
-		qsort(values, nm, sizeof(struct pair), ascending);
+		qsort(values, nm, sizeof(struct pair), descending);
 	} else {
 		for ( i = 0; i < nm; i++ ) {
 			values[i].value = 0;
@@ -868,6 +868,12 @@ parse_opts( unsigned int argc, char **args )
 	for (i = 1; i < argc; i++) {
 
 		token = args[i];
+
+        /*ignore geometry flags*/
+        if (streq(token, "--use-x-geometry") ||
+            streq(token, "--use-y-geometry"))
+            continue;
+
         /* if we have a flag and nothing after it */
         if (argc == i + 1 && token[0] == '-')
             tfargs_error(token);
@@ -1132,17 +1138,16 @@ int main(int argc, char** args)
     VISUAL       = DefaultVisual(XDPY, XSCRN_NUM);
     BITDEPTH     = DefaultDepth(XDPY, XSCRN_NUM);
 	SCREEN		 = init_screen(XSCRN->width, XSCRN->height);
+
 #ifdef HAVE_LIBXINERAMA
-	if			(streq(args[argc - 1], "--use-x-geometry")) {
+	if			(streq(args[argc - 1], "--use-x-geometry"))
 		sort_mons_by(SCREEN, SORT_BY_XORG);
-		argc--;
-	} else if	(streq(args[argc - 1], "--use-y-geometry")) {
+	else if	(streq(args[argc - 1], "--use-y-geometry"))
 		sort_mons_by(SCREEN, SORT_BY_YORG);
-		argc--;
-	} else {
+	else
 		sort_mons_by(SCREEN, SORT_BY_XINM);
-	}
 #endif
+
     if (argc > 1 && streq(args[1], "--restore")) {
         restore();
 		goto CLEANUP;
