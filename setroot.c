@@ -58,7 +58,7 @@ int                 BITDEPTH;
 Colormap            COLORMAP;
 Visual             *VISUAL;
 
-struct screen	   *SCREEN  = NULL;
+struct screen       *SCREEN  = NULL;
 unsigned int        NUM_MONS = 0;
 
 /* runtime variables */
@@ -107,13 +107,13 @@ set_pixmap_property(Pixmap p)
 
     if ((prop_root != None) && (prop_esetroot != None)) {
         XGetWindowProperty(XDPY, ROOT_WIN, prop_root, 0L, 1L, False,
-                AnyPropertyType, &type, &format,
-                &length, &after, &data_root);
+                           AnyPropertyType, &type, &format,
+                           &length, &after, &data_root);
 
         if (type == XA_PIXMAP) {
             XGetWindowProperty(XDPY, ROOT_WIN, prop_esetroot, 0L, 1L,
-                    False, AnyPropertyType, &type, &format,
-                    &length, &after, &data_esetroot);
+                               False, AnyPropertyType, &type, &format,
+                               &length, &after, &data_esetroot);
 
             if (data_root && data_esetroot)
                 if ((type == XA_PIXMAP) &&
@@ -162,15 +162,15 @@ find_desktop( Window window )
 {
     Atom prop_desktop, prop_type;
 
-	Atom ret_type;
+    Atom ret_type;
     int ret_format;
     unsigned long n_ret, ret_bytes_left;
     Atom *ret_props = NULL;
 
-	Atom prop;
+    Atom prop;
 
-	int has_property = 0;
-	int has_children = 0;
+    int has_property = 0;
+    int has_children = 0;
     unsigned int n_children = 0;
 
     Window root;
@@ -181,50 +181,50 @@ find_desktop( Window window )
     prop_type = XInternAtom(XDPY, "_NET_WM_WINDOW_TYPE", True);
     prop_desktop = XInternAtom(XDPY, "_NET_WM_WINDOW_TYPE_DESKTOP", True);
 
-	if (prop_type == None) {
-		fprintf(stderr, "Could not find window with _NET_WM_WINDOW_TYPE set. "
-						"Defaulting to root window.\n");
-		return None;
-	}
+    if (prop_type == None) {
+        fprintf(stderr, "Could not find window with _NET_WM_WINDOW_TYPE set. "
+                        "Defaulting to root window.\n");
+        return None;
+    }
 
-	// check current window
-	has_property = XGetWindowProperty(XDPY, window, prop_type,
-									  0L, sizeof(Atom),
-									  False,
-									  XA_ATOM,
-									  &ret_type,
-									  &ret_format,
-									  &n_ret, &ret_bytes_left,
-									  (unsigned char **) &ret_props);
+    // check current window
+    has_property = XGetWindowProperty(XDPY, window, prop_type,
+                                      0L, sizeof(Atom),
+                                      False,
+                                      XA_ATOM,
+                                      &ret_type,
+                                      &ret_format,
+                                      &n_ret, &ret_bytes_left,
+                                      (unsigned char **) &ret_props);
 
-	if (has_property == Success &&
-		ret_props && n_ret > 0 && ret_type == XA_ATOM) {
+    if (has_property == Success &&
+        ret_props && n_ret > 0 && ret_type == XA_ATOM) {
 
-		for (unsigned int i = 0; i < n_ret; i++) {
-			prop = ret_props[i];
-			if (prop == prop_desktop) {
-				XFree(ret_props);
-				return window;
-			}
-		} XFree(ret_props);
-	}
-	// otherwise, recursively check children; first call XQueryTree
-	has_children = XQueryTree(XDPY, window,
-							  &root, &parent,
-							  &children, &n_children);
+        for (unsigned int i = 0; i < n_ret; i++) {
+            prop = ret_props[i];
+            if (prop == prop_desktop) {
+                XFree(ret_props);
+                return window;
+            }
+        } XFree(ret_props);
+    }
+    // otherwise, recursively check children; first call XQueryTree
+    has_children = XQueryTree(XDPY, window,
+                              &root, &parent,
+                              &children, &n_children);
 
-	if (!has_children) {
-		fprintf(stderr, "XQueryTree() failed!\n");
-		exit(1);
-	}
+    if (!has_children) {
+        fprintf(stderr, "XQueryTree() failed!\n");
+        exit(1);
+    }
 
-	for (unsigned int i = 0; i < n_children; i++) {
-		child = find_desktop(children[i]);
-		if (child == None)
-			continue;
+    for (unsigned int i = 0; i < n_children; i++) {
+        child = find_desktop(children[i]);
+        if (child == None)
+            continue;
 
-		return child;
-	} if (n_children) XFree(children);
+        return child;
+    } if (n_children) XFree(children);
 
     return None;
 }
@@ -232,187 +232,187 @@ find_desktop( Window window )
 void
 store_call( int argc, char** args )
 {
-	/*CREATE THE DIRECTORY AND FILE*/
-	char *cfg_dir,*fn, *fullpath;
-	unsigned int buflen;
+    /*CREATE THE DIRECTORY AND FILE*/
+    char *cfg_dir,*fn, *fullpath;
+    unsigned int buflen;
 
-	if (getenv("XDG_CONFIG_HOME") == NULL) {
-		buflen = strlen(getenv("HOME")) + strlen("/.config/setroot") + 1;
-		cfg_dir = malloc(buflen); verify(cfg_dir);
-		snprintf(cfg_dir, buflen, "%s/%s/%s", getenv("HOME"),
-											  ".config",
-											  "setroot");
-	} else {
-		buflen = strlen(getenv("XDG_CONFIG_HOME")) + strlen("/setroot") + 1;
-		cfg_dir = malloc(buflen); verify(cfg_dir);
-		snprintf(cfg_dir, buflen, "%s/%s", getenv("XDG_CONFIG_HOME"),
-												  "setroot");
-	}
-	/*CREATE DIRECTORY*/
-	if (mkdir(cfg_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1
-		&& errno != EEXIST) {
+    if (getenv("XDG_CONFIG_HOME") == NULL) {
+        buflen = strlen(getenv("HOME")) + strlen("/.config/setroot") + 1;
+        cfg_dir = malloc(buflen); verify(cfg_dir);
+        snprintf(cfg_dir, buflen, "%s/%s/%s", getenv("HOME"),
+                                              ".config",
+                                              "setroot");
+    } else {
+        buflen = strlen(getenv("XDG_CONFIG_HOME")) + strlen("/setroot") + 1;
+        cfg_dir = malloc(buflen); verify(cfg_dir);
+        snprintf(cfg_dir, buflen, "%s/%s", getenv("XDG_CONFIG_HOME"),
+                                                  "setroot");
+    }
+    /*CREATE DIRECTORY*/
+    if (mkdir(cfg_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1
+        && errno != EEXIST) {
 
-		fprintf(stderr, "Could not create directory %s.\n", cfg_dir);
-		exit(1);
-	}
-	buflen += strlen(".setroot-restore") + 1;
-	fn = malloc(buflen); verify(fn);
-	snprintf(fn, buflen, "%s/%s", cfg_dir, ".setroot-restore");
+        fprintf(stderr, "Could not create directory %s.\n", cfg_dir);
+        exit(1);
+    }
+    buflen += strlen(".setroot-restore") + 1;
+    fn = malloc(buflen); verify(fn);
+    snprintf(fn, buflen, "%s/%s", cfg_dir, ".setroot-restore");
 
-	/*WRITE TO THE FILE*/
+    /*WRITE TO THE FILE*/
     FILE *f = fopen(fn, "w");
     if (!f) {
         fprintf(stderr, "Could not write to file %s.\n", fn);
         exit(1);
     }
 
-	fprintf(f, "setroot"); // the initial call
-	for (int i = 2; i < argc; i++) { // jump past --store
-		fullpath = realpath(args[i], NULL);
+    fprintf(f, "setroot"); // the initial call
+    for (int i = 2; i < argc; i++) { // jump past --store
+        fullpath = realpath(args[i], NULL);
 
-		if (fullpath == NULL) {
-			fprintf(f, " \'%s\'", args[i]);
-			continue;
-		}
-		unsigned int pathlen = strlen(fullpath);
-		/* if does not contain a period, or it does but ends in a digit, */
-		/* then assume it is a flag or a flag option */
-		if ((strpbrk(fullpath, ".") == NULL) || isdigit(fullpath[pathlen - 1]))
-			fprintf(f, " \'%s\'", args[i]);
-		else
-			fprintf(f, " \'%s\'", fullpath);
-		free(fullpath);
-	} fclose(f);
+        if (fullpath == NULL) {
+            fprintf(f, " \'%s\'", args[i]);
+            continue;
+        }
+        unsigned int pathlen = strlen(fullpath);
+        /* if does not contain a period, or it does but ends in a digit, */
+        /* then assume it is a flag or a flag option */
+        if ((strpbrk(fullpath, ".") == NULL) || isdigit(fullpath[pathlen - 1]))
+            fprintf(f, " \'%s\'", args[i]);
+        else
+            fprintf(f, " \'%s\'", fullpath);
+        free(fullpath);
+    } fclose(f);
 
-	/*GIVE FILE PROPER PERMISSIONS*/
-	if (chmod(fn, S_IRWXU | S_IRGRP | S_IROTH | S_IXOTH) != 0) {
-		fprintf(stderr, "Could not make file \'%s\' executable.\n", fn);
-		exit(1);
-	} free(fn); free(cfg_dir);
+    /*GIVE FILE PROPER PERMISSIONS*/
+    if (chmod(fn, S_IRWXU | S_IRGRP | S_IROTH | S_IXOTH) != 0) {
+        fprintf(stderr, "Could not make file \'%s\' executable.\n", fn);
+        exit(1);
+    } free(fn); free(cfg_dir);
 }
 
 void
 restore()
 {
-	char *fn;
-	unsigned int dirlen;
+    char *fn;
+    unsigned int dirlen;
 
-	if (getenv("XDG_CONFIG_HOME") == NULL) {
-		dirlen = (strlen(getenv("HOME")) \
-				+ strlen("/.config/setroot/.setroot-restore") + 1);
-		fn = malloc(dirlen); verify(fn);
-		snprintf(fn, dirlen, "%s/%s/%s/%s", \
-				 getenv("HOME"), ".config", "setroot", ".setroot-restore");
-	} else {
-		dirlen = (strlen(getenv("XDG_CONFIG_HOME")) \
-				+ strlen("/setroot/.setroot-restore") + 1);
-		fn = malloc(dirlen); verify(fn);
-		snprintf(fn, dirlen, "%s/%s/%s", \
-			   	 getenv("XDG_CONFIG_HOME"), "setroot", ".setroot-restore");
-	}
-	if (system(fn) != 0) {
-		fprintf(stderr, "Could not restore wallpaper. Check file %s.\n", fn);
-		exit(127);
-	} free(fn);
+    if (getenv("XDG_CONFIG_HOME") == NULL) {
+        dirlen = (strlen(getenv("HOME")) \
+                + strlen("/.config/setroot/.setroot-restore") + 1);
+        fn = malloc(dirlen); verify(fn);
+        snprintf(fn, dirlen, "%s/%s/%s/%s", \
+                 getenv("HOME"), ".config", "setroot", ".setroot-restore");
+    } else {
+        dirlen = (strlen(getenv("XDG_CONFIG_HOME")) \
+                + strlen("/setroot/.setroot-restore") + 1);
+        fn = malloc(dirlen); verify(fn);
+        snprintf(fn, dirlen, "%s/%s/%s", \
+                    getenv("XDG_CONFIG_HOME"), "setroot", ".setroot-restore");
+    }
+    if (system(fn) != 0) {
+        fprintf(stderr, "Could not restore wallpaper. Check file %s.\n", fn);
+        exit(127);
+    } free(fn);
 }
 
 struct screen
 *init_screen( unsigned int sw, unsigned int sh )
 {
-	struct screen *s = malloc(sizeof(struct screen));
-	verify(s);
+    struct screen *s = malloc(sizeof(struct screen));
+    verify(s);
 
-	unsigned int nm = 1;
+    unsigned int nm = 1;
 
 #ifdef HAVE_LIBXINERAMA
-	XineramaScreenInfo *XSI = XineramaQueryScreens(XDPY, (int *) &nm);
+    XineramaScreenInfo *XSI = XineramaQueryScreens(XDPY, (int *) &nm);
 
-	if (nm == 0) {
-		fprintf(stderr, "Problem detecting Xinerama screens!"
-						"Exiting program!\n");
-		exit(1);
-	}
+    if (nm == 0) {
+        fprintf(stderr, "Problem detecting Xinerama screens!"
+                        "Exiting program!\n");
+        exit(1);
+    }
 #endif
 
-	s->num_mons		 = nm;
-	s->screen_width  = sw;
-	s->screen_height = sh;
+    s->num_mons      = nm;
+    s->screen_width  = sw;
+    s->screen_height = sh;
 
-	s->monitors = (struct monitor **) malloc(nm*sizeof(struct monitor *));
+    s->monitors = (struct monitor **) malloc(nm*sizeof(struct monitor *));
     verify(s->monitors);
 
 #ifdef HAVE_LIBXINERAMA
-	unsigned int i;
-	struct monitor *m = NULL;
+    unsigned int i;
+    struct monitor *m = NULL;
 
-	for (i = 0; i < nm; i++) {
-		m = init_monitor(XSI[i].width,
-						 XSI[i].height,
-						 XSI[i].x_org,
-						 XSI[i].y_org);
+    for (i = 0; i < nm; i++) {
+        m = init_monitor(XSI[i].width,
+                         XSI[i].height,
+                         XSI[i].x_org,
+                         XSI[i].y_org);
 
-		(s->monitors)[i] = m;
-	} XFree(XSI);
+        (s->monitors)[i] = m;
+    } XFree(XSI);
 #else
-	(s->monitors)[0] = init_monitor(sw, sh, 0, 0);
+    (s->monitors)[0] = init_monitor(sw, sh, 0, 0);
 #endif
-	XSync(XDPY, False);
-	return s;
+    XSync(XDPY, False);
+    return s;
 }
 
 struct monitor
 *init_monitor( unsigned int w, unsigned int h,
-			   unsigned int xp, unsigned int yp )
+               unsigned int xp, unsigned int yp )
 {
-	struct monitor *m = malloc(sizeof(struct monitor));
-	verify(m);
+    struct monitor *m = malloc(sizeof(struct monitor));
+    verify(m);
 
-	m->width  = w;
-	m->height = h;
+    m->width  = w;
+    m->height = h;
 
-	m->xpos = xp;
-	m->ypos = yp;
+    m->xpos = xp;
+    m->ypos = yp;
 
-	m->wall = NULL;
+    m->wall = NULL;
 
-	return m;
+    return m;
 }
 
 struct wallpaper
 *init_wall()
 {
-	struct wallpaper *w = malloc(sizeof(struct wallpaper));
-	verify(w);
+    struct wallpaper *w = malloc(sizeof(struct wallpaper));
+    verify(w);
 
     w->height     = w->width    = 0;
     w->xpos       = w->ypos     = 0; // relative to monitor!
-	w->span       = w->monitor  = 0;
+    w->span       = w->monitor  = 0;
 
     w->option     = FIT_AUTO;
     w->axis       = NONE;
 
     w->blur       = w->sharpen  = 0;
     w->brightness = 0;
-	w->contrast   = 1.0;
+    w->contrast   = 1.0;
     w->greyscale  = 0;
 
     w->bgcol      = NULL;
     w->tint       = NULL;
     w->image      = NULL;
 
-	return w;
+    return w;
 }
 
 void
 clean_screen( struct screen *s )
 {
-	unsigned int i;
-	unsigned int nm = s->num_mons;
+    unsigned int i;
+    unsigned int nm = s->num_mons;
 
     if (s->monitors == NULL || nm == 0) return;
 
-	for (i = 0; i < nm; i++) {
-		clean_monitor((s->monitors)[i]);
+    for (i = 0; i < nm; i++) {
+        clean_monitor((s->monitors)[i]);
         free((s->monitors)[i]);
     } free(s->monitors);
 
@@ -422,7 +422,7 @@ clean_screen( struct screen *s )
 void
 clean_monitor( struct monitor *m )
 {
-	if (m->wall == NULL) return;
+    if (m->wall == NULL) return;
 
     clean_wall(m->wall);
     free(m->wall);
@@ -450,36 +450,36 @@ clean_wall( struct wallpaper *w )
 #ifdef HAVE_LIBXINERAMA
 void sort_mons_by( struct screen *s, int sort_opt )
 {
-	unsigned int i;
-	unsigned int nm = s->num_mons;
+    unsigned int i;
+    unsigned int nm = s->num_mons;
 
-	struct pair values[nm];
-	struct monitor *new_order[nm];
+    struct pair values[nm];
+    struct monitor *new_order[nm];
 
-	if (sort_opt == SORT_BY_XORG) {
-		for ( i = 0; i < nm; i++ ) {
-			values[i].value = (s->monitors)[i]->xpos;
-			values[i].index = i;
-		}
-		qsort(values, nm, sizeof(struct pair), ascending);
-	} else if (sort_opt == SORT_BY_YORG) {
-		for ( i = 0; i < nm; i++ ) {
-			values[i].value = (s->monitors)[i]->ypos;
-			values[i].index = i;
-		}
-		qsort(values, nm, sizeof(struct pair), descending);
-	} else {
-		for ( i = 0; i < nm; i++ ) {
-			values[i].value = 0;
-			values[i].index = i;
-		}
-	}
+    if        (sort_opt == SORT_BY_XORG) {
+        for   ( i = 0; i < nm; i++ ) {
+            values[i].value = (s->monitors)[i]->xpos;
+            values[i].index = i;
+        }
+        qsort(values, nm, sizeof(struct pair), ascending);
+    } else if (sort_opt == SORT_BY_YORG) {
+        for ( i = 0; i < nm; i++ ) {
+            values[i].value = (s->monitors)[i]->ypos;
+            values[i].index = i;
+        }
+        qsort(values, nm, sizeof(struct pair), descending);
+    } else {
+        for ( i = 0; i < nm; i++ ) {
+            values[i].value = 0;
+            values[i].index = i;
+        }
+    }
 
-	for ( i = 0 ; i < nm ; i++ )
-		new_order[i] = (s->monitors)[values[i].index];
+    for ( i = 0 ; i < nm ; i++ )
+        new_order[i] = (s->monitors)[values[i].index];
 
-	for ( i = 0 ; i < nm ; i++ )
-		(s->monitors)[i] = new_order[i];
+    for ( i = 0 ; i < nm ; i++ )
+        (s->monitors)[i] = new_order[i];
 }
 #endif
 
@@ -505,7 +505,7 @@ struct rgb_triple *parse_color( const char *col )
             strlen(col) != 7) {
 
             fprintf(stderr,
-					"Invalid hex code %s; defaulting to #000000.\n", col);
+                    "Invalid hex code %s; defaulting to #000000.\n", col);
             rgb->r = rgb->g = rgb->b = 0;
         }
         free(rr); free(gg); free(bb);
@@ -529,7 +529,7 @@ blank_screen( struct screen *s, const char *blank_color, Pixmap *canvas )
     struct rgb_triple *col = parse_color(blank_color);
 
     Imlib_Image bg = imlib_create_image(s->screen_width,
-										s->screen_height);
+                                        s->screen_height);
     if (bg == NULL)
         die(1, "Failed to create image.");
 
@@ -537,8 +537,8 @@ blank_screen( struct screen *s, const char *blank_color, Pixmap *canvas )
     imlib_context_set_drawable(*canvas);
     imlib_context_set_image(bg);
     imlib_image_fill_rectangle(0, 0, s->screen_width, s->screen_width);
-	imlib_render_image_on_drawable(0, 0);
-	imlib_free_image_and_decache();
+    imlib_render_image_on_drawable(0, 0);
+    imlib_free_image_and_decache();
     free(col);
 }
 
@@ -735,26 +735,26 @@ tile( struct monitor *mon )
 void
 make_greyscale( struct wallpaper *w )
 {
-	Imlib_Color color;
-	imlib_context_set_image(w->image);
-	unsigned int width = imlib_image_get_width();
-	unsigned int height = imlib_image_get_height();
-	float avg = 0.0;
+    Imlib_Color color;
+    imlib_context_set_image(w->image);
+    unsigned int width = imlib_image_get_width();
+    unsigned int height = imlib_image_get_height();
+    float avg = 0.0;
 
-	for( unsigned int x = 0; x < width; x++) {
-		for( unsigned int y = 0; y < height; y++) {
-			imlib_image_query_pixel(x, y, &color);
-			avg = 0.21 * color.red + 0.72 * color.green + 0.07 * color.blue;
-			imlib_context_set_color(avg, avg, avg, color.alpha);
-			imlib_image_draw_pixel(x, y, 0);
-		}
-	}
+    for( unsigned int x = 0; x < width; x++) {
+        for( unsigned int y = 0; y < height; y++) {
+            imlib_image_query_pixel(x, y, &color);
+            avg = 0.21 * color.red + 0.72 * color.green + 0.07 * color.blue;
+            imlib_context_set_color(avg, avg, avg, color.alpha);
+            imlib_image_draw_pixel(x, y, 0);
+        }
+    }
 }
 
 void
 tint_image( struct wallpaper *w )
 {
-	imlib_context_set_image(w->image);
+    imlib_context_set_image(w->image);
     Imlib_Color_Modifier adjustments = imlib_create_color_modifier();
     verify(adjustments);
 
@@ -796,7 +796,7 @@ flip_image( struct wallpaper *w )
 void
 change_contrast( struct wallpaper *w )
 {
-	imlib_context_set_image(w->image);
+    imlib_context_set_image(w->image);
     Imlib_Color_Modifier adjustments = imlib_create_color_modifier();
     verify(adjustments);
 
@@ -809,7 +809,7 @@ change_contrast( struct wallpaper *w )
 void
 change_brightness( struct wallpaper *w )
 {
-	imlib_context_set_image(w->image);
+    imlib_context_set_image(w->image);
     Imlib_Color_Modifier adjustments = imlib_create_color_modifier();
     verify(adjustments);
 
@@ -822,54 +822,54 @@ change_brightness( struct wallpaper *w )
 void
 blur_wall( struct wallpaper *w )
 {
-	imlib_context_set_image(w->image);
+    imlib_context_set_image(w->image);
     imlib_image_blur(w->blur);
 }
 
 void
 sharpen_wall( struct wallpaper *w )
 {
-	imlib_context_set_image(w->image);
+    imlib_context_set_image(w->image);
     imlib_image_sharpen(w->sharpen);
 }
 
 void
 parse_opts( unsigned int argc, char **args )
 {
-	/*VARIOUS FLAGS*/
-	unsigned int store	    = 0;
-	unsigned int span       = 0;
+    /*VARIOUS FLAGS*/
+    unsigned int store        = 0;
+    unsigned int span       = 0;
 
-	int assign_to_mon       = -1;
+    int assign_to_mon       = -1;
 
-	char *bg_col            = NULL;
-	char *tn_col            = NULL;
+    char *bg_col            = NULL;
+    char *tn_col            = NULL;
 
-	unsigned int blur_r     = 0;
-	unsigned int shrp_r     = 0;
-	float contrast_v        = 1.0;
-	float bright_v          = 0.0;
+    unsigned int blur_r     = 0;
+    unsigned int shrp_r     = 0;
+    float contrast_v        = 1.0;
+    float bright_v          = 0.0;
 
-	unsigned int greyscale  = 0;
+    unsigned int greyscale  = 0;
 
-	fit_t  aspect		    = FIT_AUTO;
-	flip_t axis			    = NONE;
+    fit_t  aspect            = FIT_AUTO;
+    flip_t axis                = NONE;
 
-	char *image_path	    = NULL;
+    char *image_path        = NULL;
 
-	/* argument counter and argument buffer */
-	unsigned int i;
-	char *token;
+    /* argument counter and argument buffer */
+    unsigned int i;
+    char *token;
 
-	unsigned int max_mon_index = SCREEN->num_mons - 1;
-	unsigned int cur_mon_index = 0;
+    unsigned int max_mon_index = (SCREEN->num_mons) - 1;
+    unsigned int cur_mon_index = 0;
 
-	/*PARSE THE OPTIONS AND STORE IN APPROP. STRUCTS*/
-	for (i = 1; i < argc; i++) {
+    /*PARSE THE OPTIONS AND STORE IN APPROP. STRUCTS*/
+    for (i = 1; i < argc; i++) {
 
-		token = args[i];
+        token = args[i];
 
-        /*ignore geometry flags*/
+        /*ignore geometry flags, these were already parsed in main*/
         if (streq(token, "--use-x-geometry") ||
             streq(token, "--use-y-geometry"))
             continue;
@@ -878,126 +878,129 @@ parse_opts( unsigned int argc, char **args )
         if (argc == i + 1 && token[0] == '-')
             tfargs_error(token);
 
-		/*STORE FLAG MUST BE FIRST*/
-		if			(streq(token, "--store") && i == 1) {
-			store = 1;
+        /*STORE FLAG MUST BE FIRST*/
+        if            (streq(token, "--store") && i == 1) {
+            store = 1;
 
-		/*GLOBAL OPTIONS*/
-		} else if	(streq(token, "--blank-color")) {
-			BLANK_COLOR = args[++i];
+        /*GLOBAL OPTIONS*/
+        } else if    (streq(token, "--blank-color")) {
+            BLANK_COLOR = args[++i];
 
-		/*IMAGE FLAGS*/
-		} else if	(streq(token, "--span")) {
-			span = 1;
-		} else if	(streq(token, "--bg-color")) {
-			bg_col = args[++i];
+        /*IMAGE FLAGS*/
+        } else if    (streq(token, "--span")) {
+            span = 1;
+        } else if    (streq(token, "--bg-color")) {
+            bg_col = args[++i];
 
-		} else if	(streq(token, "--on")) {
+        } else if    (streq(token, "--on")) {
 #ifndef HAVE_LIBXINERAMA
-			fprintf(stderr, "'setroot' was not compiled with Xinerama "
-							"support. '--on' is not supported. "
-							"Exiting with status 1.\n");
-			exit(1);
+            fprintf(stderr, "'setroot' was not compiled with Xinerama "
+                            "support. '--on' is not supported. "
+                            "Exiting with status 1.\n");
+            exit(1);
 #else
             assign_to_mon = parse_int(args[++i]);
 
-			if (assign_to_mon < 0) {
-				fprintf(stderr, "Monitor %d does not exist. "
-								"Exiting with status 1.\n",
-								assign_to_mon);
-				exit(1);
+            if (assign_to_mon < 0) {
+                fprintf(stderr, "Monitor %d does not exist. "
+                                "Exiting with status 1.\n",
+                                assign_to_mon);
+                exit(1);
             }
 #endif
-		/* MANIPULATIONS */
-		} else if (streq(token, "--greyscale")) {
-			greyscale = 1;
+        /* MANIPULATIONS */
+        } else if   (streq(token, "--greyscale")) {
+            greyscale = 1;
 
-        } else if (streq(token, "--tint")) {
+        } else if   (streq(token, "--tint")) {
             tn_col = args[++i];
 
-        } else if (streq(token, "--blur")) {
-			blur_r = parse_int(args[++i]);
+        } else if   (streq(token, "--blur")) {
+            blur_r = parse_int(args[++i]);
 
-        } else if (streq(token, "--sharpen")) {
-			shrp_r = parse_int(args[++i]);
+        } else if   (streq(token, "--sharpen")) {
+            shrp_r = parse_int(args[++i]);
 
-        } else if (streq(token, "--brighten")) {
-			bright_v = parse_float(args[++i]);
+        } else if   (streq(token, "--brighten")) {
+            bright_v = parse_float(args[++i]);
 
-        } else if (streq(token, "--contrast")) {
-			contrast_v = parse_float(args[++i]);
+        } else if   (streq(token, "--contrast")) {
+            contrast_v = parse_float(args[++i]);
 
-        } else if (streq(token, "--fliph")) {
+        } else if   (streq(token, "--fliph")) {
             axis = HORIZONTAL;
-        } else if (streq(token, "--flipv")) {
+        } else if   (streq(token, "--flipv")) {
             axis = VERTICAL;
-        } else if (streq(token, "--flipd")) {
+        } else if   (streq(token, "--flipd")) {
             axis = DIAGONAL;
 
         /* IMAGE OPTIONS */
-        } else if (streq(token, "-sc") || streq(token, "--solid-color" )) {
+        } else if   (streq(token, "-sc") || streq(token, "--solid-color" )) {
             bg_col = args[++i];
             image_path = "__COLOR__";
 
-        } else if (streq(token, "-c")  || streq(token, "--center")) {
+        } else if   (streq(token, "-c")  || streq(token, "--center")) {
             aspect = CENTER;
-        } else if (streq(token, "-s")  || streq(token, "--stretch")) {
+        } else if   (streq(token, "-s")  || streq(token, "--stretch")) {
             aspect = STRETCH;
-        } else if (streq(token, "-fh") || streq(token, "--fit-height")) {
+        } else if   (streq(token, "-fh") || streq(token, "--fit-height")) {
             aspect = FIT_HEIGHT;
-        } else if (streq(token, "-fw") || streq(token, "--fit-width")) {
+        } else if   (streq(token, "-fw") || streq(token, "--fit-width")) {
             aspect = FIT_WIDTH;
-        } else if (streq(token, "-f")  || streq(token, "--fit-auto")) {
+        } else if   (streq(token, "-f")  || streq(token, "--fit-auto")) {
             aspect = FIT_AUTO;
-        } else if (streq(token, "-z")  || streq(token, "--zoom")) {
+        } else if   (streq(token, "-z")  || streq(token, "--zoom")) {
             aspect = ZOOM;
-        } else if (streq(token, "-t")  || streq(token, "--tiled")) {
+        } else if   (streq(token, "-t")  || streq(token, "--tiled")) {
             aspect = TILE;
 
-		/* if all of the above fail, treat it like an image path */
-		} else {
-			image_path = token;
-		}
+        /* if all of the above fail, treat it like an image path */
+        } else {
+            image_path = token;
+        }
         /*assume anything that is not a flag ends one invocation sequence*/
         if (image_path == NULL) continue;
 
+        /*if invocation blocks exceed number of monitors*/
         if (cur_mon_index > max_mon_index) {
             cur_mon_index = max_mon_index;
             goto RESET_FLAGS;
         }
+        /*if no monitor is explicitly specified*/
         if (assign_to_mon == -1)
             assign_to_mon = cur_mon_index;
 
+        /*if assigning to non-existent monitor*/
         if (assign_to_mon > (int) max_mon_index)
             goto RESET_FLAGS;
 
         cur_mon_index++;
 
-		/* start creating the wall and assigning it to monitor */
-		struct wallpaper *w = init_wall();
+        /* start creating the wall and assigning it to monitor */
+        struct wallpaper *w = init_wall();
 
-		if (!streq(image_path, "__COLOR__")) {
-			Imlib_Image image = imlib_load_image(image_path);
+        if (!streq(image_path, "__COLOR__")) {
+            Imlib_Image image = imlib_load_image(image_path);
             imlib_context_set_image(image);
 
             w->image  = image;
             w->width  = imlib_image_get_width();
             w->height = imlib_image_get_height();
 
-			if (image == NULL) invalid_img_error(image_path);
-		}
-		w->image_path	= image_path;
-		w->option		= aspect;
-		w->axis			= axis;
+            if (image == NULL) invalid_img_error(image_path);
+        }
+        w->image_path   = image_path;
+        w->option        = aspect;
+        w->axis            = axis;
         w->span         = span;
         w->monitor      = assign_to_mon;
 
-		if (greyscale != 0)		w->greyscale  = greyscale;
-		if (blur_r != 0)		w->blur		  = blur_r;
-		if (shrp_r != 0)		w->sharpen	  = shrp_r;
+        if (greyscale != 0)        w->greyscale  = greyscale;
+        if (blur_r != 0)        w->blur          = blur_r;
+        if (shrp_r != 0)        w->sharpen      = shrp_r;
 
-		if (bright_v != 0.0)	w->brightness = bright_v;
-		if (contrast_v != 0.0)	w->contrast   = contrast_v;
+        if (bright_v != 0.0)    w->brightness = bright_v;
+        if (contrast_v != 0.0)    w->contrast   = contrast_v;
 
         if (bg_col != NULL)     w->bgcol      = parse_color(bg_col);
         if (tn_col != NULL)     w->tint       = parse_color(tn_col);
@@ -1020,11 +1023,11 @@ RESET_FLAGS:
         axis = NONE;
         aspect = FIT_AUTO;
         tn_col = bg_col = NULL;
-		image_path = NULL;
+        image_path = NULL;
         assign_to_mon = -1;
 
-	} // end for loop
-	if (store) store_call(argc, args);
+    } // end for loop
+    if (store) store_call(argc, args);
 }
 
 Pixmap
@@ -1126,7 +1129,7 @@ int main(int argc, char** args)
                 program_name, XDisplayName(NULL));
         exit(1);
     }
-	if (argc < 2) {
+    if (argc < 2) {
         printf("No options were provided. Call \'man setroot\' for help.\n");
         exit(1);
     }
@@ -1137,28 +1140,28 @@ int main(int argc, char** args)
     COLORMAP     = DefaultColormap(XDPY, XSCRN_NUM);
     VISUAL       = DefaultVisual(XDPY, XSCRN_NUM);
     BITDEPTH     = DefaultDepth(XDPY, XSCRN_NUM);
-	SCREEN		 = init_screen(XSCRN->width, XSCRN->height);
+    SCREEN         = init_screen(XSCRN->width, XSCRN->height);
 
 #ifdef HAVE_LIBXINERAMA
-	if			(streq(args[argc - 1], "--use-x-geometry"))
-		sort_mons_by(SCREEN, SORT_BY_XORG);
-	else if	(streq(args[argc - 1], "--use-y-geometry"))
-		sort_mons_by(SCREEN, SORT_BY_YORG);
-	else
-		sort_mons_by(SCREEN, SORT_BY_XINM);
+    if          (streq(args[argc - 1], "--use-x-geometry"))
+        sort_mons_by(SCREEN, SORT_BY_XORG);
+    else if     (streq(args[argc - 1], "--use-y-geometry"))
+        sort_mons_by(SCREEN, SORT_BY_YORG);
+    else
+        sort_mons_by(SCREEN, SORT_BY_XINM);
 #endif
 
     if (argc > 1 && streq(args[1], "--restore")) {
         restore();
-		goto CLEANUP;
-	} Window desktop_window = None;
+        goto CLEANUP;
+    } Window desktop_window = None;
 
-	parse_opts(argc, args);
+    parse_opts(argc, args);
     Pixmap bg = make_bg(SCREEN);
 
     if (bg != None) {
         set_pixmap_property(bg);
-		XSetWindowBackgroundPixmap(XDPY, ROOT_WIN, bg);
+        XSetWindowBackgroundPixmap(XDPY, ROOT_WIN, bg);
 
         desktop_window = find_desktop(ROOT_WIN);
 
@@ -1167,7 +1170,7 @@ int main(int argc, char** args)
             XClearWindow(XDPY, desktop_window);
         }
     }
-	CLEANUP:
+    CLEANUP:
 
     clean_screen(SCREEN); free(SCREEN);
 
