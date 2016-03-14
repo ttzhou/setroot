@@ -6,7 +6,7 @@ NAME
 VERSION
 -------
 
-`release: version 2.0 - 2016-02-14`
+`release: version 2.0 - 2016-03-13`
 
 
 ABOUT
