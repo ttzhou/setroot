@@ -4,6 +4,16 @@ CHANGELOG
 Release
 -------
 
+v2.0
+------
+
+- code rewrite
+
+v1.5
+------
+
+- fixed desktop_window()
+
 v1.4.6
 ------
 
