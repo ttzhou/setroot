@@ -548,8 +548,8 @@ blank_screen( struct screen *s, const char *blank_color, Pixmap *canvas )
 void
 solid_color( struct monitor *mon )
 {
-    struct wallpaper *w = mon->wall;
-    struct rgb_triple *col = w->bgcol; // won't be null
+    struct wallpaper *wall = mon->wall;
+    struct rgb_triple *col = wall->bgcol; // won't be null
 
     Imlib_Image solid_color = imlib_create_image(mon->width, mon->height);
     if (solid_color == NULL)
@@ -558,7 +558,7 @@ solid_color( struct monitor *mon )
     imlib_context_set_color(col->r, col->g, col->b, 255);
     imlib_context_set_image(solid_color);
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
-    w->image = solid_color;
+    wall->image = solid_color;
 }
 
 void
@@ -569,10 +569,13 @@ center_wall( struct monitor *mon )
 
     Imlib_Image centered_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(centered_image);
-    if (col != NULL) {
+
+    if (col != NULL)
         imlib_context_set_color(col->r, col->g, col->b, 255);
-        imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
-    }
+    else
+        imlib_context_set_color(0, 0, 0, 255);
+
+    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
     imlib_context_set_blend(1);
 
     /* this is where we place the image in absolute coordinates */
@@ -600,10 +603,13 @@ stretch_wall( struct monitor *mon )
 
     Imlib_Image stretched_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(stretched_image);
-    if (col != NULL) {
+
+    if (col != NULL)
         imlib_context_set_color(col->r, col->g, col->b, 255);
-        imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
-    }
+    else
+        imlib_context_set_color(0, 0, 0, 255);
+
+    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
     imlib_context_set_blend(1);
 
     imlib_blend_image_onto_image(wall->image, 0,
@@ -625,10 +631,13 @@ fit_height( struct monitor *mon )
 
     Imlib_Image fit_height_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(fit_height_image);
-    if (col != NULL) {
+
+    if (col != NULL)
         imlib_context_set_color(col->r, col->g, col->b, 255);
-        imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
-    }
+    else
+        imlib_context_set_color(0, 0, 0, 255);
+
+    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
     imlib_context_set_blend(1);
 
     float scaled_width = wall->width * mon->height * (1.0 / wall->height);
@@ -654,10 +663,13 @@ fit_width( struct monitor *mon )
 
     Imlib_Image fit_width_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(fit_width_image);
-    if (col != NULL) {
+
+    if (col != NULL)
         imlib_context_set_color(col->r, col->g, col->b, 255);
-        imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
-    }
+    else
+        imlib_context_set_color(0, 0, 0, 255);
+
+    imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
     imlib_context_set_blend(1);
 
     float scaled_height =  wall->height * mon->width * (1.0 / wall->width);
@@ -840,7 +852,7 @@ void
 parse_opts( unsigned int argc, char **args )
 {
     /*VARIOUS FLAGS*/
-    unsigned int store        = 0;
+    unsigned int store      = 0;
     unsigned int span       = 0;
 
     int assign_to_mon       = -1;
@@ -855,8 +867,8 @@ parse_opts( unsigned int argc, char **args )
 
     unsigned int greyscale  = 0;
 
-    fit_t  aspect            = FIT_AUTO;
-    flip_t axis                = NONE;
+    fit_t  aspect           = FIT_AUTO;
+    flip_t axis             = NONE;
 
     char *image_path        = NULL;
 
@@ -992,18 +1004,18 @@ parse_opts( unsigned int argc, char **args )
 
             if (image == NULL) invalid_img_error(image_path);
         }
-        w->image_path   = image_path;
-        w->option        = aspect;
-        w->axis            = axis;
-        w->span         = span;
-        w->monitor      = assign_to_mon;
+        w->image_path = image_path;
+        w->option     = aspect;
+        w->axis       = axis;
+        w->span       = span;
+        w->monitor    = assign_to_mon;
 
-        if (greyscale != 0)        w->greyscale  = greyscale;
-        if (blur_r != 0)        w->blur          = blur_r;
-        if (shrp_r != 0)        w->sharpen      = shrp_r;
+        if (greyscale != 0)     w->greyscale  = greyscale;
+        if (blur_r != 0)        w->blur       = blur_r;
+        if (shrp_r != 0)        w->sharpen    = shrp_r;
 
         if (bright_v != 0.0)    w->brightness = bright_v;
-        if (contrast_v != 0.0)    w->contrast   = contrast_v;
+        if (contrast_v != 0.0)  w->contrast   = contrast_v;
 
         if (bg_col != NULL)     w->bgcol      = parse_color(bg_col);
         if (tn_col != NULL)     w->tint       = parse_color(tn_col);
@@ -1143,7 +1155,7 @@ int main(int argc, char** args)
     COLORMAP     = DefaultColormap(XDPY, XSCRN_NUM);
     VISUAL       = DefaultVisual(XDPY, XSCRN_NUM);
     BITDEPTH     = DefaultDepth(XDPY, XSCRN_NUM);
-    SCREEN         = init_screen(XSCRN->width, XSCRN->height);
+    SCREEN       = init_screen(XSCRN->width, XSCRN->height);
 
 #ifdef HAVE_LIBXINERAMA
     if          (streq(args[argc - 1], "--use-x-geometry"))
