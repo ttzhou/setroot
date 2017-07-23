@@ -569,11 +569,10 @@ center_wall( struct monitor *mon )
 
     Imlib_Image centered_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(centered_image);
+    imlib_context_set_color(0, 0, 0, 255);
 
     if (col != NULL)
         imlib_context_set_color(col->r, col->g, col->b, 255);
-    else
-        imlib_context_set_color(0, 0, 0, 255);
 
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
     imlib_context_set_blend(1);
@@ -603,11 +602,10 @@ stretch_wall( struct monitor *mon )
 
     Imlib_Image stretched_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(stretched_image);
+    imlib_context_set_color(0, 0, 0, 255);
 
     if (col != NULL)
         imlib_context_set_color(col->r, col->g, col->b, 255);
-    else
-        imlib_context_set_color(0, 0, 0, 255);
 
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
     imlib_context_set_blend(1);
@@ -631,11 +629,10 @@ fit_height( struct monitor *mon )
 
     Imlib_Image fit_height_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(fit_height_image);
+    imlib_context_set_color(0, 0, 0, 255);
 
     if (col != NULL)
         imlib_context_set_color(col->r, col->g, col->b, 255);
-    else
-        imlib_context_set_color(0, 0, 0, 255);
 
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
     imlib_context_set_blend(1);
@@ -663,11 +660,10 @@ fit_width( struct monitor *mon )
 
     Imlib_Image fit_width_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(fit_width_image);
+    imlib_context_set_color(0, 0, 0, 255);
 
     if (col != NULL)
         imlib_context_set_color(col->r, col->g, col->b, 255);
-    else
-        imlib_context_set_color(0, 0, 0, 255);
 
     imlib_image_fill_rectangle(0, 0, mon->width, mon->height);
     imlib_context_set_blend(1);
