@@ -388,6 +388,12 @@ struct wallpaper
     w->xpos       = w->ypos     = 0; // relative to monitor!
     w->span       = w->monitor  = 0;
 
+    w->xg_type    = PERCENTAGE;
+    w->yg_type    = PERCENTAGE;
+
+    w->xg         = 0.5;
+    w->yg         = 0.5;
+
     w->option     = FIT_AUTO;
     w->axis       = NONE;
 
@@ -624,6 +630,8 @@ fit_height( struct monitor *mon )
     struct wallpaper *wall = mon->wall;
     struct rgb_triple *col = wall->bgcol;
 
+    float xg = wall->xg;
+
     Imlib_Image fit_height_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(fit_height_image);
     imlib_context_set_color(0, 0, 0, 255);
@@ -635,8 +643,20 @@ fit_height( struct monitor *mon )
     imlib_context_set_blend(1);
 
     float scaled_width = wall->width * mon->height * (1.0 / wall->height);
+
+    if (wall->xg_type == PERCENTAGE)
+            xg = xg * scaled_width;
+
     /* trust me, the math is good. */
-    float xtl = (mon->width - scaled_width) * 0.5;
+    float xtl = mon->width * 0.5 - xg;
+    float max_xtl = abs(mon->width - scaled_width);
+
+    if (scaled_width > mon->width) {
+        if (xtl < -max_xtl)
+            xtl = -max_xtl;
+        else if (xtl > max_xtl)
+            xtl = max_xtl;
+    }
 
     imlib_blend_image_onto_image(wall->image, 0,
                                  0, 0, wall->width, wall->height,
@@ -655,6 +675,8 @@ fit_width( struct monitor *mon )
     struct wallpaper *wall = mon->wall;
     struct rgb_triple *col = wall->bgcol;
 
+    float yg = wall->yg;
+
     Imlib_Image fit_width_image = imlib_create_image(mon->width, mon->height);
     imlib_context_set_image(fit_width_image);
     imlib_context_set_color(0, 0, 0, 255);
@@ -666,8 +688,20 @@ fit_width( struct monitor *mon )
     imlib_context_set_blend(1);
 
     float scaled_height =  wall->height * mon->width * (1.0 / wall->width);
+
+    if (wall->yg_type == PERCENTAGE)
+            yg = yg * scaled_height;
+
     /* trust me, the math is good. */
-    float ytl = (mon->height - scaled_height) * 0.5;
+    float ytl = mon->height * 0.5 - yg;
+    float max_ytl = abs(mon->height - scaled_height);
+
+    if (scaled_height > mon->height) {
+        if (ytl < -max_ytl)
+            ytl = -max_ytl;
+        else if (ytl > max_ytl)
+            ytl = max_ytl;
+    }
 
     imlib_blend_image_onto_image(wall->image, 0,
                                  0, 0, wall->width, wall->height,
@@ -860,8 +894,14 @@ parse_opts( unsigned int argc, char **args )
 
     unsigned int greyscale  = 0;
 
-    fit_t  aspect           = FIT_AUTO;
-    flip_t axis             = NONE;
+    fit_t     aspect        = FIT_AUTO;
+    flip_t    axis          = NONE;
+
+    gravity_t xg_type       = PERCENTAGE;
+    gravity_t yg_type       = PERCENTAGE;
+
+    float xg                  = 0.5;
+    float yg                  = 0.5;
 
     char *image_path        = NULL;
 
@@ -955,6 +995,26 @@ parse_opts( unsigned int argc, char **args )
             aspect = FIT_HEIGHT;
         } else if   (streq(token, "-fw") || streq(token, "--fit-width")) {
             aspect = FIT_WIDTH;
+        } else if   (streq(token, "-gx") || streq(token, "--gravity-x")) {
+            int last = strlen(args[++i]) - 1;
+            if (args[i][last] == '%') {
+                args[i][last] = '\0';
+                xg_type = PERCENTAGE;
+                xg = (float)parse_float(args[i])/100;
+            } else {
+                xg_type = POSITION;
+                xg = parse_int(args[i]);
+            }
+        } else if   (streq(token, "-gy") || streq(token, "--gravity-y")) {
+            int last = strlen(args[++i]) - 1;
+            if (args[i][last] == '%') {
+                args[i][last] = '\0';
+                yg_type = PERCENTAGE;
+                yg = parse_float(args[i])/100;
+            } else {
+                yg_type = POSITION;
+                yg = (float)parse_int(args[i]);
+            }
         } else if   (streq(token, "-f")  || streq(token, "--fit-auto")) {
             aspect = FIT_AUTO;
         } else if   (streq(token, "-z")  || streq(token, "--zoom")) {
@@ -1002,6 +1062,8 @@ parse_opts( unsigned int argc, char **args )
         w->axis       = axis;
         w->span       = span;
         w->monitor    = assign_to_mon;
+        w->xg_type    = xg_type;
+        w->yg_type    = yg_type;
 
         if (greyscale != 0)     w->greyscale  = greyscale;
         if (blur_r != 0)        w->blur       = blur_r;
@@ -1012,6 +1074,9 @@ parse_opts( unsigned int argc, char **args )
 
         if (bg_col != NULL)     w->bgcol      = parse_color(bg_col);
         if (tn_col != NULL)     w->tint       = parse_color(tn_col);
+
+        if (xg != 0.5)          w->xg         = xg;
+        if (yg != 0.5)          w->yg         = yg;
 
         /*if for some reason a wall was already assigned to*/
         /*designated monitor, clean it*/
@@ -1033,6 +1098,10 @@ RESET_FLAGS:
         tn_col = bg_col = NULL;
         image_path = NULL;
         assign_to_mon = -1;
+        xg_type = PERCENTAGE;
+        yg_type = PERCENTAGE;
+        xg = 0.5;
+        yg = 0.5;
 
     } // end for loop
     if (store) store_call(argc, args);

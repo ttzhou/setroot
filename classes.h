@@ -15,6 +15,11 @@ typedef enum FLIP_TYPE {
 	DIAGONAL
 } flip_t;
 
+typedef enum GRAVITY_TYPE {
+	PERCENTAGE,
+	POSITION
+} gravity_t;
+
 struct rgb_triple { int r, g, b; };
 
 #ifdef HAVE_LIBXINERAMA
@@ -67,6 +72,12 @@ struct wallpaper {
 
 	int					xpos;
 	int					ypos;
+
+	gravity_t		xg_type;
+	gravity_t		yg_type;
+
+	float					xg;
+	float					yg;
 
 	struct rgb_triple	*bgcol;
 	struct rgb_triple	*tint;
