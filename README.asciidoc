@@ -178,6 +178,14 @@ IMAGE OPTIONS
 
 	 scale image (preserve aspect) until width matches invoked screen
 
+*-gx, --gravity-x*::
+
+	 set the image gravity center in the X axis at position (which can be a fixed amount or a percentage of the image width)
+
+*-gy, --gravity-y*::
+
+	 set the image gravity center in the Y axis at position (which can be a fixed amount or a percentage of the image height)
+
 *-sc, --solid-color #RRGGBB*::
 
 	 set background to solid color #RRGGBB (hex code)
