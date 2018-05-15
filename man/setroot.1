@@ -172,14 +172,14 @@ scale image (preserve aspect) until width matches invoked screen
 .PP
 \fB\-gx, \-\-gravity\-x\fB \fI<position>\fR
 .RS 4
-set the image gravity center in the X axis at \fIposition\fR (which can be a
-fixed amount or a percentage of the image width)
+set the image gravity center in the X axis at \fIposition\fR (an integer absolute
+position or a float percentage) - default: 50%
 .RE
 .PP
 \fB\-gy, \-\-gravity\-y\fB \fI<position>\fR
 .RS 4
-set the image gravity center in the Y axis at \fIposition\fR (which can be a
-fixed amount or a percentage of the image height)
+set the image gravity center in the Y axis at \fIposition\fR (an integer absolute
+position or a float percentage) - default: 50%
 .RE
 .PP
 \fB\-sc, \-\-solid\-color\fB \fI#RRGGBB\fR
@@ -197,6 +197,16 @@ number Xinerama monitors from leftmost to rightmost
 .RS 4
 number Xinerama monitors from topmost to bottommost
 .RE
+.SH "GRAVITY"
+.sp
+When the \fI\-z\fR option is used, the image is zoomed in to fill the screen
+and cropped if neccessary. The \fI\-\-gravity\-x\fR and \fI\-\-gravity\-y\fR
+parameters let you choose the 'gravity center' of the image: \fBsetroot\fR will try
+to match that center with the display center if possible.
+.sp
+Both parameters can be given in two formats, both relative to the image
+dimensions: as an integer, which means an absolute coordinate; or as a
+decimal percentage of the total width or height.
 .SH "FILES"
 .sp
 \fBsetroot\fR creates the directory "${XDG_CONFIG_HOME:-$HOME/.config}/setroot" and places an executable file \fB.setroot-restore\fR there when \fBsetroot --store\fR is invoked for the first time\&.

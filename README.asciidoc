@@ -180,11 +180,11 @@ IMAGE OPTIONS
 
 *-gx, --gravity-x*::
 
-	 set the image gravity center in the X axis at position (which can be a fixed amount or a percentage of the image width)
+	 set the image gravity center in the X axis at position (an integer absolute position or a float percentage) - default: 50%
 
 *-gy, --gravity-y*::
 
-	 set the image gravity center in the Y axis at position (which can be a fixed amount or a percentage of the image height)
+	 set the image gravity center in the Y axis at position (an integer absolute position or a float percentage) - default: 50%
 
 *-sc, --solid-color #RRGGBB*::
 
@@ -201,6 +201,18 @@ MONITOR FLAGS
 *--use-y-geometry*::
 
 	 number Xinerama monitors from topmost to bottommost
+
+GRAVITY
+-------
+
+When the `-z` option is used, the image is zoomed in to fill the screen and
+cropped if neccessary. The `--gravity-x` and `--gravity-y` parameters let you
+choose the 'gravity center' of the image: `setroot` will try to match that
+center with the display center if possible.
+
+Both parameters can be given in two formats, both relative to the image
+dimensions: as an integer, which means an absolute coordinate; or as a decimal
+percentage of the total width or height.
 
 
 FILES
