@@ -227,6 +227,11 @@ AUTHOR
 
 *(C) 2014*-2016* Tim Zhou <ttzhou@uwaterloo.ca>
 
+CONTRIBUTORS
+------------
+
+José Miguel Sánchez García (jmi2k)
+
 
 ACKNOWLEDGMENTS
 ---------------
