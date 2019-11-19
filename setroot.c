@@ -1052,6 +1052,9 @@ parse_opts( unsigned int argc, char **args )
 
         if (!streq(image_path, "__COLOR__")) {
             Imlib_Image image = imlib_load_image(image_path);
+
+            if (image == NULL) invalid_img_error(image_path);
+
             imlib_context_set_image(image);
 
             w->image  = image;
