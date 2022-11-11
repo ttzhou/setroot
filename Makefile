@@ -1,23 +1,30 @@
-PREFIX   := /usr/local
-MANDIR   := ${PREFIX}/share/man/man1
-BINDIR   := ${PREFIX}/bin
+PREFIX           ?= /usr/local
+DESTDIR          ?=
+MANDIR           ?= ${PREFIX}/share/man/man1
+BINDIR           ?= ${PREFIX}/bin
 
-NAME     := setroot
-CC       := gcc
-OFLAG    :=
-CFLAGS   := -std=c99 -Wall -g -Wextra ${OFLAG}
-LIBS     := -lX11 `imlib2-config --libs`
+NAME             ?= setroot
+CC               ?= gcc
+PKG_CONFIG       ?= pkg-config
+OFLAG            ?=
+CFLAGS           ?= -std=c99 -Wall -g -Wextra ${OFLAG}
 
-SRC      := setroot.c
+CFLAGS+=$(shell  $(PKG_CONFIG) imlib2 --cflags)
+LDFLAGS+=$(shell $(PKG_CONFIG) imlib2 --libs)
 
-ifeq (${xinerama},1)
-DEFINES  := -DHAVE_LIBXINERAMA
-INCLUDES := -I/usr/include/X11/extensions
-LIBS     += -lXinerama
+CFLAGS+=$(shell  $(PKG_CONFIG) x11 --cflags)
+LDFLAGS+=$(shell $(PKG_CONFIG) x11 --libs)
+
+SRC              := setroot.c
+
+ifeq             (${xinerama},1)
+DEFINES          += -DHAVE_LIBXINERAMA
+CFLAGS+=$(shell  $(PKG_CONFIG) xinerama --cflags)
+LDFLAGS+=$(shell $(PKG_CONFIG) xinerama --libs)
 endif
 
 all:
-	${CC} ${SRC} ${CFLAGS} ${DEFINES} ${INCLUDES} ${LIBS} -o ${NAME}
+	${CC} ${SRC} ${CFLAGS} ${LDFLAGS} ${DEFINES} -o ${NAME}
 
 install: ${NAME} man/${NAME}.1
 	mkdir -p         ${DESTDIR}${BINDIR}
