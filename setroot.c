@@ -103,7 +103,7 @@ set_pixmap_property(Pixmap p)
     unsigned char *data_root, *data_esetroot;
 
     prop_root = XInternAtom(XDPY, "_XROOTPMAP_ID", True);
-    prop_esetroot = XInternAtom(XDPY, "ESETROOTPMAP_ID", True);
+    prop_esetroot = XInternAtom(XDPY, "ESETROOT_PMAP_ID", True);
 
     if ((prop_root != None) && (prop_esetroot != None)) {
         XGetWindowProperty(XDPY, ROOT_WIN, prop_root, 0L, 1L, False,
@@ -127,7 +127,7 @@ set_pixmap_property(Pixmap p)
     }
 
     prop_root = XInternAtom(XDPY, "_XROOTPMAP_ID", False);
-    prop_esetroot = XInternAtom(XDPY, "ESETROOTPMAP_ID", False);
+    prop_esetroot = XInternAtom(XDPY, "ESETROOT_PMAP_ID", False);
 
     if (prop_root == None || prop_esetroot == None)
         die(1, "creation of pixmap property failed");
