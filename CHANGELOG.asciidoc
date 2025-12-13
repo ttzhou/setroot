@@ -4,6 +4,14 @@ CHANGELOG
 Release
 -------
 
+v2.0.1 - v2.0.4
+------
+
+- ESETROOTPMAP_ID -> ESETROOT_PMAP_ID
+- improved makefile
+- gravity-x and gravity-y (jmi2k)
+- fixed find_desktop to handle InputOnly X windows (nck42)
+
 v2.0
 ------
 

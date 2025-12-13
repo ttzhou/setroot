@@ -173,10 +173,14 @@ find_desktop( Window window )
     int has_children = 0;
     unsigned int n_children = 0;
 
+    int is_input_only = 0;
+
     Window root;
     Window parent;
     Window child;
     Window *children;
+
+    XWindowAttributes w_attrs;
 
     prop_type = XInternAtom(XDPY, "_NET_WM_WINDOW_TYPE", True);
     prop_desktop = XInternAtom(XDPY, "_NET_WM_WINDOW_TYPE_DESKTOP", True);
@@ -200,9 +204,14 @@ find_desktop( Window window )
     if (has_property == Success &&
         ret_props && n_ret > 0 && ret_type == XA_ATOM) {
 
+        // check if window is input only
+        if (XGetWindowAttributes(XDPY, window, &w_attrs)) {
+            is_input_only = w_attrs.class;
+        }
+
         for (unsigned int i = 0; i < n_ret; i++) {
             prop = ret_props[i];
-            if (prop == prop_desktop) {
+            if (prop == prop_desktop && is_input_only == 0) {
                 XFree(ret_props);
                 return window;
             }
@@ -223,6 +232,7 @@ find_desktop( Window window )
         if (child == None)
             continue;
 
+        XFree(children);
         return child;
     } if (n_children) XFree(children);
 

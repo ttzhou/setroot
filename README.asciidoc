@@ -225,13 +225,13 @@ FILES
 AUTHOR
 ------
 
-*(C) 2014*-2016* Tim Zhou <ttzhou@uwaterloo.ca>
+*(C) 2014*-present* Tim Zhou <tim.zhou.55@gmail.com>
 
 CONTRIBUTORS
 ------------
 
 José Miguel Sánchez García (jmi2k)
-
+nck42
 
 ACKNOWLEDGMENTS
 ---------------
